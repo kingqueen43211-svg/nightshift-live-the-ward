@@ -4,9 +4,9 @@ The playable build is static and can be hosted without a game server.
 
 **Current production demo:** [https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/)
 
-The URL and its previously deployed source were verified publicly. The modified RC4 candidate is **not** considered promoted merely because this document exists; record a clean `npm run verify`, save/deploy the exact candidate commit, and repeat the logged-out public probe before describing RC4 as the verified production build.
+RC4 was promoted on 2026-11-01 after a clean `npm run verify`, an exact-source Sites save/deploy, and fresh anonymous HTTP plus real-Chrome probes. The deployed `app.mjs`, `engine.mjs`, and `styles.css` hashes match verified RC4 code commit `3e655af`; the live HTML contains the RC4 next-step surface and is content-checked because the Cloudflare serving layer injects its challenge script into the shell.
 
-On 2026-11-01, a stateless no-cookie request returned HTTP 200 with the game title and no login copy. A 26-request matrix covered all 23 deployable files plus the dashboard, overlay, and passive-mirror entry URLs with zero failures. The deployed `app.mjs`, `engine.mjs`, `styles.css`, and `twitch.mjs` hashes matched the pushed source byte-for-byte. The host rewrites the HTML shell, so `index.html` was verified by content rather than a raw hash.
+The prior full public matrix used a stateless no-cookie client for all 23 deployable files plus the dashboard, overlay, and passive-mirror entry URLs with zero failures. The RC4 promotion probe separately confirmed anonymous HTTP 200 responses, no login/access-request copy, the in-game next-step surface, matching core module/style hashes, and a real Chrome render with truthful simulated-mode and audience-source labels. Chrome then moved from Lobby to Records and announced that the camera settled, confirming the published interaction path rather than only static asset availability.
 
 The Sites serving layer does not interpret Netlify's `dist/_headers` file; the public probe did not observe that file's CSP response header. Do not claim the checked-in Netlify headers are active on this host. The app contains no client secret or shared server authority, and real Twitch/OBS verification remains a separate gate.
 
@@ -52,7 +52,7 @@ Preview domains and production domains are distinct OAuth callbacks. Register ea
 - Run a second-viewer chat command and preserve the timestamped evidence requested by `TWITCH_VERIFICATION.md`.
 - Update the Twitch redirect and OBS URLs if the production domain changes.
 
-After RC4 promotion, also confirm that the public build exposes the in-game next-step control, persistent audience/item status, spatial camera travel, generator levers, staged isolation door, and visible Warden repel behavior. Compare the deployed core-module hashes with the exact submitted commit; a healthy URL serving an older build is a failed release.
+The RC4 public probe confirmed the in-game next-step control, persistent audience/item status, truthful audience source, and spatial camera travel. Generator, isolation-door, and Warden states remain covered by the exact matching deployed modules plus the recorded local browser matrix; capture them again in the final public demo video. Compare deployed core-module hashes after every later change—a healthy URL serving an older build is a failed release.
 
 ## Submission handoff
 

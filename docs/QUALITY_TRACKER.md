@@ -4,7 +4,7 @@ Status vocabulary: **PASS** only when the stated gate has objective evidence; **
 
 ## Recorded RC4 quality gates
 
-The complete RC4 `npm run verify` composite passed on 2026-11-01. These are local candidate results; public RC4 deployment and every external/manual gate remain separate.
+The complete RC4 `npm run verify` composite passed on 2026-11-01, followed by a successful public Sites promotion and anonymous HTTP/Chrome probe. External/manual gates remain separate.
 
 | Gate | Status | Evidence / remaining proof |
 | --- | --- | --- |
@@ -60,7 +60,7 @@ The implementation and proof details live in [`RC4_JUDGE_FIX_CONTRACT.md`](RC4_J
 | Captioned procedural audio | yes | module tests | real-browser listening/mix pass pending |
 | Transparent OBS route | yes | computed alpha at 1920×1080 and 1280×720 | actual OBS capture pending |
 | Twitch OAuth/EventSub | yes | deterministic lifecycle tests | real broadcaster + second viewer pending |
-| Public logged-out deployment | RC4 candidate ready; previous version currently public | local RC4 release audit passed; previous deployment had 26 successful stateless requests and matching core-module hashes | deploy exact RC4 candidate and repeat logged-out probe |
+| Public logged-out deployment | yes | RC4 public Site returned anonymous HTTP 200 without login copy; deployed core modules/styles match verified code commit `3e655af`; real Chrome rendered the next-step/audience UI and settled a camera move | public repository and final video still require separate logged-out proof |
 | 20–35 minute campaign | target only | instrumentation refuses to claim measured duration | three human runs required |
 
 ## Remaining release blockers

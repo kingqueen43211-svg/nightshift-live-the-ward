@@ -26,7 +26,7 @@ Status vocabulary:
 
 The complete `npm run verify` composite passed on 2026-11-01: 73/73 unit and contract tests, 28/28 visual states, 9/9 gameplay gates, 5/5 integrity gates, 17/17 relay gates, 11/11 accessibility/reflow gates, 10/10 performance gates, and a passing release audit at 11.6 MiB across 23 files. The performance run completed eight measured campaigns with a 0.192 MiB final heap delta, zero final DOM growth, and zero final listener growth.
 
-This is local release-candidate evidence. It does not claim that RC4 has already been deployed publicly, and it does not satisfy any external proof row below.
+These counts are local release-candidate evidence. RC4 was subsequently promoted to the public Site and passed anonymous HTTP, exact core-module/style hash, and real-Chrome render/camera probes. Neither the automated counts nor the public Site probe satisfies any external proof row below.
 
 ## External proof that must not be simulated
 
@@ -51,5 +51,5 @@ Run the complete gate from the repository root:
 npm run verify
 ```
 
-The local composite gate is complete. Public promotion still requires saving/deploying the exact candidate and repeating the logged-out probe; live-Twitch, native-OBS, NVDA, audio, human, repository, video, and Devpost claims require their separate evidence above.
+The local composite and public Site promotion probes are complete. Live-Twitch, native-OBS, NVDA, audio, human, public-repository, video, and Devpost claims require their separate evidence above.
 

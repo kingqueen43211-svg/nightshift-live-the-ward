@@ -33,7 +33,7 @@ Status terms:
 | Original asset provenance | DOCUMENTED | V3 source PNGs, purpose, prompt constraints, alpha verification, and public derivatives are recorded in the asset manifest. |
 | Optimized public payload | VERIFIED LOCAL | The app references verified WebP derivatives and locally bundled open-licensed fonts; release audit passes at 11.6 MiB. Lossless art sources remain outside the deployable directory. |
 | Browser cold load and soak | VERIFIED LOCAL / NATIVE OBS PENDING | Hidden V3 scene art is deferred on Reception; cold transfer is 1.006 MiB. The latest eight measured full-campaign cycles pass with a 0.192 MiB final heap delta, zero final DOM/listener growth, bounded relay posts, and clean teardown. A 30-minute native Chrome+OBS soak remains. |
-| Public logged-out deployment | PREVIOUS VERSION VERIFIED / RC4 PROMOTION PENDING | The [current production demo](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/) previously returned HTTP 200 without cookies or login copy, and its deployed module hashes matched that pushed source. RC4 passed local verification but is not described as public until the exact candidate is deployed and the logged-out matrix is repeated. |
+| Public logged-out deployment | VERIFIED PUBLIC | The [current production demo](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/) passed fresh anonymous HTTP and real-Chrome probes after RC4 promotion. The shell exposes the RC4 next-step surface without login copy; deployed `app.mjs`, `engine.mjs`, and `styles.css` hashes match verified code commit `3e655af`, and Chrome rendered the truthful simulated mode and settled a public camera move. |
 | Human campaign duration | NOT MEASURED | Engine timing is rehearsal telemetry only. No 20–35 minute or other duration claim is valid until complete newcomer runs are observed and recorded. |
 | Multi-streamer hosted authority | NOT IMPLEMENTED | The entry is intentionally browser-authoritative. A production service would require server-side authorization-code OAuth, encrypted refresh storage, signed sessions, and centralized state. |
 
@@ -47,7 +47,7 @@ Status terms:
 - **npm run qa:accessibility:** 11/11 keyboard, focus, accessibility-tree, computed-contrast, and 200%-reflow gates pass.
 - **npm run qa:performance:** 10/10 gates pass across eight measured campaigns; final heap delta 0.192 MiB, final DOM delta 0, final listener delta 0.
 - **npm run release:audit:** pass; 11.6 MiB across 23 public files.
-- The complete `npm run verify` composite passed on 2026-11-01. This is local candidate evidence, not a claim that RC4 has already been publicly deployed.
+- The complete `npm run verify` composite passed on 2026-11-01. RC4 was subsequently promoted and passed anonymous HTTP plus real-Chrome production probes; external Twitch/OBS/human/NVDA/audio/submission gates remain separate.
 - The full finding-to-test map is in [`RC4_JUDGE_FIX_CONTRACT.md`](RC4_JUDGE_FIX_CONTRACT.md).
 
 ## Tests prove
