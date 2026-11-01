@@ -1,51 +1,92 @@
-# 2:45 Demo Video Script
+# 2:50 demo video script
+
+The final recording must use the public build and must preserve the visible mode label. Use **LIVE TWITCH** only after the two-account proof is complete. Otherwise record **REHEARSAL** or **SIMULATED** and describe it honestly.
 
 ## 0:00–0:12 — Cold open
 
-Show the ward full-screen. The vote closes on **Kill the lights**. The corridor blacks out, the entity appears, and the callout slams in.
+Open on Ward 06. The Warden is approaching behind the curtain. Chat's consequence kills or restores the corridor light; the streamer moves to the threshold camera and the isolation bolts retract.
 
-Voiceover: “What if Twitch chat did not just watch the horror—what if it directed it?”
+Voiceover: “What if Twitch chat did not just watch the horror—what if it changed the room around the streamer?”
 
-## 0:12–0:30 — Product
+## 0:12–0:30 — The promise
 
-Cut to the title and then the live screen.
+Cut to the cinematic title, then enter Reception.
 
-“NightShift Live is a cinematic horror game show. The streamer tries to escape Ward 06 while every viewer becomes a Guardian or a member of Chaos Crew.”
+“NightShift Live is a five-act Twitch horror game show. The streamer investigates and survives. The audience controls the pressure, resources, and routes around them.”
 
-## 0:30–1:18 — Real Twitch interaction
+Keep the mode label visible during the handoff.
 
-Show a Twitch chat beside the game. Two viewers use the displayed commands. Show percentages moving and emphasize that changing a vote replaces the viewer's previous choice. Let **Restore power** win; show the danger drop and fuse counter advance.
+## 0:30–0:58 — Two kinds of agency
 
-“Chat messages arrive through Twitch EventSub. Each viewer gets one live vote. Their decision changes progression, lighting, danger, and the monster—not just an overlay.”
+Show the three camera nodes, then have the streamer search the desk and locker. Cut to the audience vote and let a command change its percentage. Attempt **Reconstruct file** too early once so the visible prerequisite explains why it is locked; then complete it.
 
-## 1:18–1:43 — Channel event spectacle
+“Streamer actions are not chat buttons. I choose where to look, combine evidence, solve sequences, and commit to an exit. Viewers vote on a parallel layer of the same persistent world.”
 
-Trigger a cheer or raid from the control room and return immediately to gameplay for the Bits Detonation or Raid Surge.
+## 0:58–1:28 — Physical consequence
 
-“Follows, subscriptions, cheers, and raids become production moments the whole audience can feel.”
+Move through the Ward 06 wide, gurney, and threshold nodes. Show a vote restoring power, the linked bolts moving, and the original isolation door opening into the operating theatre. Then show one successful Warden counter or a clearly staged rehearsal fixture.
 
-## 1:43–2:08 — Streamer product
+“A winning vote changes doors, power, danger, inventory, lighting, and the Warden itself. The entity has warning, approach, strike, passing, and repel phases—not one overlay animation.”
 
-Show Twitch connection status, scene director controls, event feed, demo autopilot, safety toggles, and OBS overlay preview.
+## 1:28–1:52 — Campaign depth and ending truth
 
-“The streamer gets a repeatable control room, a transparent OBS source, and a deterministic demo mode for rehearsal.”
+Montage the theatre lamps, confession, 2 · 1 · 3 generator sequence, final route choice, and ending recap.
 
-## 2:08–2:31 — Codex story
+“Five rooms carry health, danger, evidence, inventory, story, checkpoints, and audience decisions forward. Failed actions do not count as progress, and the ending recap distinguishes audience choices from disclosed director fallbacks.”
 
-Show the repository and test result.
+## 1:52–2:14 — Streamer product
 
-“Codex was our primary build partner—from deadline scoping and original art direction to Twitch integration, the deterministic voting engine, interface implementation, tests, and this submission package.”
+Show the control room: Twitch signal, event rehearsal, activity feed, checkpoint recovery, pacing telemetry, accessibility settings, sound volume, and mute. Cut to the transparent overlay over a checkerboard or contrasting video background.
 
-## 2:31–2:45 — Final hook
+“The streamer gets one production console, a separate OBS browser source, safety controls, and an opt-in procedural soundscape with a visual caption for every meaningful cue.”
 
-Return to the strongest monster reveal, then cut to the logo.
+Do not call the OBS view verified until it has been captured in the real OBS application.
 
-“NightShift Live. The streamer enters. The audience decides who leaves.”
+## 2:14–2:34 — Twitch and reliability
 
-## Capture checklist
+If live proof is complete, show the broadcaster connection and a second account sending one displayed command. Follow the command through vote acceptance, world change, and OBS state. If live proof is not complete, show the labeled rehearsal path and the Twitch lifecycle diagram or test output instead.
 
-- Record at 1920×1080, 60 fps if possible.
-- Keep the browser console and OAuth token out of the recording.
-- Show one real chat vote and one real channel event if available.
-- Keep the entire video below three minutes.
-- Upload publicly to YouTube and verify in an incognito window.
+“The Twitch bridge validates OAuth state and identity, separates critical chat from optional events, deduplicates notifications, monitors keepalives, and reconnects without dropping the active socket.”
+
+Never present a rehearsal trigger as a real Twitch event.
+
+## 2:34–2:44 — Build evidence
+
+Show the terminal summaries briefly:
+
+- 48/48 tests;
+- 13/13 visual and responsive states;
+- 7/7 browser campaign gates;
+- 11.5 MiB public payload.
+
+“Codex helped build the campaign, original art pipeline, Twitch lifecycle, interfaces, audio, accessibility, tests, and release package—and the gates caught real bugs before this recording.”
+
+## 2:44–2:50 — Final hook
+
+Return to the strongest Warden or ending shot, then cut to the logo.
+
+“NightShift Live. The streamer enters. The audience decides what follows.”
+
+## Capture plan
+
+- Record at 1920×1080; use 60 fps only if the capture stays stable.
+- Capture a second OBS-alpha proof at 1280×720 even if it is not all used in the edit.
+- Keep browser console, OAuth tokens, Client ID values, personal accounts, and notifications out of frame.
+- Use headphones or monitor audio before recording; confirm captions still communicate every meaningful cue with the track muted.
+- Keep cuts readable long enough for a judge to understand cause and effect.
+- Avoid implying that simulated viewer counts, rehearsal triggers, engine target timing, or local alpha checks are real-world proof.
+- Keep the finished video below three minutes.
+- Upload publicly and verify the video, demo, and repository in a logged-out window.
+
+## Required capture inventory
+
+- [ ] Title-to-game handoff.
+- [ ] One streamer-only investigation or deduction.
+- [ ] Three visibly different camera nodes.
+- [ ] One audience vote changing the physical world.
+- [ ] Isolation door closed, bolts releasing, and door open.
+- [ ] Warden warning plus successful or failed counterplay.
+- [ ] Control room and transparent overlay.
+- [ ] Captioned audio with sound muted for one beat.
+- [ ] Ending recap with route and fallback provenance.
+- [ ] Real Twitch two-account proof, or an explicit on-screen statement that it remains pending.
