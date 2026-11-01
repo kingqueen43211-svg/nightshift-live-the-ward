@@ -6,8 +6,9 @@
   "scripts": {
     "start": "node scripts/serve.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check dist/app.mjs && node --check dist/engine.mjs && node --check dist/twitch.mjs && node --check scripts/serve.mjs && node --check scripts/release-audit.mjs && node --check scripts/visual-qa.mjs && npm test",
+    "check": "node --check dist/app.mjs && node --check dist/engine.mjs && node --check dist/twitch.mjs && node --check scripts/serve.mjs && node --check scripts/release-audit.mjs && node --check scripts/visual-qa.mjs && node --check scripts/gameplay-smoke.mjs && npm test",
     "qa:visual": "node scripts/visual-qa.mjs",
+    "qa:gameplay": "node scripts/gameplay-smoke.mjs",
     "release:audit": "node scripts/release-audit.mjs"
   }
 }
