@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#050809" />
+  <title>NightShift Live — The Ward</title>
+  <meta name="description" content="A cinematic Twitch-controlled horror survival experience." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app" data-view="gameplay">
+    <div class="noise"></div><div class="scanlines"></div><div class="vignette"></div>
+    <header class="topbar glass">
+      <button class="brand" data-view-target="gameplay" aria-label="Open gameplay">
+        <span class="brand-mark">N</span><span><b>NIGHTSHIFT</b><small>LIVE · THE WARD</small></span>
+      </button>
+      <nav aria-label="Experience screens">
+        <button class="nav-btn active" data-view-target="gameplay">Live experience</button>
+        <button class="nav-btn" data-view-target="dashboard">Control room</button>
+        <button class="nav-btn" data-view-target="overlay">OBS overlay</button>
+      </nav>
+      <div class="live-state"><i></i><span id="connectionLabel">DEMO SIGNAL</span><b id="viewerCount">1,847</b></div>
+    </header>
+
+    <main>
+      <section id="gameplay" class="screen active" aria-label="Gameplay">
+        <div class="world">
+          <img class="ward" src="./assets/ward-corridor.png" alt="Abandoned hospital ward corridor" />
+          <div class="parallax dust-a"></div><div class="parallax dust-b"></div>
+          <div class="blackout"></div><div class="alarm-wash"></div>
+          <img id="monster" class="monster" src="./assets/the-surgeon.png" alt="The Surgeon apparition" />
+          <div class="flashlight"></div>
+        </div>
+        <div class="game-hud">
+          <div class="mission glass">
+            <span class="eyebrow">WARD 06 · PRIMARY OBJECTIVE</span>
+            <h1>Restore power.<br><em>Survive the vote.</em></h1>
+            <div class="objective-row"><span>Fuses recovered</span><b id="clueCount">0 / 3</b></div>
+          </div>
+          <div class="meter-stack">
+            <div class="compact-meter glass"><span>VITALS</span><strong id="healthValue">100</strong><div><i id="healthBar"></i></div></div>
+            <div class="compact-meter danger glass"><span>ENTITY PROXIMITY</span><strong id="dangerValue">34</strong><div><i id="dangerBar"></i></div></div>
+          </div>
+          <div class="crosshair"><i></i></div>
+          <div id="eventToast" class="event-toast"><small>AUDIENCE EVENT</small><strong></strong><span></span></div>
+          <div id="votePanel" class="vote-panel glass">
+            <div class="vote-head"><div><span class="eyebrow">CHAT CHOOSES YOUR FATE</span><h2 id="roundTitle">ROUND 01 · POWER FAILURE</h2></div><div class="timer"><b id="timerValue">26</b><small>SECONDS</small></div></div>
+            <div id="voteOptions" class="vote-options"></div>
+            <div class="factions"><span>GUARDIANS <b id="guardianScore">51%</b></span><div><i id="factionBar"></i></div><span><b id="chaosScore">49%</b> CHAOS CREW</span></div>
+          </div>
+          <div class="command-hint"><span>VIEWERS</span> Vote in chat with the command shown above</div>
+        </div>
+      </section>
+
+      <section id="dashboard" class="screen dashboard" aria-label="Streamer control room">
+        <div class="dashboard-shell">
+          <div class="dash-title"><div><span class="eyebrow">STREAMER OPERATIONS</span><h1>Control room</h1><p>Arm the show, connect Twitch, and orchestrate a repeatable live moment.</p></div><button id="startShow" class="primary">Start live sequence <span>→</span></button></div>
+          <div class="dash-grid">
+            <article class="panel connect-panel">
+              <div class="panel-head"><span>01</span><div><h3>Twitch signal</h3><p>EventSub WebSocket · Chat + channel events</p></div><i id="signalDot"></i></div>
+              <label>Developer application Client ID<input id="clientId" autocomplete="off" placeholder="Paste Twitch Client ID" /></label>
+              <div class="button-row"><button id="connectTwitch" class="primary">Connect Twitch</button><button id="disconnectTwitch" class="secondary">Clear session</button></div>
+              <p class="fineprint">Register this page URL as your Twitch OAuth redirect. Tokens stay in this browser and are never written to the repository.</p>
+              <div id="twitchIdentity" class="identity"><span class="avatar">NS</span><div><small>STATUS</small><b>Demo mode ready</b></div></div>
+            </article>
+            <article class="panel scene-panel">
+              <div class="panel-head"><span>02</span><div><h3>Scene director</h3><p>Trigger moments during judging or rehearsal</p></div></div>
+              <div class="scene-buttons">
+                <button data-trigger="follow"><i>+</i><span><b>New follower</b><small>Guardian pulse</small></span></button>
+                <button data-trigger="subscribe"><i>★</i><span><b>Subscriber</b><small>Recovery drop</small></span></button>
+                <button data-trigger="cheer"><i>♦</i><span><b>Bits detonation</b><small>Danger spike</small></span></button>
+                <button data-trigger="raid"><i>⚡</i><span><b>Raid surge</b><small>Entity breach</small></span></button>
+              </div>
+            </article>
+            <article class="panel activity-panel">
+              <div class="panel-head"><span>03</span><div><h3>Audience activity</h3><p>Live normalized event feed</p></div><b id="eventRate">18/MIN</b></div>
+              <div id="activityFeed" class="activity-feed"></div>
+            </article>
+            <article class="panel mix-panel">
+              <div class="panel-head"><span>04</span><div><h3>Show mix</h3><p>Fast controls for a safe stream</p></div></div>
+              <label class="toggle"><span><b>Demo autopilot</b><small>Simulate named viewer votes</small></span><input id="demoToggle" type="checkbox" checked><i></i></label>
+              <label class="toggle"><span><b>Jump-scare visuals</b><small>Entity reveal and alarm flash</small></span><input id="scareToggle" type="checkbox" checked><i></i></label>
+              <label class="toggle"><span><b>Reduced motion</b><small>Disable shake and parallax</small></span><input id="motionToggle" type="checkbox"><i></i></label>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="overlay" class="screen overlay-screen" aria-label="OBS browser source overlay">
+        <div class="overlay-stage">
+          <div class="overlay-demo-label">OBS BROWSER SOURCE · TRANSPARENT PREVIEW</div>
+          <div class="overlay-card">
+            <div class="overlay-top"><span>CHAT CHOOSES YOUR FATE</span><b id="overlayTimer">26</b></div>
+            <div id="overlayOptions" class="overlay-options"></div>
+            <div class="overlay-factions"><span>GUARDIANS</span><div><i id="overlayFactionBar"></i></div><span>CHAOS</span></div>
+          </div>
+          <div class="overlay-event"><span>RECENT EVENT</span><b id="overlayRecent">SIGNAL ACQUIRED · THE WARD IS LISTENING</b></div>
+          <div class="obs-help glass"><b>OBS setup</b><span>Use this route as a Browser Source at 1920 × 1080. Add <code>?view=overlay</code> to open directly.</span></div>
+        </div>
+      </section>
+    </main>
+    <div id="ending" class="ending"><span class="eyebrow">TRANSMISSION COMPLETE</span><h2></h2><p></p><button id="restart" class="primary">Run it again</button></div>
+  </div>
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>
