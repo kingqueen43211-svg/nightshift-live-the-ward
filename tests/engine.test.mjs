@@ -1,37 +1,13 @@
-import test from "node:test";
-import assert from "node:assert/strict";
-import { createState, startRound, castVote, resolveRound, applyEvent } from "../dist/engine.mjs";
+import test from "node:test";import assert from "node:assert/strict";
+import {createState,startEpisode,castVote,resolveVote,advanceRoom,playerAction,joinFaction,usePower,applyChannelEvent,tick,finishEpisode,roomFor,optionsFor,publicState} from "../dist/engine.mjs";
 
-test("a viewer has exactly one active vote", () => {
-  let state = startRound(createState(0), 0);
-  state = castVote(state, "viewer-a", "!restore").state;
-  state = castVote(state, "viewer-a", "!dark").state;
-  assert.equal(state.votes.restore, 0);
-  assert.equal(state.votes.dark, 1);
-});
-
-test("aliases normalize into active choices", () => {
-  let state = startRound(createState(0), 0);
-  const result = castVote(state, "viewer-b", "!left please");
-  assert.equal(result.accepted, true);
-  assert.equal(result.option.id, "restore");
-});
-
-test("winning chaos vote raises danger and reveals monster", () => {
-  let state = startRound(createState(0), 0);
-  state = castVote(state, "a", "!dark").state;
-  state = castVote(state, "b", "!dark").state;
-  const resolved = resolveRound(state, 0);
-  assert.equal(resolved.consequence.id, "dark");
-  assert.ok(resolved.danger > state.danger);
-  assert.ok(resolved.monster > state.monster);
-});
-
-test("Twitch events map to deterministic gameplay effects", () => {
-  const state = createState(0);
-  const raid = applyEvent(state, { type: "raid", viewers: 500, actor: "raider" });
-  assert.equal(raid.danger, state.danger + 12);
-  assert.equal(raid.recent[0].actor, "raider");
-  const follow = applyEvent(state, { type: "follow", actor: "new-viewer" });
-  assert.equal(follow.danger, state.danger - 4);
-});
+test("episode starts in reception with a deterministic vote window",()=>{const s=createState(100);startEpisode(s,100,30000);assert.equal(s.status,"voting");assert.equal(roomFor(s).id,"intake");assert.equal(s.roundEndsAt,30100);assert.deepEqual(Object.keys(s.votes),optionsFor(s).map(o=>o.id));});
+test("one vote per viewer and ties resolve by option order",()=>{const s=createState();startEpisode(s,0);assert.equal(castVote(s,"Moth","!records").accepted,true);assert.equal(castVote(s,"moth","!medkit").accepted,false);castVote(s,"Hex","!medkit");const r=resolveVote(s);assert.equal(r.winner.id,"records");assert.equal(s.evidence.includes("Patient 06 ledger"),true);});
+test("timer resolves an open vote but does not mutate paused sessions",()=>{const s=createState();startEpisode(s,0,10);castVote(s,"A","!noise");tick(s,11);assert.equal(s.status,"consequence");const danger=s.danger;tick(s,999);assert.equal(s.danger,danger);});
+test("advancing preserves inventory and evidence across all rooms",()=>{const s=createState();startEpisode(s,0);playerAction(s,"search-desk");resolveVote(s);advanceRoom(s,100);assert.equal(roomFor(s).id,"surgery");assert.equal(s.evidence.includes("Triage transfer slip"),true);});
+test("generator requires the exact 2-1-3 sequence",()=>{const s=createState();s.roomIndex=3;playerAction(s,"breaker-1");assert.deepEqual(s.props.breakerProgress,[]);playerAction(s,"breaker-2");playerAction(s,"breaker-1");playerAction(s,"breaker-3");assert.equal(s.power,100);assert.equal(s.doors.exit,true);});
+test("faction powers spend energy and enforce cooldown",()=>{const s=createState();joinFaction(s,"viewer","guardian");const before=s.energy.guardian;assert.equal(usePower(s,"viewer","heal").accepted,true);assert.equal(s.energy.guardian,before-25);assert.equal(usePower(s,"viewer","heal").accepted,false);});
+test("EventSub-style events are idempotent",()=>{const s=createState();const e={id:"event-1",type:"subscribe",user:"sub"};assert.equal(applyChannelEvent(s,e).accepted,true);const health=s.health,items=s.inventory.length;assert.equal(applyChannelEvent(s,e).accepted,false);assert.equal(s.health,health);assert.equal(s.inventory.length,items);});
+test("strong evidence and power unlock the best ending",()=>{const s=createState();s.evidence=["a","b","c"];s.power=80;finishEpisode(s,"roof");assert.equal(s.ending,"DAWN BREAKS OVER WARD 06");assert.equal(s.warden.contained,true);});
+test("danger can force the failure ending",()=>{const s=createState();s.danger=100;finishEpisode(s,"roof");assert.equal(s.ending,"THE WARD CLAIMS ANOTHER");});
+test("privacy mode redacts audience names from public state",()=>{const s=createState();s.settings.hideNames=true;s.recent=[{type:"vote",actor:"realname",text:"x"},{type:"system",actor:"NIGHTSHIFT",text:"y"}];const p=publicState(s);assert.equal(p.recent[0].actor,"VIEWER");assert.equal(p.recent[1].actor,"NIGHTSHIFT");});

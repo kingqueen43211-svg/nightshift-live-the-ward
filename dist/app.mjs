@@ -1,178 +1,48 @@
-import { OPTIONS, createState, castVote, startRound, resolveRound, nextRound, applyEvent } from "./engine.mjs";
+import { ROOMS, createState, roomFor, optionsFor, startEpisode, pauseEpisode, resumeEpisode, stopEpisode, ingestCommand, resolveVote, advanceRoom, playerAction, applyChannelEvent, tick, publicState } from "./engine.mjs";
 import { TwitchBridge } from "./twitch.mjs";
 
-const $ = (selector) => document.querySelector(selector);
-const $$ = (selector) => [...document.querySelectorAll(selector)];
-const channel = "BroadcastChannel" in window ? new BroadcastChannel("nightshift-live") : null;
-const twitch = new TwitchBridge();
-let state = createState();
-let demoTimer = null;
-let consequenceTimer = null;
-let toastTimer = null;
-const names = ["voidbunny", "pixelpaladin", "mothsignal", "nightowl", "hexkitten", "ghostbyte", "wardrunner", "neonwraith"];
-
-function switchView(view) {
-  $$(".screen").forEach((screen) => screen.classList.toggle("active", screen.id === view));
-  $$(".nav-btn").forEach((button) => button.classList.toggle("active", button.dataset.viewTarget === view));
-  document.querySelector("#app").dataset.view = view;
-  const url = new URL(location.href);
-  view === "gameplay" ? url.searchParams.delete("view") : url.searchParams.set("view", view);
-  history.replaceState({}, "", url);
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const channel="BroadcastChannel" in window?new BroadcastChannel("nightshift-live"):null;
+const twitch=new TwitchBridge(); const demoNames=["voidbunny","mothsignal","hexkitten","ghostbyte","neonwraith","pixelpaladin"];
+let state=createState(), lastRoom=0, toastTimer, autoAdvanceTimer;
+const escape=value=>{const n=document.createElement("span");n.textContent=String(value??"");return n.innerHTML};
+twitch.captureTokenFromHash();
+twitch.addEventListener("status",({detail})=>{$("#twitchStatus").textContent=detail.connected?`Connected as ${detail.identity?.display_name||detail.identity?.login||"broadcaster"}`:detail.message||"Disconnected";if(detail.connected){state.mode="TWITCH LIVE";render()}});
+twitch.addEventListener("chat",({detail})=>{state.mode="TWITCH LIVE";ingestCommand(state,detail.viewer,detail.message);render()});
+twitch.addEventListener("event",({detail})=>{state.mode="TWITCH LIVE";applyChannelEvent(state,{...detail,user:detail.actor,id:`twitch-${detail.type}-${Date.now()}`});render()});
+function switchView(view){ $$(".screen").forEach(s=>s.classList.toggle("active",s.id===view)); $$(".nav").forEach(b=>b.classList.toggle("active",b.dataset.viewTarget===view)); $("#app").dataset.view=view; const u=new URL(location.href); view==="gameplay"?u.searchParams.delete("view"):u.searchParams.set("view",view); history.replaceState({},"",u); }
+function totalVotes(){return Object.values(state.votes).reduce((a,b)=>a+b,0)} function pct(id){const t=totalVotes();return t?Math.round((state.votes[id]||0)/t*100):0}
+function renderOptions(target,overlay=false){ target.innerHTML=optionsFor(state).map(o=>overlay?`<div class="overlay-option"><span>${o.command} · ${o.label}</span><b>${pct(o.id)}%</b></div>`:`<div class="vote-option ${o.faction==="chaos"?"chaos":""}" style="--score:${pct(o.id)}%"><span><b>${o.label}</b><small>${o.command}</small></span><strong>${pct(o.id)}%</strong></div>`).join(""); }
+function renderFeed(){ const events=state.recent.length?state.recent:[{type:"system",actor:"NIGHTSHIFT",text:"Episode ready"}]; $("#activityFeed").innerHTML=events.slice(0,7).map(e=>`<div class="feed-item"><span>${escape(e.type.toUpperCase())}</span><b>${escape(state.settings.hideNames&&!["NIGHTSHIFT","CHAT"].includes(e.actor)?"VIEWER":e.actor)}</b><em>${escape(e.text)}</em></div>`).join(""); $("#overlayRecent").textContent=`${events[0].actor} · ${events[0].text}`.toUpperCase(); }
+function actionLabel(action){return {"search-desk":"Search desk","open-locker":"Open locker","inspect-gurney":"Inspect gurney","force-door":"Force theatre door","align-lamps":"Align lamps","play-tape":"Play recovered tape","breaker-1":"Breaker 1","breaker-2":"Breaker 2","breaker-3":"Breaker 3","open-roof":"Open roof exit","open-ambulance":"Open ambulance tunnel"}[action]||action}
+function render(){
+  const room=roomFor(state), remaining=state.status==="voting"?Math.max(0,Math.ceil((state.roundEndsAt-Date.now())/1000)):state.status==="paused"?"II":"--";
+  $("#plate").src=`./assets/${room.plate}`; $("#plate").alt=room.name; $("#roomCode").textContent=`${room.code} · ${room.name.toUpperCase()}`; $("#objective").textContent=room.objective; $("#hint").textContent=room.hint;
+  $("#overlayRoom").textContent=`${room.code} · ${room.name.toUpperCase()}`; $("#overlayObjective").textContent=room.objective; $("#roundTitle").textContent=`ROUND ${String(state.round).padStart(2,"0")} · ${room.name.toUpperCase()}`;
+  $("#timerValue").textContent=remaining; $("#overlayTimer").textContent=remaining; $("#healthValue").textContent=state.health; $("#dangerValue").textContent=state.danger; $("#powerValue").textContent=state.power;
+  $("#healthBar").style.width=`${state.health}%`; $("#dangerBar").style.width=`${state.danger}%`; $("#powerBar").style.width=`${state.power}%`;
+  $("#guardianEnergy").textContent=state.energy.guardian; $("#chaosEnergy").textContent=state.energy.chaos; $("#factionBar").style.width=`${Math.round(state.guardians/(state.guardians+state.chaos)*100)}%`;
+  $("#roomMap").innerHTML=ROOMS.map((_,i)=>`<i class="${i<state.roomIndex?"done":i===state.roomIndex?"active":""}"></i>`).join("");
+  $("#actionTray").innerHTML=room.actions.map(a=>`<button data-action="${a}">${actionLabel(a)}</button>`).join("");
+  $("#evidenceCount").textContent=`${state.evidence.length} evidence`; $("#inventoryCount").textContent=`${state.inventory.length} items`; $("#latestDiscovery").textContent=state.evidence.at(-1)||state.inventory.at(-1)||"Nothing recovered yet.";
+  $("#dashRoom").textContent=room.name; $("#dashStatus").textContent=state.status.toUpperCase(); $("#dashEvidence").textContent=state.evidence.length; $("#sessionId").textContent=state.sessionId.slice(-8);
+  $("#modeLabel").textContent=`MODE: ${state.mode}`; $("#warden").classList.toggle("visible",state.warden.visible&&state.settings.jumpscares); $(".blackout").style.opacity=state.power<15?".68":"0"; $(".alarm").style.opacity=state.danger>70?"1":"0";
+  $("#worldProp").classList.toggle("active",Object.values(state.doors).some(Boolean)||state.props.breakerProgress.length===3); $("#worldProp").classList.toggle("discovered",state.evidence.length>0);
+  renderOptions($("#voteOptions")); renderOptions($("#overlayOptions"),true); renderFeed();
+  $("#ending").classList.toggle("show",state.status==="ended"); $("#ending h2").textContent=state.ending||""; document.body.classList.toggle("reduced-motion",state.settings.reducedMotion); document.body.classList.toggle("low-effects",state.settings.lowEffects); document.body.classList.toggle("high-contrast",state.settings.highContrast);
+  $$("[data-action]").forEach(b=>b.onclick=()=>{playerAction(state,b.dataset.action);announce(`${actionLabel(b.dataset.action)} completed`);render()}); channel?.postMessage({type:"state",state:publicState(state)});
 }
+function announce(text){$("#ariaStatus").textContent=text}
+function showToast(title,detail,danger=false){const t=$("#eventToast");t.querySelector("b").textContent=title;t.querySelector("span").textContent=detail;t.style.borderColor=danger?"var(--red)":"var(--cyan)";t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),3800);announce(`${title}. ${detail}`)}
+function transitionRoom(){ $(".room-wipe").classList.remove("go");void $(".room-wipe").offsetWidth;$(".room-wipe").classList.add("go"); }
+function simulatedVote(){if(state.status!=="voting")return;const option=optionsFor(state)[Math.floor(Math.random()*optionsFor(state).length)];ingestCommand(state,demoNames[Math.floor(Math.random()*demoNames.length)],option.command);render()}
+function start(){clearTimeout(autoAdvanceTimer);startEpisode(state,Date.now(),30000);lastRoom=0;switchView("gameplay");showToast("EPISODE ARMED","Audience voting is open in Reception / Triage");render()}
+function advance(){if(state.status==="voting")resolveVote(state);if(state.winner)showToast(state.winner.label,state.winner.effect,state.winner.faction==="chaos");setTimeout(()=>{lastRoom=state.roomIndex;advanceRoom(state,Date.now(),30000);if(state.roomIndex!==lastRoom)transitionRoom();render()},650)}
+function handleEvent(type,user=`demo_${Math.floor(Math.random()*900)}`){const result=applyChannelEvent(state,{id:`demo-${type}-${Date.now()}`,type,user,at:Date.now()});if(result.accepted)showToast(type.toUpperCase(),`${user} changed the physical state of the Ward`,type==="raid");render()}
 
-function optionById(id) { return OPTIONS.find((option) => option.id === id); }
-function totalVotes() { return state.activeOptions.reduce((sum, id) => sum + state.votes[id], 0); }
-function percent(id) { const total = totalVotes(); return total ? Math.round((state.votes[id] / total) * 100) : 0; }
-
-function renderOptions(container, overlay = false) {
-  container.innerHTML = state.activeOptions.map((id, index) => {
-    const option = optionById(id);
-    const score = percent(id);
-    if (overlay) return `<div class="overlay-option"><span>${option.command} · ${option.label}</span><b>${score}%</b></div>`;
-    return `<div class="vote-option ${option.faction === "chaos" ? "chaos" : ""}" style="--score:${score}%"><span class="vote-key">0${index + 1}</span><span><b>${option.label}</b><small>${option.command}</small></span><strong class="vote-count">${score}%</strong></div>`;
-  }).join("");
-}
-
-function renderFeed() {
-  const items = state.recent.length ? state.recent : [
-    { actor: "SYSTEM", text: "Ward signal acquired", type: "status" },
-    { actor: "voidbunny", text: "Restore power", type: "vote" },
-    { actor: "mothsignal", text: "Kill the lights", type: "vote" }
-  ];
-  $("#activityFeed").innerHTML = items.slice(0, 5).map((item) => `<div class="feed-item"><span>${item.type.toUpperCase()}</span><b>${escapeHtml(item.actor)}</b><em>${escapeHtml(item.text)}</em></div>`).join("");
-  $("#overlayRecent").textContent = `${items[0].actor} · ${items[0].text}`.toUpperCase();
-}
-
-function render() {
-  const remaining = Math.max(0, Math.ceil((state.roundEndsAt - Date.now()) / 1000));
-  $("#timerValue").textContent = remaining.toString().padStart(2, "0");
-  $("#overlayTimer").textContent = remaining.toString().padStart(2, "0");
-  $("#roundTitle").textContent = `ROUND ${String(state.round).padStart(2, "0")} · ${state.phase === "consequence" ? "AUDIENCE DECISION" : "FATE VOTE"}`;
-  $("#healthValue").textContent = state.health;
-  $("#dangerValue").textContent = state.danger;
-  $("#healthBar").style.width = `${state.health}%`;
-  $("#dangerBar").style.width = `${state.danger}%`;
-  $("#clueCount").textContent = `${state.clues} / 3`;
-  $("#guardianScore").textContent = `${state.guardians}%`;
-  $("#chaosScore").textContent = `${state.chaos}%`;
-  $("#factionBar").style.width = `${state.guardians}%`;
-  $("#overlayFactionBar").style.width = `${state.guardians}%`;
-  $("#monster").style.setProperty("--monster", state.monster);
-  $("#monster").classList.toggle("visible", state.monster > .35 && $("#scareToggle").checked);
-  $(".blackout").style.opacity = state.consequence?.id === "dark" ? ".72" : "0";
-  renderOptions($("#voteOptions"));
-  renderOptions($("#overlayOptions"), true);
-  renderFeed();
-  channel?.postMessage({ type: "state", state });
-}
-
-function escapeHtml(value = "") { const node = document.createElement("span"); node.textContent = String(value); return node.innerHTML; }
-
-function showEvent(title, detail, danger = false) {
-  const toast = $("#eventToast");
-  toast.querySelector("strong").textContent = title;
-  toast.querySelector("span").textContent = detail;
-  toast.style.borderColor = danger ? "var(--red)" : "var(--cyan)";
-  toast.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove("show"), 4200);
-  if (danger && $("#scareToggle").checked) document.body.animate([{ transform: "translate(0)" }, { transform: "translate(-7px,3px)" }, { transform: "translate(5px,-2px)" }, { transform: "translate(0)" }], { duration: 480 });
-}
-
-function begin() {
-  clearInterval(demoTimer); clearTimeout(consequenceTimer);
-  state = startRound({ ...createState(), phase: "voting" });
-  $("#ending").classList.remove("show");
-  switchView("gameplay");
-  showEvent("THE WARD IS LISTENING", "Viewer commands are now live");
-  if ($("#demoToggle").checked) startDemo();
-  render();
-}
-
-function startDemo() {
-  clearInterval(demoTimer);
-  demoTimer = setInterval(() => {
-    if (state.phase !== "voting") return;
-    const option = state.activeOptions[Math.random() > .48 ? 0 : 1];
-    const result = castVote(state, names[Math.floor(Math.random() * names.length)], optionById(option).command);
-    state = result.state; render();
-  }, 1100);
-}
-
-function tick() {
-  if (state.phase === "briefing") return;
-  const remaining = state.roundEndsAt - Date.now();
-  if (state.phase === "voting" && remaining <= 0) {
-    state = resolveRound(state);
-    const event = state.consequence;
-    showEvent(event.faction === "chaos" ? "A CURSE HAS BEEN CAST" : "GUARDIANS INTERVENED", event.effect, event.faction === "chaos");
-    render();
-    clearTimeout(consequenceTimer);
-    consequenceTimer = setTimeout(() => { state = nextRound(state); if (state.phase === "ending") showEnding(); render(); }, 9000);
-  }
-  render();
-}
-
-function showEnding() {
-  clearInterval(demoTimer);
-  const ending = $("#ending");
-  ending.querySelector("h2").textContent = state.escaped ? "THE WARD RELEASED YOU" : "THE AUDIENCE KEPT YOU";
-  ending.querySelector("p").textContent = state.escaped ? "Three circuits restored. One impossible exit. Chat chose mercy—this time." : "Entity proximity reached critical. The stream continues from somewhere below Ward 06.";
-  ending.classList.add("show");
-}
-
-function injectEvent(type, actor = "Twitch") {
-  const payload = { type, actor, bits: 500, viewers: 847 };
-  state = applyEvent(state, payload);
-  const label = state.recent[0].text;
-  showEvent(label, `${actor} altered the ward`, type === "raid" || type === "cheer");
-  render();
-}
-
-function wireTwitch() {
-  twitch.captureTokenFromHash();
-  $("#clientId").value = twitch.clientId;
-  twitch.addEventListener("chat", ({ detail }) => {
-    const result = castVote(state, detail.viewer, detail.message);
-    if (result.accepted) { state = result.state; render(); }
-  });
-  twitch.addEventListener("event", ({ detail }) => injectEvent(detail.type, detail.actor));
-  twitch.addEventListener("status", ({ detail }) => {
-    $("#connectionLabel").textContent = detail.connected ? "TWITCH LIVE" : "SIGNAL LOST";
-    $("#signalDot").style.background = detail.connected ? "var(--acid)" : "var(--red)";
-  });
-  if (twitch.token && twitch.clientId) connectTwitch().catch((error) => statusError(error.message));
-}
-
-async function connectTwitch() {
-  const clientId = $("#clientId").value.trim();
-  if (!twitch.token) return twitch.login(clientId);
-  twitch.clientId = clientId || twitch.clientId;
-  twitch.storage.setItem("nightshift.clientId", twitch.clientId);
-  $("#connectTwitch").textContent = "Connecting…";
-  const identity = await twitch.connect();
-  $("#twitchIdentity").innerHTML = `<span class="avatar">${escapeHtml(identity.display_name.slice(0, 2).toUpperCase())}</span><div><small>CONNECTED BROADCASTER</small><b>${escapeHtml(identity.display_name)}</b></div>`;
-  $("#connectTwitch").textContent = "Connected";
-  $("#connectionLabel").textContent = "TWITCH LIVE";
-}
-
-function statusError(message) {
-  $("#twitchIdentity").innerHTML = `<span class="avatar">!</span><div><small>CONNECTION ERROR</small><b>${escapeHtml(message)}</b></div>`;
-  $("#connectTwitch").textContent = "Connect Twitch";
-}
-
-$$('[data-view-target]').forEach((button) => button.addEventListener("click", () => switchView(button.dataset.viewTarget)));
-$$('[data-trigger]').forEach((button) => button.addEventListener("click", () => injectEvent(button.dataset.trigger, "CONTROL ROOM")));
-$("#startShow").addEventListener("click", begin);
-$("#restart").addEventListener("click", begin);
-$("#connectTwitch").addEventListener("click", () => connectTwitch().catch((error) => statusError(error.message)));
-$("#disconnectTwitch").addEventListener("click", () => { twitch.clear(); location.reload(); });
-$("#demoToggle").addEventListener("change", (event) => event.target.checked ? startDemo() : clearInterval(demoTimer));
-$("#motionToggle").addEventListener("change", (event) => document.documentElement.classList.toggle("reduced-motion", event.target.checked));
-channel?.addEventListener("message", ({ data }) => { if (data.type === "state" && document.visibilityState !== "visible") { state = data.state; render(); } });
-
-wireTwitch();
-const initialView = new URLSearchParams(location.search).get("view") || "gameplay";
-switchView(["gameplay", "dashboard", "overlay"].includes(initialView) ? initialView : "gameplay");
-begin();
-setInterval(tick, 250);
+$$('[data-view-target]').forEach(b=>b.addEventListener("click",()=>switchView(b.dataset.viewTarget))); $("#startShow").onclick=start; $("#pauseShow").onclick=()=>{pauseEpisode(state);render()}; $("#resumeShow").onclick=()=>{resumeEpisode(state);render()}; $("#stopShow").onclick=()=>{stopEpisode(state);render()}; $("#advanceRoom").onclick=advance; $("#restartEnding").onclick=()=>switchView("dashboard");
+$$('[data-trigger]').forEach(b=>b.onclick=()=>handleEvent(b.dataset.trigger)); $("#sendChat").onclick=()=>{const user=demoNames[Math.floor(Math.random()*demoNames.length)],r=ingestCommand(state,user,$("#chatCommand").value);showToast(r.accepted?"CHAT ACCEPTED":"CHAT REJECTED",r.accepted?`${user}: ${$("#chatCommand").value}`:r.reason,!r.accepted);render()};
+const settings={motionToggle:"reducedMotion",effectsToggle:"lowEffects",contrastToggle:"highContrast",namesToggle:"hideNames",scareToggle:"jumpscares"};Object.entries(settings).forEach(([id,key])=>$("#"+id).onchange=e=>{state.settings[key]=e.target.checked;render()});
+$("#connectTwitch").onclick=async()=>{try{const clientId=$("#clientId").value.trim();if(!clientId)throw new Error("Enter a Twitch Client ID");localStorage.setItem("nightshift-client-id",clientId);twitch.clientId=clientId;twitch.storage.setItem("nightshift.clientId",clientId);if(!twitch.token){twitch.login(clientId);return}await twitch.connect()}catch(e){$("#twitchStatus").textContent=e.message}}; $("#disconnectTwitch").onclick=()=>{twitch.clear();state.mode="SIMULATED";localStorage.removeItem("nightshift-client-id");$("#twitchStatus").textContent="Simulation mode ready";render()};
+$("#scene").addEventListener("pointermove",e=>{if(state.settings.reducedMotion)return;document.documentElement.style.setProperty("--mx",`${(e.clientX/innerWidth-.5)*-26}px`);document.documentElement.style.setProperty("--my",`${(e.clientY/innerHeight-.5)*-18}px`)});
+channel?.addEventListener("message",e=>{if(e.data?.type==="state"&&new URL(location.href).searchParams.get("view")==="overlay"){state=e.data.state;render()}});const view=new URL(location.href).searchParams.get("view")||"gameplay";switchView(view);$("#clientId").value=localStorage.getItem("nightshift-client-id")||"";setInterval(()=>{tick(state);if(state.status==="voting"&&Math.random()<.38)simulatedVote();render()},1000);render();

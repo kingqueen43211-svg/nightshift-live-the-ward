@@ -7,7 +7,8 @@ NightShift Live turns a Twitch horror stream into a live game show. Viewers vote
 - A complete 3-screen web experience: playable broadcast view, streamer control room, and transparent OBS overlay preview.
 - Deterministic audience voting with one active vote per viewer and command aliases.
 - Twitch OAuth and EventSub WebSocket support for `channel.chat.message`, follows, subscriptions, cheers, and raids.
-- Gameplay consequences: power restoration, route progression, blackouts, danger, health, clues, monster proximity, alternate ending logic.
+- A persistent five-room episode with evidence, inventory, door and power state, a breaker puzzle, physical consequences, and multiple outcome-dependent endings.
+- A UI-only 2.5D scene composer with ten independent depth/effect planes and original room plates; no 3D meshes or engine runtime.
 - Demo autopilot and manual event triggers for a reliable no-credentials judging path.
 - Cross-tab state transport with `BroadcastChannel` for separate game and overlay browser sources.
 - Original generated cinematic environment and creature art.
@@ -21,7 +22,7 @@ Requires Node.js 20+.
 npm start
 ```
 
-Open `http://localhost:4173`. The demo starts automatically—no Twitch account is required.
+Open `http://localhost:4173`, choose **Control room**, then **Start episode**. No Twitch account is required for the clearly labeled simulation path.
 
 Run verification:
 
@@ -37,7 +38,7 @@ npm run check
 4. Approve the requested read-only scopes. The app subscribes through Twitch EventSub over WebSocket.
 5. Start the live sequence. Viewers vote with the commands shown on screen, such as `!restore` and `!dark`.
 
-The OAuth token is stored only in that browser's local storage. It is never committed to source. Use **Clear session** to remove it.
+The OAuth token is stored only in that browser's local storage. It is never committed to source. Use **Clear** to remove it. Real Twitch end-to-end behavior is implemented but remains **unverified** until tested with a broadcaster credential and a second viewer account.
 
 ## OBS setup
 
@@ -55,7 +56,7 @@ dist/
   index.html        Product UI and all three screens
   styles.css        Cinematic visual system and responsive layout
   app.mjs           UI, show loop, Twitch event routing, demo mode
-  engine.mjs        Pure voting and consequence engine
+  engine.mjs        Persistent episode, voting, factions, puzzles, and endings
   twitch.mjs        OAuth, Helix, and EventSub WebSocket bridge
   assets/           Original generated visual assets
 tests/
@@ -65,6 +66,9 @@ docs/
   MASTER_BUILD.md   Product, visual, animation, and scope spec
   SUBMISSION.md     Devpost-ready copy and checklist
   DEMO_SCRIPT.md    Under-three-minute video plan
+  STATUS.md         Truthful implemented/simulated/unverified matrix
+audit/
+  AS_IS_AUDIT.md    V1 audit and V2 disposition
 ```
 
 ## Built with Codex

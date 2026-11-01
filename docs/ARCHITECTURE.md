@@ -19,7 +19,7 @@ Follow/sub/cheer/raid → event mapper ─────────────�
 
 ## Modules
 
-- `engine.mjs`: pure state transitions. It owns rounds, one-vote-per-user semantics, option resolution, factions, danger, health, clues, endings, and channel-event effects.
+- `engine.mjs`: pure state transitions. It owns five persistent rooms, one-vote-per-user semantics, option resolution, factions, health/danger/power, inventory, evidence, the generator puzzle, endings, and channel-event deduplication.
 - `twitch.mjs`: Twitch identity validation, EventSub socket lifecycle, subscription creation, reconnect handling, and event normalization.
 - `app.mjs`: DOM rendering, screen routing, show timing, demo autopilot, manual production triggers, visual feedback, and cross-tab state.
 
@@ -27,7 +27,7 @@ Follow/sub/cheer/raid → event mapper ─────────────�
 
 | Twitch signal | NightShift result |
 |---|---|
-| `channel.chat.message` | Parses the command and replaces the viewer's active vote |
+| `channel.chat.message` | Parses a vote, faction join, or faction-power command; one vote per viewer per round |
 | `channel.follow` | Small Guardian recovery pulse |
 | `channel.subscribe` | Stronger recovery moment and broadcast callout |
 | `channel.cheer` | Bits detonation; danger spike and entity reveal |
