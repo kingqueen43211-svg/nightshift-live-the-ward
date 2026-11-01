@@ -17,7 +17,7 @@ The streamer must recover three ward circuits before health reaches zero or enti
 ### Audience loop
 
 1. The broadcast announces two opposing fates.
-2. Each Twitch viewer has one active vote and may change it until the timer closes.
+2. Each Twitch viewer gets one accepted vote per round; later commands from the same immutable viewer ID are rejected until the next round.
 3. The winning choice changes scene lighting, threat level, progression, and broadcast graphics.
 4. Channel events interrupt the loop with premium callouts.
 5. Three restored circuits unlock the mercy ending; unchecked danger unlocks the audience ending.
