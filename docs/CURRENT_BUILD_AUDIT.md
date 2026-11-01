@@ -51,7 +51,7 @@ Visual evidence includes desktop, tablet, phone, every camera node, Warden warni
 
 ## Still unverified or external
 
-- A logged-out public HTTPS deployment. The previous `chatgpt.site` URL remains authentication-gated and cannot be the only judging URL.
+- The public HTTPS deployment is now available and statelessly verified at `https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/`; re-probe it after any publish or access-policy change.
 - Real Twitch proof with the broadcaster account and a second viewer, including chat-to-world-to-overlay propagation and reconnection on the production callback.
 - Actual OBS checkerboard/background captures at 1920×1080 and 1280×720. Computed browser alpha is necessary but not sufficient.
 - Three timed newcomer full runs. The 20–35 minute value remains an authored target, not measured evidence.

@@ -8,6 +8,8 @@ The browser bridge implements Twitch OAuth token capture, Helix identity validat
 
 It has **not** been verified with real broadcaster credentials or a second Twitch viewer. Until that test happens, every UI and submission statement must say `IMPLEMENTED / UNVERIFIED LIVE`. Local trigger buttons are rehearsal events and are not Twitch proof.
 
+Production callback candidate: `https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/` (including the trailing slash). The URL is publicly reachable, but it is not Twitch-verified until it is registered in the Twitch Developer Console and completes the two-account matrix below.
+
 ## Explicit connection phases
 
 - `DISCONNECTED`
@@ -74,4 +76,4 @@ Mark the integration `VERIFIED LIVE` only when all nine steps are evidenced. The
 
 ## Known architectural limit
 
-The current static client still uses Twitch's browser token flow and stores the token in local browser storage. OAuth state validation reduces callback forgery risk, but a public production deployment should move authorization-code/PKCE or confidential token handling and authoritative EventSub/session state to a server. Do not expose this static control surface as an unauthenticated public admin route.
+The current static client still uses Twitch's browser token flow and stores the token in local browser storage. The public demo bundles no Client ID, token, or shared authority; each visitor controls only that browser's local session. OAuth state validation reduces callback forgery risk, but a multi-streamer production service should move authorization-code/PKCE or confidential token handling and authoritative EventSub/session state to a server rather than treating this local control surface as a shared admin system.

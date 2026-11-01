@@ -87,11 +87,11 @@ Evidence captured against the current working tree:
 
 ## External release gates
 
-1. Deploy the exact reviewed `dist/` to public HTTPS and verify all routes, assets, CSP, MIME types, caching, and OAuth callback behavior in a logged-out browser.
+1. Re-check effective production CSP/MIME/cache behavior in a clean browser; all public routes and assets return 200, but the current Sites host does not apply the checked-in Netlify `_headers` policy.
 2. Use a broadcaster and separate viewer account to record chat command → accepted vote → physical world change → matching OBS state. Exercise reconnect, token expiry, and one real optional channel event.
 3. Capture the passive full-scene mirror and compact transparent overlay inside native OBS at 1920×1080 and 1280×720. Confirm alpha, audio, and zero competing-controller behavior.
 4. Run a 30-minute Chrome + OBS soak and record frame time, CPU/GPU, memory trend, relay request rate, reconnect recovery, and audio cleanup.
 5. Complete NVDA and human browser-native zoom/perception checks. Keyboard-only operation, computed contrast, and 200% zoom-equivalent reflow pass automated browser gates, but do not establish WCAG conformance.
 6. Run newcomer playtests and report measured timing and comprehension. Do not replace human evidence with engine targets.
 
-Until those gates are complete, the accurate status is **locally hardened release candidate; live Twitch, native OBS, public hosting, native 30-minute performance, NVDA, and human usability remain unverified external evidence**.
+Until those gates are complete, the accurate status is **publicly deployed, locally hardened release candidate; live Twitch, native OBS, effective production-header review, native 30-minute performance, NVDA, and human usability remain unverified external evidence**.

@@ -8,6 +8,10 @@ NightShift Live: The Ward
 
 Twitch chat does not watch the nightmare. It directs it.
 
+## Public demo
+
+[https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/)
+
 ## Short description
 
 NightShift Live is a cinematic Twitch horror game show built around a deliberate split of power: the streamer investigates, deduces, hides, solves, and commits to a route, while viewers vote through chat to change doors, power, danger, resources, and the Warden itself. The entry includes a five-act persistent campaign, streamer control room, transparent OBS view, opt-in captioned soundscape, and a deterministic rehearsal path that never pretends to be live.
@@ -42,7 +46,6 @@ Primary Codex build session ID: `01a1976e-d289-7a22-9e87-7aefa57d3379`.
 
 The remaining work is proof, not a different product concept:
 
-- deploy the current static build to a logged-out public HTTPS URL;
 - register and test the exact Twitch callback with a broadcaster and second viewer;
 - capture real transparency inside OBS at 1920×1080 and 1280×720;
 - run and time complete newcomer playthroughs before making a duration claim;
@@ -67,18 +70,19 @@ The remaining work is proof, not a different product concept:
 - **npm run qa:performance:** 10/10 checks pass across the latest eight measured campaigns; cold transfer is 1.006 MiB, post-GC heap delta is 0.23 MiB, and final DOM/listener growth is zero.
 - **npm run release:audit:** pass; public payload is 11.6 MiB.
 
-These results prove the local build and its deterministic browser paths. They do not substitute for real Twitch, real OBS, human pacing, public hosting, or screen-reader evidence.
+These results prove the local build and its deterministic browser paths. A separate stateless public matrix verifies judge access and deployable-file availability; neither class of evidence substitutes for real Twitch, real OBS, human pacing, or screen-reader evidence.
 
 ## Final submission checklist
 
 - [ ] Push the reviewed branch to a hosted repository.
 - [ ] Make the repository public, or share the private GitHub/GitLab repository with the required Devpost reviewer account.
 - [ ] Run the README instructions on a clean machine.
-- [ ] Deploy the dist directory to a logged-out public HTTPS URL and verify it in an incognito window.
+- [x] Deploy the dist directory to a logged-out public HTTPS URL and verify it without an authenticated session.
 - [ ] Register that exact URL as the Twitch OAuth redirect.
 - [ ] Record a two-account Twitch command and at least one real channel event.
 - [ ] Capture the transparent browser source in real OBS at both target resolutions.
 - [ ] Complete and record newcomer pacing runs; report observed timing rather than the design target.
 - [ ] Upload a public video under three minutes and verify it logged out.
 - [x] Record the primary Codex build session ID (`01a1976e-d289-7a22-9e87-7aefa57d3379`).
-- [ ] Add the public demo URL and repository URL.
+- [x] Add the public demo URL.
+- [ ] Add the repository URL.

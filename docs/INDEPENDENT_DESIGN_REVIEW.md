@@ -36,7 +36,7 @@ This reads as a real interactive show package rather than a themed poll. The tit
 
 ### 1. Capture the real product claim
 
-The entry still needs one uncut proof showing a broadcaster plus a second viewer: Twitch message → accepted vote → physical world change → matching transparent OBS overlay. A public logged-out HTTPS URL and actual OBS capture are required. Rehearsal mode is excellent evidence of deterministic design, but it cannot substitute for this claim.
+The entry still needs one uncut proof showing a broadcaster plus a second viewer: Twitch message → accepted vote → physical world change → matching transparent OBS overlay. The public logged-out HTTPS URL is now available; actual Twitch and OBS capture are still required. Rehearsal mode is excellent evidence of deterministic design, but it cannot substitute for this claim.
 
 ### 2. Make the Warden readable in one second
 

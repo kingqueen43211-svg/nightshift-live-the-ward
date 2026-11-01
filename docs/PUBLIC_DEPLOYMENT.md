@@ -1,6 +1,12 @@
 # Public deployment and release gate
 
-The playable build is static and can be hosted without a game server. A release is public-ready only after the URL works in a logged-out private window and the checks below pass. The existing authenticated `chatgpt.site` preview is not sufficient judge access.
+The playable build is static and can be hosted without a game server.
+
+**Verified production demo:** [https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/)
+
+On 2026-11-01, a stateless no-cookie request returned HTTP 200 with the game title and no login copy. A 26-request matrix covered all 23 deployable files plus the dashboard, overlay, and passive-mirror entry URLs with zero failures. The deployed `app.mjs`, `engine.mjs`, `styles.css`, and `twitch.mjs` hashes matched the pushed source byte-for-byte. The host rewrites the HTML shell, so `index.html` was verified by content rather than a raw hash.
+
+The Sites serving layer does not interpret Netlify's `dist/_headers` file; the public probe did not observe that file's CSP response header. Do not claim the checked-in Netlify headers are active on this host. The app contains no client secret or shared server authority, and real Twitch/OBS verification remains a separate gate.
 
 Static hosting is ideal for judge access. For the live OBS recording, use `npm start` and the explicit `relay=local` URLs documented below so a Chrome control window and OBS's separate browser process share state through the loopback-only relay. The relay carries no OAuth token and is not exposed beyond `127.0.0.1`.
 
@@ -9,18 +15,16 @@ Static hosting is ideal for judge access. For the live OBS recording, use `npm s
 Run from the repository root:
 
 ```powershell
-npm run check
-npm run qa:visual
-npm run release:audit
+npm run verify
 ```
 
-`qa:visual` must finish with every automated viewport, alpha, and reduced-motion gate passing. `release:audit` fails on missing release files, likely committed credentials, payloads over 40 MiB, or single files over 4 MiB. Its image-size warnings are optimization work that must be reviewed rather than silently ignored.
+The composite command covers unit, visual, campaign, integrity, separate-process relay, accessibility/reflow, performance-soak, and release-payload gates. `release:audit` fails on missing release files, likely committed credentials, payloads over 40 MiB, or single files over 4 MiB.
 
 ## Deploy the static directory
 
 The checked-in `netlify.toml` publishes `dist/` and runs the release audit during the build. Import the repository into Netlify, deploy, and use the assigned HTTPS origin. The `dist/_headers` file supplies a Twitch-compatible content security policy, conservative caching, and browser hardening on Netlify and Cloudflare Pages.
 
-For another static host, publish only `dist/` and reproduce the policies in `dist/_headers`. The existing `.openai/hosting.json` also points to `dist/`, but that host is acceptable only if logged-out visitors can open the final URL.
+For another static host, publish only `dist/` and reproduce the policies in `dist/_headers`. The existing `.openai/hosting.json` points Sites to `dist/`; re-run the stateless public matrix after any deployment or access-policy change.
 
 Do not place a Twitch client secret or access token in the repository or hosting environment. This build needs only the public Client ID entered by the broadcaster in the control room.
 
