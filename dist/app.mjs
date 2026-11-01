@@ -123,6 +123,13 @@ let lastCameraKey = "";
 let lastInventoryKey = null;
 let endingWasOpen = false;
 let lastAudioWardenPhase = null;
+let lastRenderedAudioCueAt = "";
+let lastAudienceAudioKey = "";
+let lastEndingAudioKey = "";
+let lastEndingRenderKey = "";
+let lastPacingPromptKey = "";
+let lastEffectPulseAt = 0;
+let lastScoreRoom = "";
 let audienceClockPausedAt = null;
 let relayEvents = null;
 
@@ -135,21 +142,44 @@ try {
 }
 state.settings.audioMuted ??= false;
 state.settings.audioVolume ??= .78;
+state.settings.audioEffectsVolume ??= .82;
+state.settings.audioAmbienceVolume ??= .46;
+state.settings.audioMusicVolume ??= .38;
+state.settings.compactHud ??= false;
+if (params.get("hud") === "compact") state.settings.compactHud = true;
 
 const audio = createNightShiftAudio({
   reducedEffects: state.settings.lowEffects,
-  volumes: { master: state.settings.audioVolume },
-  onCaption: ({ cue, text }) => {
+  volumes: {
+    master: state.settings.audioVolume,
+    effects: state.settings.audioEffectsVolume,
+    ambience: state.settings.audioAmbienceVolume,
+    music: state.settings.audioMusicVolume
+  },
+  onCaption: ({ cue, text, at = Date.now() }) => {
     if (cue === "ui-click") return;
-    const caption = $("#audioCaption");
-    if (!caption) return;
-    caption.querySelector("span").textContent = text;
-    caption.hidden = false;
-    clearTimeout(audioCaptionTimer);
-    audioCaptionTimer = setTimeout(() => { caption.hidden = true; }, cue === "ambience" ? 5200 : 3600);
+    state.lastAudioCue = { cue, text, at };
+    displayAudioCue(state.lastAudioCue);
   }
 });
 audio.setMuted("master", state.settings.audioMuted);
+
+function displayAudioCue(detail) {
+  if (!detail?.text || !Number.isFinite(detail.at)) return;
+  const cueKey = `${detail.at}|${detail.cue}|${detail.text}`;
+  if (cueKey === lastRenderedAudioCueAt) return;
+  lastRenderedAudioCueAt = cueKey;
+  const targets = [$("#audioCaption"), $("#overlayAudioCaption")].filter(Boolean);
+  for (const target of targets) {
+    target.querySelector("span").textContent = detail.text;
+    target.dataset.cue = String(detail.cue || "sound").startsWith("warden") ? "warden" : detail.cue || "sound";
+    target.hidden = false;
+  }
+  clearTimeout(audioCaptionTimer);
+  audioCaptionTimer = setTimeout(() => {
+    for (const target of targets) target.hidden = true;
+  }, detail.cue === "ambience" || detail.cue === "score-start" ? 5200 : 4200);
+}
 
 function announce(text) {
   $("#ariaStatus").textContent = "";
@@ -318,10 +348,21 @@ function playSceneBeat(action, accepted) {
   clearSceneBeat();
   const scene = $("#scene");
   if (!accepted) {
+    audio.playAction(action, {
+      accepted: false,
+      reason: state.lastOutcome || actionRequirement(action).cue,
+      roomId: roomFor(state).id
+    });
     scene.dataset.sceneBeat = `${action}:blocked`;
     sceneBeatTimers.push(setTimeout(() => delete scene.dataset.sceneBeat, state.settings.reducedMotion ? 0 : 520));
     return;
   }
+  audio.playAction(action, {
+    accepted: true,
+    effect: state.lastOutcome,
+    roomId: roomFor(state).id,
+    pan: /locker|roof|ambulance|breaker-3/.test(action) ? .28 : /desk|lamp|breaker-1/.test(action) ? -.28 : 0
+  });
   const sequences = {
     "force-door": [["anticipation", 0], ["bolts", 260], ["swing", 720], ["settle", 1420]],
     "hide-curtain": [["close", 0], ["hold", 420], ["release", 1250]],
@@ -359,7 +400,6 @@ function performAction(action) {
       render();
     }, state.settings.reducedMotion ? 0 : 1500);
   }
-  if (audio.unlocked) audio.playUI(accepted ? "success" : "error");
   if (!state.settings.lowEffects) {
     $(".impact-flash").classList.remove("hit");
     void $(".impact-flash").offsetWidth;
@@ -398,7 +438,7 @@ function selectCamera(nodeId) {
   }
   state.camera.moving = !state.settings.reducedMotion;
   cameraMotion = state.camera.moving ? { from: fromNode, to: nodeId } : null;
-  if (audio.unlocked) audio.playUI("click");
+  audio.playUI("click");
   render();
   announce(state.camera.moving ? `Camera traveling to ${CAMERA_META[nodeId]?.[0] || nodeId}` : `Camera moved to ${CAMERA_META[nodeId]?.[0] || nodeId}`);
   clearTimeout(cameraTimer);
@@ -436,7 +476,7 @@ function applyCameraComposition(activeNode) {
   const target = $("#sceneTarget");
   target.dataset.sceneTarget = composition.target;
   const targetBoxes = {
-    records: [38, 27, 22, 25], locker: [46, 27, 18, 27], warden: [40, 27, 24, 30], gurney: [43, 37, 22, 18], door: [42, 25, 20, 33], lamps: [38, 25, 26, 23], restraint: [38, 40, 27, 20], generator: [39, 26, 25, 34], breakers: [42, 27, 22, 32], stairs: [38, 26, 22, 34], routes: [39, 25, 24, 35], roof: [44, 25, 20, 34], tunnel: [36, 38, 24, 22]
+    records: [38, 27, 22, 25], locker: [46, 27, 18, 27], warden: [40, 27, 24, 30], gurney: [43, 37, 22, 18], door: [42, 25, 20, 33], lamps: [38, 25, 26, 23], restraint: [38, 38, 27, 19], generator: [39, 24, 25, 33], breakers: [42, 25, 22, 32], stairs: [38, 24, 22, 33], routes: [39, 24, 24, 33], roof: [44, 23, 20, 34], tunnel: [36, 36, 24, 21]
   };
   const [left, top, width, height] = targetBoxes[composition.target] || [40, 20, 22, 38];
   target.style.cssText = `--target-left:${left}%;--target-top:${top}%;--target-width:${width}%;--target-height:${height}%`;
@@ -498,16 +538,44 @@ function renderInventory() {
   $("#quickItems").hidden = !buttons;
   $("#conditionStrip").innerHTML = `<span>FEAR <b>${escape(state.player.fear)}</b></span><span>NOISE <b>${escape(state.player.noise)}</b></span><span>SHIELD <b>${state.shield ? "ARMED" : "OFF"}</b></span>`;
   const itemEffect = state.lastItemEffect;
-  $("#itemEffectSummary").classList.toggle("blocked", Boolean(itemEffect && !itemEffect.accepted));
-  $("#itemEffectSummary").querySelector("span").textContent = itemEffect?.summary || "No item used yet. Effects will remain visible here.";
+  const effectPanel = $("#itemEffectSummary");
+  effectPanel.classList.toggle("blocked", Boolean(itemEffect && !itemEffect.accepted));
+  effectPanel.querySelector("span").textContent = itemEffect?.summary || "No item used yet. Effects will remain visible here.";
+  effectPanel.querySelector(".item-effect-list")?.remove();
+  if (itemEffect?.effects?.length) {
+    effectPanel.insertAdjacentHTML("beforeend", `<div class="item-effect-list">${itemEffect.effects.map(effect =>
+      `<span class="effect-chip" data-effect-kind="${escape(effect.key)}">${escape(effect.label)} <b>${escape(effect.before)} → ${escape(effect.after)}</b></span>`
+    ).join("")}</div>`);
+  }
+  if (itemEffect?.accepted && itemEffect.at !== lastEffectPulseAt) {
+    lastEffectPulseAt = itemEffect.at;
+    const meterIds = { health: "#healthMeter", danger: "#dangerMeter" };
+    for (const effect of itemEffect.effects || []) {
+      const meter = $(meterIds[effect.key]);
+      if (!meter) continue;
+      meter.classList.remove("effect-pulse");
+      void meter.offsetWidth;
+      meter.classList.add("effect-pulse");
+      setTimeout(() => meter.classList.remove("effect-pulse"), 800);
+    }
+  }
   $$("[data-use-item]").forEach(button => button.addEventListener("click", () => {
     const result = useInventoryItem(state, button.dataset.useItem);
+    audio.playItem(button.dataset.useItem, {
+      accepted: result.accepted,
+      reason: result.reason,
+      effect: result.summary
+    });
     showToast(result.accepted ? "ITEM EFFECT APPLIED" : "ITEM RETAINED", result.accepted ? result.summary : result.reason, !result.accepted);
-    if (result.accepted) audio.playUI("success");
     render();
   }));
   $$("[data-craft]").forEach(button => button.addEventListener("click", () => {
     const result = combineInventoryItems(state, "Sedative ampoule", "Trauma kit");
+    audio.playItem("Stabilized trauma kit", {
+      accepted: result.accepted,
+      reason: result.reason,
+      effect: result.summary || state.lastOutcome
+    });
     showToast(result.accepted ? "ITEM CRAFTED" : "CRAFT BLOCKED", result.accepted ? result.summary || state.lastOutcome : result.reason, !result.accepted);
     render();
   }));
@@ -518,12 +586,42 @@ function renderEnding() {
   const recap = state.endingRecap;
   if (!recap) {
     $("#endingRecap").innerHTML = "";
+    lastEndingAudioKey = "";
+    lastEndingRenderKey = "";
     return;
   }
+  const endingRenderKey = JSON.stringify([
+    recap.ending,
+    recap.route,
+    recap.evidence,
+    recap.wardenBound,
+    recap.audienceResolutions,
+    recap.zeroChatFallbacks,
+    recap.streamerDecisions
+  ]);
+  if (endingRenderKey === lastEndingRenderKey) return;
+  lastEndingRenderKey = endingRenderKey;
   const audienceChoices = Math.max(0, (recap.audienceResolutions || 0) - (recap.zeroChatFallbacks || 0));
+  const route = ["roof", "ambulance", "contain"].includes(recap.route) ? recap.route : "unknown";
+  const doomed = /CLAIMS|WITHOUT ANSWERS/.test(recap.ending || "") || state.health <= 0;
+  const humane = Boolean(recap.wardenBound) || /MARA WALKS/.test(recap.ending || "");
+  const endingTone = humane ? "humane" : doomed ? "doomed" : "unresolved";
+  const ending = $("#ending");
+  ending.dataset.route = route;
+  ending.dataset.endingTone = endingTone;
+  $("#endingRouteBadge").textContent = `ROUTE · ${route === "ambulance" ? "TUNNEL" : route.toUpperCase()}`;
+  $("#endingCauseBadge").textContent = humane ? "CAUSE · TRUTH + MERCY" : doomed ? "CAUSE · THREAT OVERWHELMED" : "CAUSE · ESCAPE TRADE-OFF";
   $("#endingSummary").textContent = audienceChoices
     ? "The streamer and audience shaped this ending together."
     : "The streamer completed this run with disclosed director fallbacks.";
+  const decisionLabels = (recap.streamerDecisions || []).slice(-4).map(decision => actionLabel(decision.action));
+  const audienceCause = audienceChoices
+    ? `${audienceChoices} verified audience consequence${audienceChoices === 1 ? "" : "s"}`
+    : `${recap.zeroChatFallbacks || 0} disclosed director fallback${recap.zeroChatFallbacks === 1 ? "" : "s"}`;
+  $("#endingCause").textContent = `${humane ? "Mara was identified and the Warden was bound." : doomed ? "The Ward remained stronger than the escape plan." : "The route opened, but part of the case remained unresolved."} The run carried ${audienceCause}.`;
+  $("#endingChoiceTrace").innerHTML = decisionLabels.length
+    ? decisionLabels.map((label, index) => `<span><b>0${index + 1}</b>${escape(label)}</span>`).join("")
+    : "<span><b>—</b>No decisive streamer actions recorded.</span>";
   const mechanics = recap.mechanics?.length ? recap.mechanics.join(" · ") : "core exploration";
   $("#endingRecap").innerHTML = `
     <span>ROUTE<b>${escape(String(recap.route || "unknown").toUpperCase())}</b></span>
@@ -533,6 +631,14 @@ function renderEnding() {
     <span>AUDIENCE<b>${audienceChoices}</b></span>
     <span>FALLBACKS<b>${escape(recap.zeroChatFallbacks || 0)}</b></span>
     <p>${escape(mechanics)}</p>`;
+  const endingAudioKey = `${recap.ending}|${route}|${endingTone}`;
+  if (!isPassiveView() && endingAudioKey !== lastEndingAudioKey) {
+    lastEndingAudioKey = endingAudioKey;
+    audio.stopAmbience({ caption: false });
+    audio.stopScore({ caption: false });
+    const audioEnding = doomed ? "failure" : humane ? "humane" : route === "ambulance" ? "tunnel" : route === "roof" ? "roof" : "failure";
+    audio.playEnding({ ending: audioEnding, title: recap.ending || "" });
+  }
 }
 
 function missingStepText(missing = []) {
@@ -621,6 +727,15 @@ function render() {
   syncAudienceClock();
   const room = roomFor(state);
   ensureRoomVisualAssets(room);
+  displayAudioCue(state.lastAudioCue);
+  $("#scene").dataset.room = room.id;
+  if (!isPassiveView() && ["voting", "consequence"].includes(state.status)) {
+    const tension = Math.max(0, Math.min(1, state.danger / 100));
+    if (lastScoreRoom !== room.id) {
+      lastScoreRoom = room.id;
+      audio.startScore(room.id, { tension, caption: true });
+    } else audio.setTension(tension, { caption: true });
+  }
   const remaining = state.status === "voting"
     ? Math.max(0, Math.ceil((state.roundEndsAt - (audienceClockPausedAt ?? Date.now())) / 1000))
     : state.status === "paused" ? "II" : "--";
@@ -665,8 +780,14 @@ function render() {
 
   $("#warden").classList.toggle("visible", (state.warden.visible || wardenReactionVisible) && state.settings.jumpscares);
   $("#warden").dataset.phase = state.warden.phase || "dormant";
-  const audibleWardenPhase = state.warden.visible && ["warning", "approaching", "striking"].includes(state.warden.phase) ? state.warden.phase : null;
-  if (audibleWardenPhase && audibleWardenPhase !== lastAudioWardenPhase) audio.playWardenWarning({ intensity: state.danger / 100 });
+  const audibleWardenPhase = ["warning", "approaching", "striking", "passing", "repelled", "retreating", "sealed"].includes(state.warden.phase) ? state.warden.phase : null;
+  if (!isPassiveView() && audibleWardenPhase && audibleWardenPhase !== lastAudioWardenPhase) {
+    audio.playWardenPhase({
+      phase: audibleWardenPhase,
+      intensity: state.danger / 100,
+      direction: state.camera?.nodeId === "door-approach" ? .45 : state.camera?.nodeId === "threshold" ? -.45 : 0
+    });
+  }
   lastAudioWardenPhase = audibleWardenPhase;
   const wardenAsset = state.warden.phase === "repelled"
     ? "warden-repelled-v1.webp"
@@ -725,6 +846,18 @@ function render() {
   $("#audienceOutcome").textContent = audienceStatus;
   $("#overlayOutcome").textContent = audienceStatus;
   $("#dashAudience").textContent = state.status === "consequence" && state.winner ? state.winner.label : `${voteCount} ${voteCount === 1 ? "vote" : "votes"}`;
+  if (!isPassiveView() && state.status === "consequence" && state.winner) {
+    const audienceKey = `${state.sessionId}|${state.round}|${state.winner.id}`;
+    if (audienceKey !== lastAudienceAudioKey) {
+      lastAudienceAudioKey = audienceKey;
+      audio.playAudienceResult({
+        label: state.winner.label,
+        faction: state.winner.faction,
+        effect: state.winner.effect,
+        accepted: true
+      });
+    }
+  }
   renderFeed();
   const latestEvent = state.recent[0];
   $("#dashRecent").textContent = latestEvent ? `${latestEvent.actor}: ${latestEvent.text}` : "Episode ready";
@@ -737,6 +870,14 @@ function render() {
   $("#pacingStatus").textContent = state.campaign?.needsPacingBeat
     ? `Pacing prompt: ${elapsedSeconds}s elapsed with no meaningful action. Offer a clue or move camera. Rehearsal telemetry only.`
     : `Act ${progress.act} · ${elapsedSeconds}s rehearsal telemetry · not measured playtest data.`;
+  if (!isPassiveView() && state.campaign?.needsPacingBeat) {
+    const pacingKey = `${room.id}|${state.campaign.lastMeaningfulAt}|${nextStep.title}`;
+    if (pacingKey !== lastPacingPromptKey) {
+      lastPacingPromptKey = pacingKey;
+      showToast("THE WARD WHISPERS", `${nextStep.title}. ${nextStep.detail}`);
+      audio.playAction("pacing-hint", { effect: `${nextStep.title}. ${nextStep.detail}`, roomId: room.id });
+    }
+  }
 
   $("#ending").classList.toggle("show", state.status === "ended");
   renderEnding();
@@ -746,8 +887,13 @@ function render() {
   document.body.classList.toggle("reduced-motion", state.settings.reducedMotion);
   document.body.classList.toggle("low-effects", state.settings.lowEffects);
   document.body.classList.toggle("high-contrast", state.settings.highContrast);
-  audio.setReducedEffects(state.settings.lowEffects || state.settings.reducedMotion);
+  document.body.classList.toggle("compact-hud", state.settings.compactHud);
+  $("#cinematicHudToggle").setAttribute("aria-pressed", String(Boolean(state.settings.compactHud)));
+  audio.setReducedEffects(state.settings.lowEffects);
   audio.setVolume("master", state.settings.audioVolume);
+  audio.setVolume("effects", state.settings.audioEffectsVolume);
+  audio.setVolume("ambience", state.settings.audioAmbienceVolume);
+  audio.setVolume("music", state.settings.audioMusicVolume);
   audio.setMuted("master", state.settings.audioMuted);
   for (const [id, key] of Object.entries({
     motionToggle: "reducedMotion",
@@ -758,6 +904,15 @@ function render() {
   })) $("#" + id).checked = Boolean(state.settings[key]);
   $("#audioMuteToggle").checked = Boolean(state.settings.audioMuted);
   $("#audioVolume").value = String(Math.round(state.settings.audioVolume * 100));
+  if ($("#audioEffectsVolume")) $("#audioEffectsVolume").value = String(Math.round(state.settings.audioEffectsVolume * 100));
+  if ($("#audioAmbienceVolume")) $("#audioAmbienceVolume").value = String(Math.round(state.settings.audioAmbienceVolume * 100));
+  if ($("#audioMusicVolume")) $("#audioMusicVolume").value = String(Math.round(state.settings.audioMusicVolume * 100));
+  if ($("#audioStatus")) {
+    const audioState = audio.getSettings();
+    $("#audioStatus").textContent = audioState.state === "unlocked"
+      ? `Audio ready · adaptive score ${audioState.tension >= .78 ? "critical" : audioState.tension >= .42 ? "rising" : "restrained"} · single controller capture`
+      : "Audio locked · use Enter, Start, or Test sound; captions remain available";
+  }
 
   $("#gameplayPause").disabled = !["voting", "consequence", "paused"].includes(state.status);
   $("#gameplayPause").textContent = state.status === "paused" ? "▶" : "Ⅱ";
@@ -792,7 +947,9 @@ function showToast(title, detail, danger = false) {
 
 function transitionRoom(fromRoom, toRoom) {
   audio.playTransition({ from: fromRoom, to: toRoom });
-  if (audio.unlocked) audio.startAmbience(toRoom);
+  audio.startAmbience(toRoom);
+  lastScoreRoom = toRoom;
+  audio.startScore(toRoom, { tension: state.danger / 100, caption: true });
   const scene = $("#scene");
   scene.dataset.roomTransition = `${fromRoom}:${toRoom}`;
   clearTimeout(roomTransitionTimer);
@@ -821,10 +978,19 @@ function start({ userGesture = false } = {}) {
   wardenReactionVisible = false;
   cameraMotion = null;
   advancing = false;
+  lastAudienceAudioKey = "";
+  lastEndingAudioKey = "";
+  lastEndingRenderKey = "";
+  lastPacingPromptKey = "";
+  lastAudioWardenPhase = null;
+  lastScoreRoom = "";
   startEpisode(state, Date.now(), 30000);
   if (userGesture) audio.unlock({ userGesture: true }).then(result => {
-    if (result.unlocked) audio.startAmbience(roomFor(state).id);
+    audio.startAmbience(roomFor(state).id);
+    audio.startScore(roomFor(state).id, { tension: state.danger / 100, caption: false });
+    if (!result.unlocked) render();
   });
+  else audio.startAmbience(roomFor(state).id);
   lastRoom = 0;
   lastActionKey = "";
   lastCameraKey = "";
@@ -883,11 +1049,14 @@ function advance({ allowFallback = false } = {}) {
 function togglePause() {
   if (state.status === "paused") {
     resumeEpisode(state);
-    if (audio.unlocked) audio.startAmbience(roomFor(state).id);
+    audio.startAmbience(roomFor(state).id);
+    lastScoreRoom = "";
     announce("Episode resumed");
   } else if (["voting", "consequence"].includes(state.status)) {
     pauseEpisode(state);
     audio.stopAmbience();
+    audio.stopScore({ caption: false });
+    lastScoreRoom = "";
     announce("Episode paused");
   } else return;
   render();
@@ -940,12 +1109,15 @@ $("#startShow").addEventListener("click", () => start({ userGesture: true }));
 $("#pauseShow").addEventListener("click", () => {
   pauseEpisode(state);
   audio.stopAmbience();
+  audio.stopScore({ caption: false });
+  lastScoreRoom = "";
   render();
   announce("Episode paused");
 });
 $("#resumeShow").addEventListener("click", () => {
   resumeEpisode(state);
-  if (audio.unlocked) audio.startAmbience(roomFor(state).id);
+  audio.startAmbience(roomFor(state).id);
+  lastScoreRoom = "";
   render();
   announce("Episode resumed");
 });
@@ -959,6 +1131,8 @@ $("#stopShow").addEventListener("click", () => {
   wardenReactionVisible = false;
   advancing = false;
   audio.stopAmbience();
+  audio.stopScore({ caption: false });
+  lastScoreRoom = "";
   stopEpisode(state);
   render();
 });
@@ -967,6 +1141,9 @@ $("#gameplayAdvance").addEventListener("click", () => advance());
 $("#gameplayPause").addEventListener("click", togglePause);
 $("#restartEnding").addEventListener("click", () => {
   state.status = "briefing";
+  lastEndingAudioKey = "";
+  lastEndingRenderKey = "";
+  lastScoreRoom = "";
   $("#ending").classList.remove("show");
   setEndingOpen(false);
   switchView("dashboard", true);
@@ -979,6 +1156,8 @@ $("#restoreCheckpoint").addEventListener("click", () => {
     lastActionKey = "";
     lastCameraKey = "";
     lastInventoryKey = null;
+    lastAudienceAudioKey = "";
+    lastScoreRoom = "";
     showToast("CHECKPOINT RESTORED", `Recovered ${roomFor(state).name}`);
   } else showToast("NO CHECKPOINT", result.reason, true);
   render();
@@ -988,7 +1167,7 @@ $$("[data-trigger]").forEach(button => button.addEventListener("click", () => ha
 $("#sendChat").addEventListener("click", () => {
   const user = demoNames[Math.floor(Math.random() * demoNames.length)];
   const result = ingestCommand(state, user, $("#chatCommand").value);
-  if (audio.unlocked) audio.playUI(result.accepted ? "vote" : "error");
+  audio.playUI(result.accepted ? "vote" : "error");
   showToast(result.accepted ? "CHAT ACCEPTED" : "CHAT REJECTED", result.accepted ? `${user}: ${$("#chatCommand").value}` : result.reason, !result.accepted);
   render();
 });
@@ -1015,6 +1194,31 @@ $("#audioMuteToggle").addEventListener("change", event => {
 $("#audioVolume").addEventListener("input", event => {
   state.settings.audioVolume = Number(event.target.value) / 100;
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
+  render();
+});
+for (const [id, key] of [
+  ["audioEffectsVolume", "audioEffectsVolume"],
+  ["audioAmbienceVolume", "audioAmbienceVolume"],
+  ["audioMusicVolume", "audioMusicVolume"]
+]) {
+  $("#" + id)?.addEventListener("input", event => {
+    state.settings[key] = Number(event.target.value) / 100;
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
+    render();
+  });
+}
+$("#cinematicHudToggle").addEventListener("click", () => {
+  state.settings.compactHud = !state.settings.compactHud;
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
+  render();
+  announce(state.settings.compactHud ? "Compact cinematic HUD enabled" : "Full production HUD enabled");
+});
+$("#audioTest")?.addEventListener("click", async () => {
+  const result = await audio.unlock({ userGesture: true });
+  audio.startAmbience(roomFor(state).id);
+  audio.startScore(roomFor(state).id, { tension: .46, caption: false });
+  audio.playAction("align-lamps", { effect: "Audio calibration cue complete.", roomId: roomFor(state).id });
+  showToast(result.unlocked ? "AUDIO READY" : "CAPTIONS READY", result.unlocked ? "Ambience, adaptive score, and effects are active." : result.reason, !result.unlocked);
   render();
 });
 

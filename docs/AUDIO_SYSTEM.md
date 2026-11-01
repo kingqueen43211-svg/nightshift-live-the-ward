@@ -1,79 +1,94 @@
-# Procedural audio and caption system
+# RC5 procedural audio, score, captions, and capture
 
-`dist/audio.mjs` provides the production audio layer for NightShift Live without downloaded sound files, external services, or autoplay. It is deliberately separate from the game controller so audio can never block campaign progression.
+`dist/audio.mjs` supplies NightShift Live's production audio without downloaded sound files, external services, or autoplay. RC5 moves beyond generic interface tones: physical actions, items, audience consequences, Warden phases, room ambience, transitions, adaptive score, and endings each have an authored procedural cue and an exact caption.
 
-## Safety contract
+Audio remains separate from campaign authority. If Web Audio is locked, unavailable, muted, or reduced, the action still completes and its caption still emits.
 
-- Constructing `NightShiftAudio` does not create an `AudioContext`.
-- `unlock({ userGesture: true })` must be called synchronously from a trusted click or key handler. Calling `unlock()` without that explicit flag is refused.
-- Every meaningful cue emits a `caption` event and calls `onCaption`, including while audio is locked, unavailable, or muted.
-- `setReducedEffects(true)` removes noise transients, shortens UI and Warden cues, and uses a reduced ambience texture.
-- Master, effects, and ambience each have independent volume and mute state.
-- `destroy()` stops tracked sources, stops ambience, disconnects buses, closes the context, and is safe to call more than once.
-- AudioContext failure is non-fatal. The returned result describes the failure while visual captions remain available.
+## Signal path
 
-## Integration API
-
-```js
-import { createNightShiftAudio } from "./audio.mjs";
-
-const audio = createNightShiftAudio({
-  onCaption: ({ text }) => {
-    document.querySelector("#audioCaption").textContent = text;
-  }
-});
-
-// Call directly from the existing Enter the NightShift button handler.
-await audio.unlock({ userGesture: true });
-audio.startAmbience("intake");
-
-// Campaign hooks.
-audio.playTransition({ from: "intake", to: "surgery" });
-audio.startAmbience("surgery");
-audio.playWardenWarning({ intensity: state.danger / 100 });
-audio.playUI(state.lastActionAccepted ? "success" : "error");
-
-// Accessibility/dashboard hooks.
-audio.setReducedEffects(state.settings.lowEffects);
-audio.setVolume("master", .75);
-audio.setVolume("ambience", .4);
-audio.setVolume("effects", .8);
-audio.setMuted("master", true);
+```text
+action / item / audience / Warden effects ──> effects ──┐
+five room-tone generators ─────────────────> ambience ──┼─> master ─> compressor ─> destination
+adaptive room score + ending resolution ───> music ────┘
 ```
 
-The authored ambience room IDs are `intake`, `surgery`, `theatre`, `generator`, and `stairwell`. Unknown IDs fall back safely to the intake soundscape.
+- `master`, `effects`, `ambience`, and `music` have independent gain and mute state.
+- The master path uses a dynamics compressor when the browser supplies one: threshold −18 dB, knee 12, ratio 8:1, 3 ms attack, and 250 ms release. It falls back safely to the destination without changing gameplay.
+- Directional actions use `StereoPannerNode` when available. Desk/lamp/breaker-one cues lean left; locker/route/breaker-three cues lean right; Warden phases accept their world direction; Guardian and Chaos consequences separate slightly across the field.
+- The control room exposes Master, Effects, Ambience, and Adaptive score sliders plus mute and a gesture-gated calibration button.
 
-`playUI()` accepts `click`, `success`, `error`, and `vote`. The other cue methods are:
+## Authored sound vocabulary
 
-- `startAmbience(roomId)` / `stopAmbience()`
-- `playTransition({ from, to })`
-- `playWardenWarning({ intensity })`
+`playAction()` schedules action-specific layers rather than one shared click. The cue map covers records and paper handling, medication-locker latch and door, file reconstruction, Subject 06 identification, gurney restraints, intercom cadence, isolation latch/bolts/steel scrape, theatre release, surgical lamp ignition, confession tape, Warden counter, three distinct breaker pitches, power reroute, binding seal, roof door, and ambulance-tunnel gate.
 
-## Caption payload
+The other decisive APIs are:
 
-Both the callback and the `caption` event receive the same immutable detail object:
+- `playItem(item, { accepted, reason, effect })` — unique trauma-kit, sedative, stabilized-kit, flare, and shield sounds; exact result text is appended to the caption; rejected no-op use remains captioned.
+- `playAudienceResult({ label, faction, effect })` — Guardian, Chaos, neutral, and rejected results use distinct patterns and preserve the physical consequence in text.
+- `playWardenPhase({ phase, intensity, direction })` — dormant, distant, warning, approaching, striking, passing, repelled, retreating, and sealed phases vary density, level, noise, and pan.
+- `playEnding({ ending, title })` — humane, roof, tunnel, and failure outcomes resolve on different music-layer sequences.
+- `playTransition()` and `playUI()` — room transition and low-priority interface feedback.
+
+Every cue is deterministic enough for testing while retaining procedural timing, layering, and spatial placement in the browser.
+
+## Adaptive score
+
+`startScore(roomId, { tension })` creates a two-voice score through the dedicated music bus. Reception, Ward 06, Operating Theatre, Generator Room, and Stairwell each have an authored root, minor tension tone, filter ceiling, and caption label.
+
+`setTension()` follows live danger through three readable stages:
+
+- **restrained** — low investigative pulse;
+- **rising** — increased gain and filter bandwidth as danger climbs;
+- **critical** — chase pulse near maximum danger.
+
+The score changes gain, filter frequency, and slight pitch tension without restarting on every render. Room transitions replace the score cleanly. Reduced effects softens score level without silently coupling sound reduction to the reduced-motion setting. Ending presentation stops room ambience/score and plays the matching resolution once.
+
+## Caption and OBS contract
+
+All meaningful APIs call the caption path before testing whether audio can play. The immutable detail includes its cue, exact text, timestamp, and relevant structured fields such as room, action, item, consequence, intensity, direction, or ending.
 
 ```js
 {
-  cue: "warden-warning",
-  text: "Heavy footsteps scrape behind surgical plastic.",
+  cue: "action-force-door",
+  text: "The isolation latch retracts, bolts hammer back, and the steel door scrapes open.",
   at: 1793548800000,
-  intensity: 0.78
+  action: "force-door",
+  roomId: "surgery",
+  accepted: true
 }
 ```
 
-The built-in log retains the latest 64 entries via `getCaptionLog()`. Caption text is concise visual equivalence for informational cues; it is not decorative subtitle spam. Integration should place it in a persistent visual caption region and use the existing polite live region only when the cue carries gameplay information.
+The controller stores only `{ cue, text, at }` in sanitized public state. The caption renders in the gameplay caption rail and `#overlayAudioCaption`, then travels through the validated `BroadcastChannel`/local-relay state used by passive OBS surfaces. It contains no OAuth token, viewer map, EventSub ID, or private checkpoint data.
 
-## Verification
+Passive mirror and overlay views are inert and do not create their own authoritative audio engine. The intended capture strategy is one controller tab producing the mix, with caption-only passive surfaces. This avoids doubled ambience, score, and cues while keeping the OBS overlay visually synchronized.
 
-`tests/audio.test.mjs` uses a deterministic fake Web Audio context. It verifies:
+## Safety and accessibility contract
 
-- no context creation without a trusted gesture;
-- bus routing, volume, mute, and reused unlock behavior;
-- captions while locked and muted;
-- authored room ambience, switching, reuse, and stop behavior;
-- reduced-effects removal of noise transients;
-- tracked-source cleanup and idempotent destruction;
-- invalid bus rejection.
+- Constructing `NightShiftAudio` does not create an `AudioContext`.
+- `unlock({ userGesture: true })` is required from a trusted click or key handler; an unlock without that flag is refused.
+- Captions emit while audio is locked, unavailable, muted, or reduced.
+- `setReducedEffects(true)` removes noise transients, shortens sharp cues, and softens the score. Reduced motion does not silently change audio.
+- Unknown room, action, item, Warden, or ending values fall back safely.
+- Unsupported compression or stereo panning degrades without blocking the game.
+- `destroy()` stops score, ambience, and tracked sources; disconnects buses/compressor; closes the context; and is idempotent.
 
-Browser QA must additionally confirm the first click unlocks audio in Chrome, sound remains optional, the caption region is visible with sound muted, and changing/reloading views never creates duplicate ambience loops.
+## Continuous rehearsal capture
+
+The recorder-assisted workflow is documented in [`CAPTURE_PROOF.md`](CAPTURE_PROOF.md). It opens a headed Chromium session, but the operator must click **Share this tab + audio and start**, choose **This Tab**, enable **Share tab audio**, and confirm the real browser picker. The scripted route then holds a truthful, watermarked rehearsal for at least five minutes and attempts to earn the humane ending with zero director fallbacks.
+
+The workflow and recorder payload are implemented and contract-validated. A real picker run has **not** been completed or claimed. A valid manifest must show a clean committed source, video and tab-audio tracks, non-empty WebM bytes, observed caption events, the earned bound-Warden ending, zero fallbacks, and no chunk-order error. Cancelled, video-only, dirty-tree, incomplete, or silent runs remain failed/incomplete evidence.
+
+This capture is rehearsal proof, not live Twitch, native OBS, an unfamiliar-human playtest, NVDA proof, or a substitute for a manual audible listening/mix review.
+
+## Verification boundary
+
+The RC5 suite results are:
+
+- 83/83 unit and contract tests;
+- 29/29 visual states, including compact HUD;
+- 9/9 gameplay, 5/5 integrity, 17/17 relay, 11/11 accessibility, and 10/10 performance gates;
+- performance final deltas: DOM 0, listeners 0, heap 0.285 MiB.
+
+The tests cover gesture gating, bus routing, compressor fallback, panning, adaptive score stages, action/item/audience/Warden/ending captions, reduced effects, cleanup, sanitized caption transport, passive-mirror behavior, and the capture workflow contract. The final all-in-one RC5 composite passed end to end.
+
+Browser QA still cannot prove that a human can hear and balance every cue on the target hardware, that Chrome supplies tab audio in the actual picker run, or that native OBS receives the intended mix. Those remain explicit manual gates.

@@ -23,6 +23,12 @@ export function isValidPublicState(incoming) {
   if (![incoming.guardians, incoming.chaos].every(value => finiteIn(value, 0, 10_000_000))) return false;
   if (!stringList(incoming.evidence) || !stringList(incoming.inventory)) return false;
 
+  if (incoming.lastAudioCue !== null && incoming.lastAudioCue !== undefined) {
+    if (!plainObject(incoming.lastAudioCue)) return false;
+    if (!shortString(incoming.lastAudioCue.cue, 120) || !shortString(incoming.lastAudioCue.text, 500)) return false;
+    if (!Number.isFinite(incoming.lastAudioCue.at)) return false;
+  }
+
   if (!Array.isArray(incoming.recent) || incoming.recent.length > 18 || !incoming.recent.every(event =>
     plainObject(event) && shortString(event.type, 80) && shortString(event.actor, 120) && shortString(event.text, 500)
   )) return false;

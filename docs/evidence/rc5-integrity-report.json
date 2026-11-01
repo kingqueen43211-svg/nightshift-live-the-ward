@@ -1,0 +1,86 @@
+{
+  "generatedAt": "2026-11-01T23:05:10.670Z",
+  "browser": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "browserVersion": "Chrome/156.0.8078.79",
+  "app": "http://127.0.0.1:60476",
+  "checks": [
+    {
+      "name": "rehearsal labels expose simulated input and truthful activity",
+      "pass": true,
+      "durationMs": 1,
+      "details": {
+        "count": "0 VOTES",
+        "source": "REHEARSAL VOTE · SIMULATED INPUT",
+        "mode": "MODE: SIMULATED"
+      }
+    },
+    {
+      "name": "transient Twitch phases cannot enable simulated audience input",
+      "pass": true,
+      "durationMs": 2,
+      "details": {
+        "modes": [
+          {
+            "phase": "AUTHORIZING",
+            "mode": "TWITCH AUTHORIZING",
+            "simulation": false
+          },
+          {
+            "phase": "CONNECTING",
+            "mode": "TWITCH CONNECTING",
+            "simulation": false
+          },
+          {
+            "phase": "RECONNECTING",
+            "mode": "TWITCH RECONNECTING",
+            "simulation": false
+          },
+          {
+            "phase": "AUTH_EXPIRED",
+            "mode": "TWITCH AUTH EXPIRED",
+            "simulation": false
+          },
+          {
+            "phase": "ERROR",
+            "mode": "TWITCH ERROR",
+            "simulation": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "hide-names removes private identities from the OBS transport",
+      "pass": true,
+      "durationMs": 157,
+      "details": {
+        "seededEvent": "hexkitten: !records",
+        "privateFieldsRemoved": true
+      }
+    },
+    {
+      "name": "OBS overlay is passive and does not echo controller broadcasts",
+      "pass": true,
+      "durationMs": 2651,
+      "details": {
+        "messages": 3,
+        "overlayPosts": 0,
+        "view": "overlay",
+        "introHidden": true,
+        "overlayVisible": true
+      }
+    },
+    {
+      "name": "browser console remains clean",
+      "pass": true,
+      "durationMs": 1,
+      "details": {
+        "warningsAndErrors": 0
+      }
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0
+  },
+  "consoleErrors": []
+}

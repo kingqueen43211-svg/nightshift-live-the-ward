@@ -63,7 +63,7 @@ export function createState(now=Date.now()){
     inventory:[],evidence:[],doors:{isolation:false,theatre:false,exit:false},
     props:{desk:false,locker:false,lamps:false,tape:false,breakers:[false,false,false],breakerProgress:[]},
     player:{fear:12,noise:0,hidden:false,focus:100,lastAction:null,combo:0},
-    story:{subjectIdentified:false,confessionDecoded:false,wardenBound:false},lastOutcome:"",lastActionAccepted:null,lastAdvanceAccepted:null,lastItemEffect:null,
+    story:{subjectIdentified:false,confessionDecoded:false,wardenBound:false},lastOutcome:"",lastActionAccepted:null,lastAdvanceAccepted:null,lastItemEffect:null,lastAudioCue:null,
     warden:{level:0,visible:false,contained:false,phase:"dormant"},guardians:50,chaos:50,
     energy:{guardian:45,chaos:45},cooldowns:{guardian:0,chaos:0},members:{},
     votes:{},voters:{},winner:null,ending:null,shield:false,recent:[],seenEventIds:[],

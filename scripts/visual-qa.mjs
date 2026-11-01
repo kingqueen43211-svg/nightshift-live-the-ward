@@ -331,6 +331,7 @@ const scenarios = [
   { name: "gameplay-1600x900", width: 1600, height: 900, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
   { name: "gameplay-1366x768", width: 1366, height: 768, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
   { name: "gameplay-1280x720", width: 1280, height: 720, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
+  { name: "gameplay-compact-1280x720", width: 1280, height: 720, path: "/?autostart=rehearsal&hud=compact", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
   { name: "gameplay-768x1024", width: 768, height: 1024, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
   { name: "gameplay-390x844", width: 390, height: 844, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
   { name: "warden-1280x720", width: 1280, height: 720, path: "/?fixture=warden-warning", kind: "geometry", waitMs: 4300, expectedMode: "REHEARSAL" },

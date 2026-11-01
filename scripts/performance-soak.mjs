@@ -593,7 +593,10 @@ try {
 
   networkPhase = "cold-start";
   lastNetworkAt = Date.now();
-  await pageCdp.send("Page.navigate", { url: `${appOrigin}/?relay=local` });
+  // A full verify run launches several Chromium processes before this soak.
+  // Give the first renderer handshake room to recover from transient Windows
+  // process-start contention without weakening any subsequent readiness gate.
+  await pageCdp.send("Page.navigate", { url: `${appOrigin}/?relay=local` }, 45000);
   await waitFor(`document.readyState === 'complete' && document.querySelector('#app')`);
   await waitForNetworkIdle(500);
   await installCaptionProbe();

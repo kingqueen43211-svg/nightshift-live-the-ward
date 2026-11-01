@@ -69,6 +69,24 @@ class FakeFilter extends FakeNode {
   }
 }
 
+class FakeCompressor extends FakeNode {
+  constructor() {
+    super("compressor");
+    this.threshold = new FakeParam();
+    this.knee = new FakeParam();
+    this.ratio = new FakeParam();
+    this.attack = new FakeParam();
+    this.release = new FakeParam();
+  }
+}
+
+class FakePanner extends FakeNode {
+  constructor() {
+    super("stereo-panner");
+    this.pan = new FakeParam();
+  }
+}
+
 class FakeBuffer {
   constructor(frames) {
     this.data = new Float32Array(frames);
@@ -99,6 +117,12 @@ class FakeAudioContext {
   }
   createBiquadFilter() {
     return this._add(new FakeFilter());
+  }
+  createDynamicsCompressor() {
+    return this._add(new FakeCompressor());
+  }
+  createStereoPanner() {
+    return this._add(new FakePanner());
   }
   createBuffer(_channels, frames) {
     return new FakeBuffer(frames);
@@ -141,10 +165,14 @@ test("a trusted gesture creates one routed context and applies bus settings", as
   assert.equal(first.unlocked, true);
   assert.equal(first.reused, false);
   assert.equal(context.resumed, 1);
-  assert.deepEqual(Object.keys(audio.buses).sort(), ["ambience", "effects", "master"]);
+  assert.deepEqual(Object.keys(audio.buses).sort(), ["ambience", "effects", "master", "music"]);
   assert.equal(audio.buses.effects.connections[0], audio.buses.master);
   assert.equal(audio.buses.ambience.connections[0], audio.buses.master);
-  assert.equal(audio.buses.master.connections[0], context.destination);
+  assert.equal(audio.buses.music.connections[0], audio.buses.master);
+  assert.equal(audio.buses.master.connections[0], audio.compressor);
+  assert.equal(audio.compressor.connections[0], context.destination);
+  assert.equal(audio.compressor.threshold.value, -18);
+  assert.equal(audio.compressor.ratio.value, 8);
   assert.equal(audio.setVolume("effects", 3), 1);
   assert.equal(audio.setVolume("effects", -.5), 0);
   assert.equal(audio.setMuted("ambience", true), true);
@@ -253,8 +281,120 @@ test("one-shot sources are tracked and destroy is deterministic and idempotent",
   });
 });
 
+test("master compression and the music bus degrade safely when compressor support is absent", async () => {
+  const compressedContext = new FakeAudioContext();
+  const compressed = new NightShiftAudio({ contextFactory: () => compressedContext });
+  await compressed.unlock({ userGesture: true });
+  assert.equal(compressed.getSettings().compressor, true);
+  assert.equal(compressed.buses.music.connections[0], compressed.buses.master);
+  assert.equal(compressed.buses.master.connections[0].kind, "compressor");
+  assert.equal(compressed.buses.master.connections[0].connections[0], compressedContext.destination);
+
+  const fallbackContext = new FakeAudioContext();
+  fallbackContext.createDynamicsCompressor = undefined;
+  const fallback = new NightShiftAudio({ contextFactory: () => fallbackContext });
+  await fallback.unlock({ userGesture: true });
+  assert.equal(fallback.getSettings().compressor, false);
+  assert.equal(fallback.buses.master.connections[0], fallbackContext.destination);
+});
+
+test("adaptive score remembers a locked request, follows tension, and switches rooms cleanly", async () => {
+  const captions = [];
+  const context = new FakeAudioContext();
+  const audio = new NightShiftAudio({ contextFactory: () => context, onCaption: detail => captions.push(detail) });
+
+  const pending = audio.startScore("surgery", { tension: .2 });
+  assert.equal(pending.played, false);
+  assert.equal(pending.caption.text, "A restrained pulse enters beneath Ward 06.");
+  assert.deepEqual(audio.scoreRequest, { roomId: "surgery", tension: .2 });
+
+  await audio.unlock({ userGesture: true });
+  assert.equal(audio.score.roomId, "surgery");
+  assert.equal(audio.score.oscillators.length, 2);
+  assert.equal(audio.score.lowpass.connections[0], audio.buses.music);
+
+  const rising = audio.setTension(.58);
+  assert.equal(rising.stage, "rising");
+  assert.equal(rising.caption.cue, "score-rising");
+  const critical = audio.setTension(.9);
+  assert.equal(critical.stage, "critical");
+  assert.equal(critical.caption.cue, "score-critical");
+  assert.ok(audio.score.output.gain.events.some(event => event[0] === "ramp"));
+  const fullScoreGain = audio.score.output.gain.value;
+  audio.setReducedEffects(true);
+  assert.ok(audio.score.output.gain.value < fullScoreGain);
+  audio.setReducedEffects(false);
+
+  const oldScore = audio.score;
+  const switched = audio.startScore("generator", { tension: .8 });
+  assert.equal(switched.played, true);
+  assert.equal(audio.score.roomId, "generator");
+  assert.ok(oldScore.oscillators.every(({ oscillator }) => oscillator.stopped.length === 1));
+  assert.equal(audio.stopScore(), true);
+  assert.equal(audio.score, null);
+  assert.equal(audio.scoreRequest, null);
+  assert.ok(captions.some(entry => entry.cue === "score-start"));
+});
+
+test("action, item, audience, Warden, and ending APIs emit exact ordered captions and scheduled cues", async () => {
+  const callbacks = [];
+  const context = new FakeAudioContext();
+  const audio = new NightShiftAudio({ contextFactory: () => context, onCaption: detail => callbacks.push(detail) });
+
+  const locked = audio.playAction("force-door", { roomId: "surgery" });
+  assert.equal(locked.played, false);
+  assert.match(locked.caption.text, /latch retracts, bolts hammer back/i);
+  assert.equal(locked.caption.roomId, "surgery");
+
+  await audio.unlock({ userGesture: true });
+  const action = audio.playAction("force-door", { roomId: "surgery", pan: .5, startAt: 5 });
+  assert.equal(action.played, true);
+  assert.equal(action.sources.length, 4);
+  assert.deepEqual(action.sources.map(source => Number(source.started[0].toFixed(2))), [5, 5.18, 5.42, 5.72]);
+  const actionPanners = context.nodes.filter(node => node.kind === "stereo-panner").slice(-4);
+  assert.equal(actionPanners.length, 4);
+  assert.ok(actionPanners.every(node => node.pan.value === .5));
+
+  const item = audio.playItem("Sedative ampoule", { effect: "Fear falls from 42 to 17." });
+  assert.match(item.caption.text, /Fear falls from 42 to 17/);
+  const audience = audio.playAudienceResult({ label: "Restore power", faction: "guardian", effect: "Emergency power rises by 20." });
+  assert.equal(audience.caption.text, "Audience consequence: Restore power. Emergency power rises by 20.");
+  const warden = audio.playWardenPhase({ phase: "repelled", intensity: .9, direction: -.7 });
+  assert.equal(warden.phase, "repelled");
+  assert.match(warden.caption.text, /howls, recoils/i);
+  const ending = audio.playEnding({ ending: "humane", title: "MARA WALKS INTO DAWN" });
+  assert.match(ending.caption.text, /fragile dawn.*MARA WALKS INTO DAWN/i);
+
+  const ordered = audio.getCaptionLog()
+    .map(entry => entry.cue)
+    .filter(cue => cue.startsWith("action-") || ["item-used", "audience-result", "warden-repelled", "ending-humane"].includes(cue));
+  assert.deepEqual(ordered, ["action-force-door", "action-force-door", "item-used", "audience-result", "warden-repelled", "ending-humane"]);
+
+  audio.setMuted("master", true);
+  const nodeCount = context.nodes.length;
+  const muted = audio.playItem("Trauma kit", { effect: "Vitals rise from 40 to 65." });
+  assert.equal(muted.played, false);
+  assert.equal(context.nodes.length, nodeCount);
+  assert.match(muted.caption.text, /Vitals rise from 40 to 65/);
+  assert.equal(callbacks.at(-1).cue, "item-used");
+});
+
+test("blocked and reduced-effects cues remain descriptive without noisy transients", async () => {
+  const context = new FakeAudioContext();
+  const audio = new NightShiftAudio({ contextFactory: () => context, reducedEffects: true });
+  await audio.unlock({ userGesture: true });
+  const buffersBefore = context.nodes.filter(node => node.kind === "buffer-source").length;
+  const blocked = audio.playAction("breaker-1", { accepted: false, reason: "breaker two must be first" });
+  assert.equal(blocked.caption.text, "breaker 1 is blocked; breaker two must be first.");
+  const physical = audio.playAction("force-door");
+  assert.equal(physical.softened, true);
+  assert.equal(context.nodes.filter(node => node.kind === "buffer-source").length, buffersBefore);
+  assert.ok(physical.sources.length > 0);
+});
+
 test("invalid bus names are rejected instead of silently misrouting audio", () => {
   const audio = new NightShiftAudio();
-  assert.throws(() => audio.setVolume("music", .5), /Unknown audio bus/);
+  assert.equal(audio.setVolume("music", .5), .5);
+  assert.throws(() => audio.setVolume("dialogue", .5), /Unknown audio bus/);
   assert.throws(() => audio.setMuted("voice", true), /Unknown audio bus/);
 });

@@ -1,0 +1,516 @@
+{
+  "generatedAt": "2026-11-01T23:04:45.863Z",
+  "browser": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "browserVersion": "Chrome/156.0.8078.79",
+  "protocolVersion": "1.3",
+  "app": "http://127.0.0.1:58652",
+  "checks": [
+    {
+      "name": "action focus survives timer renders",
+      "pass": true,
+      "durationMs": 6910,
+      "details": {
+        "focused": true,
+        "identity": "focus-probe",
+        "connected": true,
+        "timer": "28"
+      }
+    },
+    {
+      "name": "camera node performs multi-layer travel and settles accessibly",
+      "pass": true,
+      "durationMs": 1107,
+      "details": {
+        "before": {
+          "plate": "http://127.0.0.1:58652/assets/reception-triage.webp",
+          "node": "lobby-wide"
+        },
+        "traveling": {
+          "plate": "http://127.0.0.1:58652/assets/reception-triage.webp",
+          "moving": "true",
+          "busy": "true",
+          "disabled": false,
+          "railInert": true,
+          "layers": [
+            {
+              "name": "plate",
+              "depth": 0.06,
+              "x": 24,
+              "y": -4
+            },
+            {
+              "name": "layer far-fog",
+              "depth": 0.1,
+              "x": 29,
+              "y": -4
+            },
+            {
+              "name": "layer rear-light",
+              "depth": 0.14,
+              "x": 34,
+              "y": -5
+            },
+            {
+              "name": "layer reflection",
+              "depth": 0.18,
+              "x": 39,
+              "y": -6
+            },
+            {
+              "name": "worldProp",
+              "depth": 0.24,
+              "x": 46,
+              "y": -7
+            },
+            {
+              "name": "nodeRevealRig",
+              "depth": 0.27,
+              "x": 50,
+              "y": -8
+            },
+            {
+              "name": "doorRig",
+              "depth": 0.29,
+              "x": 52,
+              "y": -8
+            },
+            {
+              "name": "warden",
+              "depth": 0.34,
+              "x": 58,
+              "y": -9
+            },
+            {
+              "name": "generatorRig",
+              "depth": 0.31,
+              "x": 55,
+              "y": -8
+            },
+            {
+              "name": "theatreRig",
+              "depth": 0.33,
+              "x": 57,
+              "y": -9
+            },
+            {
+              "name": "finalRouteRig",
+              "depth": 0.36,
+              "x": 61,
+              "y": -9
+            },
+            {
+              "name": "layer mid-fog",
+              "depth": 0.38,
+              "x": 63,
+              "y": -10
+            },
+            {
+              "name": "foregroundRig",
+              "depth": 0.49,
+              "x": 77,
+              "y": -12
+            },
+            {
+              "name": "layer near-frame",
+              "depth": 0.55,
+              "x": 84,
+              "y": -13
+            },
+            {
+              "name": "layer rain",
+              "depth": 0.72,
+              "x": 105,
+              "y": -16
+            }
+          ]
+        },
+        "result": {
+          "sceneNode": "records-desk",
+          "sceneIndex": "1",
+          "activeNodes": [
+            "records-desk"
+          ],
+          "cue": "Inspect the torn intake record",
+          "objectPosition": "18% 60%",
+          "transform": "matrix(1.17, 0, 0, 1.17, 0, 0)",
+          "moving": "false",
+          "busy": "false"
+        }
+      }
+    },
+    {
+      "name": "rejected actions preserve progress and completion exposes a gameplay next step",
+      "pass": true,
+      "durationMs": 2874,
+      "details": {
+        "rejected": {
+          "progress": "0",
+          "completed": false,
+          "locked": true,
+          "toast": "ACTION BLOCKED",
+          "feedback": "Two fragments are missing. Search the entire reception first."
+        },
+        "ready": {
+          "progress": "67",
+          "completed": false,
+          "locked": false
+        },
+        "completed": {
+          "progress": "100",
+          "completed": true,
+          "nextTitle": "Objective complete — the route is ready",
+          "nextDetail": "1 verified vote will change the Ward before you enter Ward 06.",
+          "nextLabel": "Resolve & enter Ward 06 →",
+          "nextDisabled": false
+        },
+        "advanced": {
+          "room": "Ward 06",
+          "gameplayActive": true
+        }
+      }
+    },
+    {
+      "name": "inventory crafting, use, and checkpoint recovery are playable",
+      "pass": true,
+      "durationMs": 572,
+      "details": {
+        "inventory": {
+          "tags": [
+            "Sedative ampoule",
+            "Trauma kit"
+          ],
+          "craft": true
+        },
+        "crafted": {
+          "tags": [
+            "Stabilized trauma kit"
+          ],
+          "usable": true,
+          "toast": "ITEM CRAFTED"
+        },
+        "beforeUse": {
+          "vitals": "100",
+          "conditions": "FEAR 11NOISE 6SHIELD OFF"
+        },
+        "used": {
+          "tags": [],
+          "toast": "ITEM EFFECT APPLIED",
+          "effect": "Stabilized trauma kit: FEAR -11 (11 → 0).",
+          "vitals": "100",
+          "conditions": "FEAR 0NOISE 6SHIELD OFF"
+        },
+        "restored": {
+          "room": "Ward 06",
+          "evidence": "0",
+          "tags": [
+            "Sedative ampoule",
+            "Trauma kit"
+          ],
+          "toast": "CHECKPOINT RESTORED"
+        }
+      }
+    },
+    {
+      "name": "zero-chat resolution is visibly labelled as a director fallback",
+      "pass": true,
+      "durationMs": 344,
+      "details": {
+        "gameplay": "DIRECTOR FALLBACK · NO CHAT VOTES",
+        "overlay": "DIRECTOR FALLBACK · NO CHAT VOTES",
+        "activity": "RESULTDIRECTORSearch patient records selected as the announced zero-chat fallbackSYSTEMNIGHTSHIFTEpisode armed: Reception signal acquired"
+      }
+    },
+    {
+      "name": "a complete earned UI path reaches the humane ending",
+      "pass": true,
+      "durationMs": 6517,
+      "details": {
+        "title": "MARA WALKS INTO DAWN",
+        "summary": "The streamer and audience shaped this ending together.",
+        "values": [
+          "ROUTEROOF",
+          "EVIDENCE6",
+          "TRUTHDECODED",
+          "WARDENBOUND",
+          "AUDIENCE5",
+          "FALLBACKS0"
+        ],
+        "mechanics": "investigation · resource · deduction · stealth · environment · narrative · threat-counterplay · sequence-puzzle · resource-management · narrative-choice · route-choice",
+        "focused": true,
+        "backgroundInert": true,
+        "screenshotPath": "C:\\Users\\kingq\\Documents\\Codex\\2026-11-01\\b-x20\\work\\gameplay-smoke\\earned-ending-1280x720.png"
+      }
+    },
+    {
+      "name": "three clean visible-guidance runs reach an earned ending without fixtures or fallbacks",
+      "pass": true,
+      "durationMs": 1979,
+      "details": {
+        "cleanRuns": 3,
+        "runs": [
+          {
+            "run": 1,
+            "durationMs": 642,
+            "roomTimes": [
+              {
+                "room": "Ward 06",
+                "atMs": 281
+              },
+              {
+                "room": "Operating Theatre",
+                "atMs": 403
+              },
+              {
+                "room": "Generator Room",
+                "atMs": 480
+              },
+              {
+                "room": "Stairwell / Exits",
+                "atMs": 563
+              }
+            ],
+            "votes": [
+              {
+                "toast": "CHAT ACCEPTED",
+                "command": "!records",
+                "votes": "1 VOTE",
+                "source": "REHEARSAL VOTE · SIMULATED INPUT",
+                "attempt": 1
+              },
+              {
+                "toast": "CHAT ACCEPTED",
+                "command": "!restore",
+                "votes": "1 VOTE",
+                "source": "REHEARSAL VOTE · SIMULATED INPUT",
+                "attempt": 1
+              },
+              {
+                "toast": "CHAT ACCEPTED",
+                "command": "!lights",
+                "votes": "1 VOTE",
+                "source": "REHEARSAL VOTE · SIMULATED INPUT",
+                "attempt": 1
+              },
+              {
+                "toast": "CHAT ACCEPTED",
+                "command": "!charge",
+                "votes": "1 VOTE",
+                "source": "REHEARSAL VOTE · SIMULATED INPUT",
+                "attempt": 1
+              },
+              {
+                "toast": "CHAT ACCEPTED",
+                "command": "!roof",
+                "votes": "1 VOTE",
+                "source": "REHEARSAL VOTE · SIMULATED INPUT",
+                "attempt": 1
+              }
+            ],
+            "guidance": [
+              "NEXT STEP\nObjective complete — the route is ready\n1 verified vote will change the Ward before you enter Ward 06.\nResolve & enter Ward 06 →",
+              "NEXT STEP\nThe isolation door needs the audience power result\n1 verified vote is ready. Resolve the corridor consequence, then breach the physical door.\nResolve corridor vote",
+              "NEXT STEP\nObjective complete — the route is ready\n1 verified vote will change the Ward before you enter Generator Room.\nResolve & enter Generator Room →",
+              "NEXT STEP\nObjective complete — the route is ready\n1 verified vote will change the Ward before you enter Stairwell / Exits.\nResolve & enter Stairwell / Exits →",
+              "NEXT STEP\nFinal audience decision is open\n1 verified vote is ready. Lock the result, then choose your physical route.\nResolve final vote"
+            ],
+            "title": "MARA WALKS INTO DAWN",
+            "recap": [
+              "ROUTEROOF",
+              "EVIDENCE6",
+              "TRUTHDECODED",
+              "WARDENBOUND",
+              "AUDIENCE5",
+              "FALLBACKS0"
+            ],
+            "summary": "The streamer and audience shaped this ending together."
+          },
+          {
+            "run": 2,
+            "durationMs": 612,
+            "roomTimes": [
+              {
+                "room": "Ward 06",
+                "atMs": 286
+              },
+              {
+                "room": "Operating Theatre",
+                "atMs": 424
+              },
+              {
+                "room": "Generator Room",
+                "atMs": 484
+              },
+              {
+                "room": "Stairwell / Exits",
+                "atMs": 563
+              }
+            ],
+            "votes": [
+              {
+                "toast": "CHAT ACCEPTED",
+                "command": "!records",
+                "votes": "1 VOTE",
+                "source": "REHEARSAL VOTE · SIMULATED INPUT",
+                "attempt": 1
+              },
+              {
+                "toast": "CHAT ACCEPTED",
+                "command": "!restore",
+                "votes": "1 VOTE",
+                "source": "REHEARSAL VOTE · SIMULATED INPUT",
+                "attempt": 1
+              },
+              {
+                "toast": "CHAT ACCEPTED",
+                "command": "!lights",
+                "votes": "1 VOTE",
+                "source": "REHEARSAL VOTE · SIMULATED INPUT",
+                "attempt": 1
+              },
+              {
+                "toast": "CHAT ACCEPTED",
+                "command": "!charge",
+                "votes": "1 VOTE",
+                "source": "REHEARSAL VOTE · SIMULATED INPUT",
+                "attempt": 1
+              },
+              {
+                "toast": "CHAT ACCEPTED",
+                "command": "!roof",
+                "votes": "1 VOTE",
+                "source": "REHEARSAL VOTE · SIMULATED INPUT",
+                "attempt": 1
+              }
+            ],
+            "guidance": [
+              "NEXT STEP\nObjective complete — the route is ready\n1 verified vote will change the Ward before you enter Ward 06.\nResolve & enter Ward 06 →",
+              "NEXT STEP\nThe isolation door needs the audience power result\n1 verified vote is ready. Resolve the corridor consequence, then breach the physical door.\nResolve corridor vote",
+              "NEXT STEP\nObjective complete — the route is ready\n1 verified vote will change the Ward before you enter Generator Room.\nResolve & enter Generator Room →",
+              "NEXT STEP\nObjective complete — the route is ready\n1 verified vote will change the Ward before you enter Stairwell / Exits.\nResolve & enter Stairwell / Exits →",
+              "NEXT STEP\nFinal audience decision is open\n1 verified vote is ready. Lock the result, then choose your physical route.\nResolve final vote"
+            ],
+            "title": "MARA WALKS INTO DAWN",
+            "recap": [
+              "ROUTEROOF",
+              "EVIDENCE6",
+              "TRUTHDECODED",
+              "WARDENBOUND",
+              "AUDIENCE5",
+              "FALLBACKS0"
+            ],
+            "summary": "The streamer and audience shaped this ending together."
+          },
+          {
+            "run": 3,
+            "durationMs": 725,
+            "roomTimes": [
+              {
+                "room": "Ward 06",
+                "atMs": 353
+              },
+              {
+                "room": "Operating Theatre",
+                "atMs": 459
+              },
+              {
+                "room": "Generator Room",
+                "atMs": 556
+              },
+              {
+                "room": "Stairwell / Exits",
+                "atMs": 651
+              }
+            ],
+            "votes": [
+              {
+                "toast": "CHAT ACCEPTED",
+                "command": "!records",
+                "votes": "1 VOTE",
+                "source": "REHEARSAL VOTE · SIMULATED INPUT",
+                "attempt": 1
+              },
+              {
+                "toast": "CHAT ACCEPTED",
+                "command": "!restore",
+                "votes": "1 VOTE",
+                "source": "REHEARSAL VOTE · SIMULATED INPUT",
+                "attempt": 1
+              },
+              {
+                "toast": "CHAT ACCEPTED",
+                "command": "!lights",
+                "votes": "1 VOTE",
+                "source": "REHEARSAL VOTE · SIMULATED INPUT",
+                "attempt": 1
+              },
+              {
+                "toast": "CHAT ACCEPTED",
+                "command": "!charge",
+                "votes": "1 VOTE",
+                "source": "REHEARSAL VOTE · SIMULATED INPUT",
+                "attempt": 1
+              },
+              {
+                "toast": "CHAT ACCEPTED",
+                "command": "!roof",
+                "votes": "1 VOTE",
+                "source": "REHEARSAL VOTE · SIMULATED INPUT",
+                "attempt": 1
+              }
+            ],
+            "guidance": [
+              "NEXT STEP\nObjective complete — the route is ready\n1 verified vote will change the Ward before you enter Ward 06.\nResolve & enter Ward 06 →",
+              "NEXT STEP\nThe isolation door needs the audience power result\n1 verified vote is ready. Resolve the corridor consequence, then breach the physical door.\nResolve corridor vote",
+              "NEXT STEP\nObjective complete — the route is ready\n1 verified vote will change the Ward before you enter Generator Room.\nResolve & enter Generator Room →",
+              "NEXT STEP\nObjective complete — the route is ready\n1 verified vote will change the Ward before you enter Stairwell / Exits.\nResolve & enter Stairwell / Exits →",
+              "NEXT STEP\nFinal audience decision is open\n1 verified vote is ready. Lock the result, then choose your physical route.\nResolve final vote"
+            ],
+            "title": "MARA WALKS INTO DAWN",
+            "recap": [
+              "ROUTEROOF",
+              "EVIDENCE6",
+              "TRUTHDECODED",
+              "WARDENBOUND",
+              "AUDIENCE5",
+              "FALLBACKS0"
+            ],
+            "summary": "The streamer and audience shaped this ending together."
+          }
+        ]
+      }
+    },
+    {
+      "name": "a complete fallback run renders a truthful ending recap",
+      "pass": true,
+      "durationMs": 595,
+      "details": {
+        "title": "ESCAPE, WITHOUT ANSWERS",
+        "summary": "The streamer completed this run with disclosed director fallbacks.",
+        "values": [
+          "ROUTEROOF",
+          "EVIDENCE1",
+          "TRUTHINCOMPLETE",
+          "WARDENUNCONTAINED",
+          "AUDIENCE0",
+          "FALLBACKS5"
+        ],
+        "mechanics": "route-choice",
+        "focused": true,
+        "backgroundInert": true,
+        "screenshotPath": "C:\\Users\\kingq\\Documents\\Codex\\2026-11-01\\b-x20\\work\\gameplay-smoke\\ending-recap-1280x720.png"
+      }
+    },
+    {
+      "name": "browser console remains clean",
+      "pass": true,
+      "details": {
+        "warningsAndErrors": 0
+      }
+    }
+  ],
+  "summary": {
+    "passed": 9,
+    "failed": 0
+  },
+  "consoleErrors": []
+}

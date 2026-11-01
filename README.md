@@ -15,8 +15,13 @@ NightShift Live turns a Twitch horror stream into a live game show. Viewers vote
 - Three playable camera nodes in every act, with spatial multi-depth travel, deterministic settle, reduced-motion equivalents, target cues, and persistent visited-node state.
 - A UI-only 2.5D scene compositor with independent depth, fog, lighting, reflection, occlusion, rain, physical-door, foreground-prop, Warden, and HUD layers; no 3D meshes or engine runtime.
 - Staged physical beats for the isolation door, curtain, clues, in-world breaker levers, and the Warden's visible repel/retreat reaction.
+- Node-specific records, locker, restraint, service-grid, theatre, and final-route reveals; the theatre and finale now carry authored lamp, tape, containment, roof, and tunnel choreography rather than relying on a shared background alone.
+- Route- and cause-specific ending presentation with a decision trace, distinct visual tone, and an ending-specific musical resolution.
 - Original phase-specific Warden, gurney, curtain, and isolation-door art with archived lossless sources and optimized public derivatives.
-- Gesture-gated procedural room ambience and cues with mute/volume controls, reduced-effects variants, and visual captions.
+- Gesture-gated, action-specific procedural sound; separate effects, ambience, adaptive-score, and master buses; master compression; directional panning; reduced-effects variants; and exact visual captions.
+- Sanitized sound captions transported to the gameplay and passive OBS surfaces while only the authoritative controller produces audio, preventing doubled capture.
+- A user-controlled compact cinematic HUD, exact item-effect chips, and idle pacing hints that keep the authored next step visible without inventing a measured duration.
+- A recorder-assisted five-minute rehearsal workflow that requires Chrome's real share-tab/audio picker and produces a manifest instead of fabricating proof when video, tab audio, clean source, captions, or the earned zero-fallback ending is missing.
 - Clearly labeled simulated audience voting and manual event triggers for a reliable no-credentials judging path.
 - Cross-tab state transport with `BroadcastChannel` for separate game and overlay browser sources.
 - Responsive safety/accessibility controls, modal focus handling, semantic state, pause shortcuts, reduced motion/flashes, stable keyboard focus, and 200% zoom reflow.
@@ -55,13 +60,15 @@ npm run qa:performance
 npm run release:audit
 ```
 
-The 2026-11-01 RC4 composite verification passed: 73/73 unit and contract tests, 28/28 visual states, 9/9 browser gameplay gates, 5/5 integrity gates, 17/17 independent-process relay gates, 11/11 accessibility/reflow gates, 10/10 performance gates, and the release audit at 11.6 MiB across 23 public files. The performance run completed eight measured campaigns with a 0.192 MiB final heap delta, zero final DOM growth, and zero final listener growth. Gameplay proof includes dynamic multi-depth camera travel and three clean visible-guidance runs that reached the earned ending without fixtures or fallbacks, using visible rehearsal votes. RC4 was then promoted to the public Site and passed anonymous HTTP plus real-Chrome render/camera probes; the deployed `app.mjs`, `engine.mjs`, and `styles.css` hashes match verified RC4 code commit `3e655af`. These checks do not replace the still-pending real Twitch, native OBS, five-unfamiliar-human, NVDA, audible-mix, public-repository/video, and Devpost gates.
+The final RC5 all-in-one composite passed end to end: 83/83 unit and contract tests, 29/29 visual states including compact HUD, 9/9 browser gameplay gates, 5/5 integrity gates, 17/17 independent-process relay gates, 11/11 accessibility/reflow gates, 10/10 performance gates, and the release-audit stage. The final performance run finished with zero DOM growth, zero listener growth, and a 0.285 MiB heap delta.
+
+The public URL currently serves the previously verified RC4 deployment. RC5 has not yet been claimed as public. The Chrome share-tab/audio capture workflow is implemented and contract-validated, but no completed five-minute audiovisual proof is claimed until an operator performs the real picker run and its manifest passes. Real Twitch, native OBS, five unfamiliar humans, NVDA, audible listening, public repository/video, and Devpost remain external gates.
 
 Before sharing the entry, follow the logged-out hosting, OAuth callback, OBS alpha, and rollback steps in [`docs/PUBLIC_DEPLOYMENT.md`](docs/PUBLIC_DEPLOYMENT.md).
 
-The judge findings, deterministic acceptance criteria, and non-automatable proof boundary are tracked in [`docs/RC4_JUDGE_FIX_CONTRACT.md`](docs/RC4_JUDGE_FIX_CONTRACT.md).
+The current judge findings, deterministic acceptance criteria, capture boundary, and non-automatable proof are tracked in [`docs/RC5_JUDGE_FIX_CONTRACT.md`](docs/RC5_JUDGE_FIX_CONTRACT.md).
 
-Final screenshots and machine-readable browser reports are indexed in [`docs/evidence/RC4_EVIDENCE.md`](docs/evidence/RC4_EVIDENCE.md).
+RC5 screenshots, machine-readable browser reports, and the still-empty capture-proof boundary are indexed in [`docs/evidence/RC5_EVIDENCE.md`](docs/evidence/RC5_EVIDENCE.md).
 
 ## Connect a real Twitch channel
 
@@ -101,9 +108,11 @@ tests/
   *.test.mjs        Engine, campaign, Twitch, relay, audio, and accessibility tests
 docs/
   ARCHITECTURE.md   Technical design and event flow
-  QUALITY_TRACKER.md Evidence-backed RC4 gate status
+  QUALITY_TRACKER.md Evidence-backed RC5 gate status
   RC4_JUDGE_FIX_CONTRACT.md Judge finding → behavior → proof mapping
+  RC5_JUDGE_FIX_CONTRACT.md Finalist-quality audiovisual/visual/capture contract
   evidence/RC4_EVIDENCE.md Final screenshots and browser reports
+  evidence/RC5_EVIDENCE.md RC5 suite artifacts and pending capture boundary
   SUBMISSION.md     Devpost-ready copy and checklist
   DEMO_SCRIPT.md    Under-three-minute video plan
   STATUS.md         Truthful implemented/simulated/unverified matrix

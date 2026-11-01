@@ -19,13 +19,17 @@ test("incoming overlay state is shape-checked before rendering", () => {
   assert.match(app, /isValidPublicState\(incoming\)/, "overlay messages must pass the public-state validator");
   const valid = publicState(createState(100));
   assert.equal(isValidPublicState(valid), true);
+  const captioned = publicState(createState(100));
+  captioned.lastAudioCue = { cue: "door-bolts", text: "The isolation bolts retract.", at: 125 };
+  assert.equal(isValidPublicState(captioned), true, "sanitized sound captions should travel to passive overlays");
   for (const mutate of [
     state => { state.roomIndex = 99; },
     state => { state.health = Infinity; },
     state => { state.recent = [{ type: "vote", actor: "x", text: "x".repeat(501) }]; },
     state => { state.voters.leakedViewer = "records"; },
     state => { state.campaign.checkpoint = { state: {} }; },
-    state => { state.camera.nodeId = "not-an-authored-node"; }
+    state => { state.camera.nodeId = "not-an-authored-node"; },
+    state => { state.lastAudioCue = { cue: "x", text: "x".repeat(501), at: 100 }; }
   ]) {
     const tampered = structuredClone(valid);
     mutate(tampered);
