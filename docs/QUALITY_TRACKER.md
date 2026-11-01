@@ -4,7 +4,7 @@ Status vocabulary: **PASS** only when the stated gate has objective evidence; **
 
 ## Recorded RC5 suite gates
 
-The final RC5 all-in-one `npm run verify` composite passed end to end. This establishes the local release candidate, not public RC5 deployment. External/manual gates remain separate.
+The final RC5 all-in-one `npm run verify` composite passed end to end. RC5 is also deployed publicly: anonymous HTTP checks byte-match the core runtime assets and a production browser smoke check exercised gameplay, compact HUD mode, the four-bus mixer, and captions. External/manual gates remain separate.
 
 | Gate | Status | Evidence / remaining proof |
 | --- | --- | --- |
@@ -73,7 +73,7 @@ The implementation and proof details live in [`RC4_JUDGE_FIX_CONTRACT.md`](RC4_J
 | Continuous five-minute rehearsal capture | workflow yes; artifact no | recorder/manifest failure contract validated | real Chrome share-tab/audio picker run pending |
 | Transparent OBS route | yes | computed alpha at 1920×1080 and 1280×720 | actual OBS capture pending |
 | Twitch OAuth/EventSub | yes | deterministic lifecycle tests | real broadcaster + second viewer pending |
-| Public logged-out deployment | RC4 yes; RC5 no | current public Site is the previously verified RC4 build | deploy/probe RC5, then prove public repository and final video logged out |
+| Public logged-out deployment | RC5 yes | production Site returns HTTP 200; core runtime assets byte-match; production browser smoke reaches gameplay, compact HUD, mixer, and caption state | prove the source repository and final video logged out |
 | 20–35 minute campaign | target only | instrumentation refuses to claim measured duration | five unfamiliar-human runs required |
 
 ## Remaining release blockers
@@ -83,6 +83,6 @@ The implementation and proof details live in [`RC4_JUDGE_FIX_CONTRACT.md`](RC4_J
 3. Run the real Chrome **This Tab + Share tab audio** five-minute rehearsal capture; retain a passing manifest and do not treat workflow validation as the recording.
 4. Run five unfamiliar newcomer playtests and report actual duration, help needed, comprehension, stuck points, route choice, and ending distribution.
 5. Complete NVDA, actual-audio listening/mix, and a 30-minute native Chrome+OBS performance/memory check. Keyboard-only, computed contrast, 200% zoom-equivalent reflow, and headless performance gates pass.
-6. Promote/probe the verified RC5 candidate, publish the exact repository commit and under-three-minute judging video, verify both logged out, and finish Devpost with the Codex session ID only after truth labels are current.
+6. Publish the exact repository commit and under-three-minute judging video, verify both logged out, and finish Devpost with the Codex session ID only after truth labels are current.
 
 No document should describe the build as “first-place worthy,” live-Twitch verified, OBS verified, WCAG conformant, or a measured 20–35 minute experience until the matching evidence exists.

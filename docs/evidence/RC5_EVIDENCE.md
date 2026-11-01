@@ -18,7 +18,7 @@ This index separates recorded RC5 suite artifacts from proof that still needs a 
 
 The final composite performance result records final DOM delta 0, final listener delta 0, and final heap delta 0.285 MiB.
 
-The final all-in-one `npm run verify` composite passed end to end, including the release-audit stage. This is a completed local verification result, not RC5 deployment or submission proof.
+The final all-in-one `npm run verify` composite passed end to end, including the release-audit stage. RC5 was then deployed to the public Site and checked independently through anonymous HTTP and a production browser smoke run. This still is not proof of Twitch, native OBS, human playtesting, or submission completion.
 
 ## Visual artifacts
 
@@ -81,7 +81,7 @@ This five-minute artifact is separate from the public judging video, which must 
 | Evidence | Current state |
 | --- | --- |
 | RC5 final all-in-one composite | Passed end to end, including release audit |
-| RC5 public deployment and anonymous probe | Pending; public Site is still verified RC4 |
+| RC5 public deployment and anonymous probe | Complete; HTTP 200, core runtime assets byte-match, and production browser smoke passed |
 | Real Twitch broadcaster + second viewer | Pending |
 | Native OBS alpha, caption, state, and single-audio-feed proof | Pending |
 | Five unfamiliar-human sessions | Pending |

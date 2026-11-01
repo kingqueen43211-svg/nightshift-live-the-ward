@@ -36,7 +36,7 @@ Status vocabulary:
 - Accessibility/reflow: **11/11**.
 - Performance: **10/10**, with final DOM delta 0, listener delta 0, and heap delta 0.285 MiB.
 
-The final all-in-one RC5 composite is **VERIFIED COMPOSITE**. It passed end to end, including the release-audit stage. This does not claim RC5 deployment: the current public Site remains the previously verified RC4 build.
+The final all-in-one RC5 composite is **VERIFIED COMPOSITE**. It passed end to end, including the release-audit stage. RC5 is now deployed to the public Site; anonymous HTTP checks byte-match its core runtime assets and a production browser smoke run passed. That deployment evidence does not close the separate Twitch, OBS, human, repository, video, or Devpost gates.
 
 ## Capture truth boundary
 

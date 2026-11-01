@@ -34,9 +34,9 @@ Status terms:
 | Twitch OAuth and EventSub | IMPLEMENTED / UNVERIFIED EXTERNAL | OAuth state validation, automatic callback resume, Helix identity, chat and optional event subscriptions, dedupe, keepalive watchdog, reconnect handoff, backoff, and re-subscription pass lifecycle tests. The public callback now exists; broadcaster authorization and a second-viewer command still remain. |
 | Clearly labeled rehearsal | VERIFIED LOCAL | Fixtures say **MODE: REHEARSAL** and disconnected normal play says **MODE: SIMULATED**. The local harness rejects an unverified live label. |
 | Original asset provenance | DOCUMENTED | V3 source PNGs, purpose, prompt constraints, alpha verification, and public derivatives are recorded in the asset manifest. |
-| Optimized public payload | VERIFIED LOCAL / RC5 DEPLOYMENT PENDING | RC5 continues to reference optimized WebP derivatives and bundled open-licensed fonts; its release-audit stage passed in the final composite. Lossless art sources remain outside the deployable directory. |
+| Optimized public payload | VERIFIED PUBLIC | RC5 references optimized WebP derivatives and bundled open-licensed fonts; its release-audit stage passed in the final composite, and its core production assets byte-match the tested release. Lossless art sources remain outside the deployable directory. |
 | Browser cold load and soak | VERIFIED LOCAL / NATIVE OBS PENDING | The final composite's 10/10 performance suite passes with a 0.285 MiB heap delta, zero final DOM growth, zero final listener growth, bounded relay posts, and clean teardown. A 30-minute native Chrome+OBS soak remains. |
-| Public logged-out deployment | RC4 VERIFIED PUBLIC / RC5 NOT DEPLOYED | The [current production demo](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/) is the previously verified RC4 build. RC5 has not been promoted or publicly probed and must not be described as the live Site yet. |
+| Public logged-out deployment | RC5 VERIFIED PUBLIC | The [production demo](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/) now serves RC5. An anonymous probe returned HTTP 200; `app.mjs`, `audio.mjs`, and `styles.css` byte-match the tested release, while the HTML-only delta is Cloudflare's injected challenge script. A production browser smoke check entered gameplay, toggled compact HUD mode, opened the four-bus mixer, and observed the sound-ready caption. |
 | Human campaign duration | NOT MEASURED | Engine timing is rehearsal telemetry only. No 20–35 minute or other duration claim is valid until complete newcomer runs are observed and recorded. |
 | Multi-streamer hosted authority | NOT IMPLEMENTED | The entry is intentionally browser-authoritative. A production service would require server-side authorization-code OAuth, encrypted refresh storage, signed sessions, and centralized state. |
 
@@ -50,7 +50,7 @@ Status terms:
 - **npm run qa:accessibility:** 11/11 keyboard, focus, accessibility-tree, computed-contrast, and 200%-reflow gates pass.
 - **npm run qa:performance:** 10/10 gates pass; final heap delta 0.285 MiB, final DOM delta 0, final listener delta 0.
 - Audio/caption/capture contracts cover action-specific cues, adaptive score, routed mixer, synchronized sanitized captions, passive silent mirrors, and truthful recorder failure states.
-- The final all-in-one `npm run verify` composite passed end to end, including the release-audit stage. This is verified local candidate evidence, not an RC5 deployment claim.
+- The final all-in-one `npm run verify` composite passed end to end, including the release-audit stage. Separate anonymous HTTP and production-browser probes verify that the public Site now serves the same RC5 runtime assets.
 - The current finding-to-test map is in [`RC5_JUDGE_FIX_CONTRACT.md`](RC5_JUDGE_FIX_CONTRACT.md); artifacts and the empty capture boundary are indexed in [`evidence/RC5_EVIDENCE.md`](evidence/RC5_EVIDENCE.md).
 
 ## Tests prove
