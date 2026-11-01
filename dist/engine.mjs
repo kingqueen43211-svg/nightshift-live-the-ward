@@ -44,7 +44,7 @@ export function createState(now=Date.now()){
     props:{desk:false,locker:false,lamps:false,tape:false,breakers:[false,false,false],breakerProgress:[]},
     player:{fear:12,noise:0,hidden:false,focus:100,lastAction:null,combo:0},
     story:{subjectIdentified:false,confessionDecoded:false,wardenBound:false},lastOutcome:"",
-    warden:{level:0,visible:false,contained:false},guardians:50,chaos:50,
+    warden:{level:0,visible:false,contained:false,phase:"dormant"},guardians:50,chaos:50,
     energy:{guardian:45,chaos:45},cooldowns:{guardian:0,chaos:0},members:{},
     votes:{},voters:{},winner:null,ending:null,shield:false,recent:[],seenEventIds:[],
     settings:{reducedMotion:false,lowEffects:false,highContrast:false,hideNames:false,jumpscares:true}
@@ -74,13 +74,13 @@ function addUnique(list,item){ if(!list.includes(item)) list.push(item); }
 export function applyEffect(state,id){
   if(id==="records"){ state.props.desk=true; addUnique(state.evidence,"Patient 06 ledger"); state.danger+=5; }
   if(id==="medkit"){ state.props.locker=true; addUnique(state.inventory,"Trauma kit"); state.health+=18; }
-  if(id==="noise"){ state.danger+=22; state.warden.level+=.25; state.warden.visible=true; }
+  if(id==="noise"){ state.danger+=22; state.warden.level+=.25; state.warden.visible=true; state.warden.phase="warning"; }
   if(id==="restore"){ state.power+=25; state.doors.isolation=true; state.danger-=8; }
   if(id==="open"){ state.doors.isolation=true; state.doors.theatre=true; }
-  if(id==="dark"){ state.power-=20; state.danger+=25; state.warden.level+=.35; state.warden.visible=true; }
+  if(id==="dark"){ state.power-=20; state.danger+=25; state.warden.level+=.35; state.warden.visible=true; state.warden.phase="approaching"; }
   if(id==="tape"){ state.props.tape=true; addUnique(state.evidence,"Dr. Vale confession"); state.danger+=8; }
-  if(id==="lights"){ state.props.lamps=true; state.power-=10; state.danger-=18; state.warden.visible=false; }
-  if(id==="release"){ state.danger+=30; state.warden.level+=.45; state.warden.visible=true; }
+  if(id==="lights"){ state.props.lamps=true; state.power-=10; state.danger-=18; state.warden.visible=false; state.warden.phase="repelled"; }
+  if(id==="release"){ state.danger+=30; state.warden.level+=.45; state.warden.visible=true; state.warden.phase="striking"; }
   if(id==="charge"){ state.power+=35; state.doors.exit=true; }
   if(id==="shield"){ state.shield=true; addUnique(state.inventory,"Audience shield"); }
   if(id==="overload"){ state.power-=25; state.health-=state.shield?0:18; state.shield=false; state.danger+=18; }
@@ -103,11 +103,11 @@ export function playerAction(state,action){
   if(action==="reconstruct-file"){if(state.props.desk&&state.props.locker){state.story.subjectIdentified=true;addUnique(state.evidence,"Subject 06: Mara Vale");state.player.combo++;outcome="The fragments match: Subject 06 was Dr. Vale’s daughter.";}else{state.player.fear=clamp(state.player.fear+6);outcome="Two fragments are missing. Search the entire reception first.";}}
   if(action==="inspect-gurney"){addUnique(state.evidence,"Restraint tag 06");state.danger=clamp(state.danger+5);state.player.focus=clamp(state.player.focus-5);outcome="Fresh restraint marks point toward the isolation door.";}
   if(action==="listen-intercom"){state.player.noise=clamp(state.player.noise-10);addUnique(state.evidence,"Intercom cadence: short-short-long");outcome="Behind the static: a warning timed to the door’s magnetic cycle.";}
-  if(action==="hide-curtain"){state.player.hidden=true;state.player.noise=0;state.danger=clamp(state.danger-10);state.player.fear=clamp(state.player.fear+4);outcome="You hold your breath as the Warden passes the curtain.";}
+  if(action==="hide-curtain"){state.player.hidden=true;state.player.noise=0;state.danger=clamp(state.danger-10);state.player.fear=clamp(state.player.fear+4);state.warden.phase="passing";outcome="You hold your breath as the Warden passes the curtain.";}
   if(action==="force-door"){if(state.power>=20&&state.evidence.length>=2){state.doors.isolation=true;state.doors.theatre=true;state.player.noise=clamp(state.player.noise+18);outcome="The bolts retract. The isolation door opens into real darkness.";}else{state.health=clamp(state.health-8);state.player.fear=clamp(state.player.fear+12);outcome="The maglock rejects you. Find evidence and restore enough power.";}}
-  if(action==="align-lamps"){state.props.lamps=true;state.warden.visible=false;state.danger=clamp(state.danger-12);state.power=clamp(state.power-8);outcome="Three surgical beams pin the Warden’s shadow to the wall.";}
+  if(action==="align-lamps"){state.props.lamps=true;state.warden.visible=false;state.warden.phase="repelled";state.danger=clamp(state.danger-12);state.power=clamp(state.power-8);outcome="Three surgical beams pin the Warden’s shadow to the wall.";}
   if(action==="play-tape"){state.props.tape=true;addUnique(state.evidence,"Theatre audio log");state.story.confessionDecoded=state.story.subjectIdentified;outcome=state.story.confessionDecoded?"Vale confesses: the Warden was built to contain Mara, not kill her.":"The confession references a patient you have not identified.";}
-  if(action==="counter-warden"){if(state.props.lamps&&state.story.confessionDecoded){state.warden.visible=false;state.danger=clamp(state.danger-25);state.player.combo+=2;addUnique(state.inventory,"Binding sigil");outcome="Light and confession synchronize. You tear a binding sigil free.";}else{state.warden.visible=true;state.health=clamp(state.health-14);state.danger=clamp(state.danger+14);outcome="Your counter fails. The Warden closes the distance.";}}
+  if(action==="counter-warden"){if(state.props.lamps&&state.story.confessionDecoded){state.warden.visible=false;state.warden.phase="repelled";state.danger=clamp(state.danger-25);state.player.combo+=2;addUnique(state.inventory,"Binding sigil");outcome="Light and confession synchronize. You tear a binding sigil free.";}else{state.warden.visible=true;state.warden.phase="striking";state.health=clamp(state.health-14);state.danger=clamp(state.danger+14);outcome="Your counter fails. The Warden closes the distance.";}}
   if(action.startsWith("breaker-")){
     const n=Number(action.at(-1)); const expected=[2,1,3][state.props.breakerProgress.length];
     if(n===expected){state.props.breakerProgress.push(n);state.props.breakers[n-1]=true;} else {state.props.breakerProgress=[];state.props.breakers=[false,false,false];state.danger=clamp(state.danger+8);}
@@ -124,7 +124,7 @@ export function usePower(state,user,power){
   const faction=state.members[String(user).toLowerCase()]; if(!faction) return {accepted:false,reason:"Join a faction first"};
   if(state.cooldowns[faction]>Date.now()) return {accepted:false,reason:"Power cooling down"}; if(state.energy[faction]<25) return {accepted:false,reason:"Not enough faction energy"};
   state.energy[faction]-=25; state.cooldowns[faction]=Date.now()+20000;
-  if(faction==="guardian"){state.health=clamp(state.health+12);state.danger=clamp(state.danger-8);} else {state.danger=clamp(state.danger+12);state.warden.visible=true;}
+  if(faction==="guardian"){state.health=clamp(state.health+12);state.danger=clamp(state.danger-8);state.warden.phase="repelled";} else {state.danger=clamp(state.danger+12);state.warden.visible=true;state.warden.phase="warning";}
   log(state,"power",user,power||`${faction} surge`); return {accepted:true};
 }
 export function ingestCommand(state,user,message){

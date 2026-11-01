@@ -5,7 +5,7 @@ Status vocabulary: PASS only when evidenced in the running build; PARTIAL for im
 | Gate | Status | Evidence / blocker |
 |---|---|---|
 | S0 current-build inspection | PARTIAL | Source, routes, local 1280×720 title/gameplay, and tests inspected. Formal multi-viewport captures and console/performance logs remain. |
-| S1 gold-standard corridor | PARTIAL | Physical multi-part door, foreground occluders, parallax layers, and streamer counterplay implemented. Three camera nodes, linked reflection/shadow, staged Warden motion, capture matrix, and measured FPS remain. |
+| S1 gold-standard corridor | PARTIAL | Physical multi-part door, foreground occluders, parallax layers, staged Warden states, and streamer counterplay implemented. Three camera nodes, fully linked reflection/shadow, authored Warden pose frames, capture matrix, and measured FPS remain. |
 | S2 coherent 10–15 minute section | FAIL | Mechanics expanded, but no newcomer uncut 10–15 minute playtest exists. |
 | S3 full campaign | FAIL | No measured 20–35 minute campaign or three independent full runs. |
 | S4 real Twitch + OBS | NOT TESTED | Code path exists; broadcaster authorization and second viewer are required. Simulation only. |

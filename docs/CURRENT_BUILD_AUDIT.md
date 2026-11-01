@@ -4,7 +4,7 @@ Date: 2026-11-01
 Baseline commit: `86d470176c713e1dd09cbb2bf79778dab3bb288e`  
 Branch: `v3/gold-corridor`
 
-This audit distinguishes what was directly inspected from what remains unverified. The original deployed `chatgpt.site` URL is authentication-gated for external visitors. Local evidence was collected from `http://localhost:4173/` at 1280×720 using the in-app browser and saved as `docs/evidence/v3-intro-1280x720.png` and `docs/evidence/v3-gameplay-1280x720.png`.
+This audit distinguishes what was directly inspected from what remains unverified. The original deployed `chatgpt.site` URL is authentication-gated for external visitors. Local evidence was collected from `http://localhost:4173/` at 1280×720 using the in-app browser and saved under `docs/evidence/`, including the intro, gameplay, open isolation door, and Warden warning fixtures.
 
 ## Verified good
 
@@ -32,13 +32,14 @@ This audit distinguishes what was directly inspected from what remains unverifie
 - Added foreground curtain/gurney occluders, crosshair, objective progression, threat state, story thread, and action feedback.
 - Expanded player mechanics to observation, deduction, stealth, resource use, threat counterplay, power routing, and a final seal attempt (`dist/engine.mjs`).
 - Added narrative prerequisites: identify Subject 06, decode the confession, earn a binding sigil, and use evidence to attempt containment.
+- Added staged Warden phases (`warning`, `approaching`, `passing`, `striking`, `repelled`) with separate shadow, arms, body, eye, and mist layers. The first pass is visibly occluded by the corridor/door composition rather than pasted over the HUD.
 - Added a clearly labeled local rehearsal autostart query for deterministic capture; it does not claim live Twitch.
 
 ## Broken or incomplete
 
 - `chatgpt.site` remains unsuitable as the only judge-accessible deployment because logged-out visitors see a sign-in gate. A separate public host is still required.
 - The surgical door currently uses CSS perspective rather than authored 6–10 frame art. Its shadow/reflection linkage is partial.
-- The Warden still lacks independently animated limbs, two authored outcomes, and a five-second readable warning sequence.
+- The Warden now has independently moving arms and distinct approach/strike/repel states, but it still needs authored sprite poses, stronger silhouette readability, audio timing, and two fully recorded interaction outcomes before S1 can pass.
 - The current HUD text is stylish but some labels remain below the V3 preferred 14px/720p threshold. These require a readability pass.
 - Full responsive matrix, keyboard-only full run, reduced-flash, audio captions, performance measurements, and screenshot baselines are not complete.
 - The campaign has five room plates, not yet eight or nine authored camera spaces. No 20–35 minute claim is valid.
