@@ -1,9 +1,9 @@
 export const ROOMS = [
-  { id:"intake", name:"Reception / Triage", code:"B1", plate:"reception-triage.png", objective:"Recover the intake records", hint:"Search the desk and medication locker.", actions:["search-desk","open-locker"] },
-  { id:"surgery", name:"Ward 06", code:"B2", plate:"ward-corridor.png", objective:"Break the isolation seal", hint:"The audience decides which route opens.", actions:["inspect-gurney","force-door"] },
-  { id:"theatre", name:"Operating Theatre", code:"B3", plate:"operating-theatre.png", objective:"Expose the Surgeon’s history", hint:"Align the surgical lamps and recover the tape.", actions:["align-lamps","play-tape"] },
-  { id:"generator", name:"Generator Room", code:"B4", plate:"generator-room.png", objective:"Restore emergency power", hint:"Throw breakers in the sequence 2 · 1 · 3.", actions:["breaker-1","breaker-2","breaker-3"] },
-  { id:"stairwell", name:"Stairwell / Exits", code:"B5", plate:"stairwell-exits.png", objective:"Choose who escapes", hint:"Evidence, power, and the final vote decide the ending.", actions:["open-roof","open-ambulance"] }
+  { id:"intake", name:"Reception / Triage", code:"B1", plate:"reception-triage.png", objective:"Identify Subject 06", hint:"Search, compare, then reconstruct the torn intake record.", actions:["search-desk","open-locker","reconstruct-file"] },
+  { id:"surgery", name:"Ward 06", code:"B2", plate:"ward-corridor.png", objective:"Cross the isolation corridor", hint:"Read the room, control your noise, then breach the physical door.", actions:["inspect-gurney","listen-intercom","hide-curtain","force-door"] },
+  { id:"theatre", name:"Operating Theatre", code:"B3", plate:"operating-theatre.png", objective:"Expose the Surgeon’s history", hint:"Use light, evidence, and timing to survive the operating table.", actions:["align-lamps","play-tape","counter-warden"] },
+  { id:"generator", name:"Generator Room", code:"B4", plate:"generator-room.png", objective:"Restore emergency power", hint:"Deduce and throw the breakers in sequence 2 · 1 · 3.", actions:["breaker-1","breaker-2","breaker-3","reroute-power"] },
+  { id:"stairwell", name:"Stairwell / Exits", code:"B5", plate:"stairwell-exits.png", objective:"Decide what the truth costs", hint:"Your evidence, resources, and final route determine who escapes.", actions:["seal-warden","open-roof","open-ambulance"] }
 ];
 
 const VOTES = {
@@ -42,6 +42,8 @@ export function createState(now=Date.now()){
     startedAt:null,roundEndsAt:now+30000,round:1,health:100,danger:22,power:8,
     inventory:[],evidence:[],doors:{isolation:false,theatre:false,exit:false},
     props:{desk:false,locker:false,lamps:false,tape:false,breakers:[false,false,false],breakerProgress:[]},
+    player:{fear:12,noise:0,hidden:false,focus:100,lastAction:null,combo:0},
+    story:{subjectIdentified:false,confessionDecoded:false,wardenBound:false},lastOutcome:"",
     warden:{level:0,visible:false,contained:false},guardians:50,chaos:50,
     energy:{guardian:45,chaos:45},cooldowns:{guardian:0,chaos:0},members:{},
     votes:{},voters:{},winner:null,ending:null,shield:false,recent:[],seenEventIds:[],
@@ -94,19 +96,28 @@ export function advanceRoom(state,now=Date.now(),duration=30000){
   state.roomIndex++; state.round++; state.version++; resetVote(state,now,duration); log(state,"system","NIGHTSHIFT",`${roomFor(state).name} entered`); return state;
 }
 export function playerAction(state,action){
-  if(action==="search-desk"){state.props.desk=true;addUnique(state.evidence,"Triage transfer slip");}
-  if(action==="open-locker"){state.props.locker=true;addUnique(state.inventory,"Sedative ampoule");state.health=clamp(state.health+10);}
-  if(action==="inspect-gurney"){addUnique(state.evidence,"Restraint tag 06");state.danger=clamp(state.danger+5);}
-  if(action==="force-door"){if(state.power>=20)state.doors.theatre=true;else state.health=clamp(state.health-8);}
-  if(action==="align-lamps"){state.props.lamps=true;state.warden.visible=false;state.danger=clamp(state.danger-12);}
-  if(action==="play-tape"){state.props.tape=true;addUnique(state.evidence,"Theatre audio log");}
+  state.player ||= {fear:12,noise:0,hidden:false,focus:100,lastAction:null,combo:0}; state.story ||= {subjectIdentified:false,confessionDecoded:false,wardenBound:false};
+  let outcome=""; state.player.hidden=false;
+  if(action==="search-desk"){state.props.desk=true;addUnique(state.evidence,"Triage transfer slip");state.player.focus=clamp(state.player.focus-4);outcome="A transfer slip names Ward 06—but the patient line is torn away.";}
+  if(action==="open-locker"){state.props.locker=true;addUnique(state.inventory,"Sedative ampoule");state.health=clamp(state.health+10);state.player.noise=clamp(state.player.noise+8);outcome="You recover a sedative. The locker clang echoes down the hall.";}
+  if(action==="reconstruct-file"){if(state.props.desk&&state.props.locker){state.story.subjectIdentified=true;addUnique(state.evidence,"Subject 06: Mara Vale");state.player.combo++;outcome="The fragments match: Subject 06 was Dr. Vale’s daughter.";}else{state.player.fear=clamp(state.player.fear+6);outcome="Two fragments are missing. Search the entire reception first.";}}
+  if(action==="inspect-gurney"){addUnique(state.evidence,"Restraint tag 06");state.danger=clamp(state.danger+5);state.player.focus=clamp(state.player.focus-5);outcome="Fresh restraint marks point toward the isolation door.";}
+  if(action==="listen-intercom"){state.player.noise=clamp(state.player.noise-10);addUnique(state.evidence,"Intercom cadence: short-short-long");outcome="Behind the static: a warning timed to the door’s magnetic cycle.";}
+  if(action==="hide-curtain"){state.player.hidden=true;state.player.noise=0;state.danger=clamp(state.danger-10);state.player.fear=clamp(state.player.fear+4);outcome="You hold your breath as the Warden passes the curtain.";}
+  if(action==="force-door"){if(state.power>=20&&state.evidence.length>=2){state.doors.isolation=true;state.doors.theatre=true;state.player.noise=clamp(state.player.noise+18);outcome="The bolts retract. The isolation door opens into real darkness.";}else{state.health=clamp(state.health-8);state.player.fear=clamp(state.player.fear+12);outcome="The maglock rejects you. Find evidence and restore enough power.";}}
+  if(action==="align-lamps"){state.props.lamps=true;state.warden.visible=false;state.danger=clamp(state.danger-12);state.power=clamp(state.power-8);outcome="Three surgical beams pin the Warden’s shadow to the wall.";}
+  if(action==="play-tape"){state.props.tape=true;addUnique(state.evidence,"Theatre audio log");state.story.confessionDecoded=state.story.subjectIdentified;outcome=state.story.confessionDecoded?"Vale confesses: the Warden was built to contain Mara, not kill her.":"The confession references a patient you have not identified.";}
+  if(action==="counter-warden"){if(state.props.lamps&&state.story.confessionDecoded){state.warden.visible=false;state.danger=clamp(state.danger-25);state.player.combo+=2;addUnique(state.inventory,"Binding sigil");outcome="Light and confession synchronize. You tear a binding sigil free.";}else{state.warden.visible=true;state.health=clamp(state.health-14);state.danger=clamp(state.danger+14);outcome="Your counter fails. The Warden closes the distance.";}}
   if(action.startsWith("breaker-")){
     const n=Number(action.at(-1)); const expected=[2,1,3][state.props.breakerProgress.length];
     if(n===expected){state.props.breakerProgress.push(n);state.props.breakers[n-1]=true;} else {state.props.breakerProgress=[];state.props.breakers=[false,false,false];state.danger=clamp(state.danger+8);}
-    if(state.props.breakerProgress.length===3){state.power=100;state.doors.exit=true;addUnique(state.inventory,"Exit power");}
+    if(state.props.breakerProgress.length===3){state.power=100;state.doors.exit=true;addUnique(state.inventory,"Exit power");outcome="2 · 1 · 3. The emergency grid detonates into life.";} else outcome=n===expected?`Breaker ${n} locks. The pattern is holding.`:"Wrong sequence. The generator screams and resets.";
   }
+  if(action==="reroute-power"){if(state.props.breakerProgress.length===3){state.power=100;state.danger=clamp(state.danger-8);outcome="Power rerouted from containment to the escape network.";}else{state.danger=clamp(state.danger+10);outcome="The dead grid backfeeds. Complete the breaker sequence first.";}}
+  if(action==="seal-warden"){if(state.inventory.includes("Binding sigil")&&state.evidence.length>=4){state.story.wardenBound=true;state.warden.contained=true;state.danger=10;outcome="The evidence names the victim. The sigil seals the Warden without sacrificing Mara.";}else{state.danger=clamp(state.danger+18);outcome="You cannot complete the seal without the truth and the sigil.";}}
   if(action==="open-roof"||action==="open-ambulance") finishEpisode(state,action==="open-roof"?"roof":"ambulance");
-  log(state,"action","STREAMER",action.replaceAll("-"," ")); return state;
+  state.player.lastAction=action; state.player.fear=clamp(state.player.fear+(state.danger>70?3:-1)); state.player.noise=clamp(state.player.noise-2); state.lastOutcome=outcome||action.replaceAll("-"," ");
+  log(state,"action","STREAMER",state.lastOutcome); return state;
 }
 export function joinFaction(state,user,faction){ if(!["guardian","chaos"].includes(faction)) return false; state.members[String(user).toLowerCase()]=faction; log(state,"faction",user,`joined ${faction}`); return true; }
 export function usePower(state,user,power){
