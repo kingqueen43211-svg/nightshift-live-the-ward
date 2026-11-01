@@ -6,7 +6,7 @@ Scope: browser client, Twitch lifecycle, public/OBS state transport, loopback re
 
 ## Release verdict
 
-No known P0 or P1 defect remains in the locally reviewable scope after the fixes below. The candidate is suitable for a controlled hackathon demonstration, but this is not a production security certification. Real Twitch interoperability, native OBS behavior, public-host configuration, and long-session performance remain external gates.
+No known P0 or P1 defect remains in the locally reviewable scope after the fixes below. The candidate is suitable for a controlled hackathon demonstration, but this is not a production security certification. Real Twitch interoperability, native OBS behavior, public-host configuration, and a native 30-minute Chrome+OBS run remain external gates.
 
 Evidence captured against the current working tree:
 
@@ -14,6 +14,8 @@ Evidence captured against the current working tree:
 - full automated suite: **64/64 tests passed** in the parent release run;
 - focused integrity browser smoke: **5/5 passed**, with zero browser-console errors;
 - expanded visual/browser matrix: **28/28 passed**, with zero browser-console errors;
+- accessibility browser gate: **11/11 passed** across keyboard-only operation, focus, accessibility tree, contrast, and 200%-zoom-equivalent reflow;
+- performance browser gate: **10/10 passed** across cold load and eight measured full-campaign cycles;
 - release audit: **passed**, **11.6 MiB across 23 public files**, with no file over the 4 MiB hard limit.
 
 ## Trust boundaries
@@ -63,13 +65,15 @@ Evidence captured against the current working tree:
 - The 28-state Chromium matrix covers 390×844 through 1920×1080, all 15 authored camera compositions, Warden and door fixtures, dashboards, transparent overlays, and reduced motion. It recorded no current geometry, overflow, alpha, motion, or console failure.
 - The focused browser integrity run recorded no echo storm: the controller produced traffic while the passive overlay produced zero posts.
 - Procedural audio is gesture-gated, reuses room ambience nodes, tracks one-shots, and has deterministic cleanup tests. Reduced-effects mode removes the noisy threat transients.
+- Reception cold start transfers **1.006 MiB** and no hidden V3 Warden/curtain/gurney/door asset. Those scene assets load only when the relevant room or threat phase becomes active.
+- Across the latest eight measured full-campaign cycles, forced-GC JavaScript heap changed by **0.23 MiB**; final DOM nodes and event listeners showed **zero growth**; relay posts remained between **75–77 per cycle**; network, browser console, process teardown, and profile cleanup all passed.
 
 ### Remaining performance risks
 
 - The cinematic image set is still the dominant transfer cost. A cold, throttled mobile/network pass on the final public origin is required; local screenshots do not measure first contentful paint or decode time.
 - The built-in loopback server intentionally favors a dependency-free demo path and does not gzip/Brotli-compress static text. A production CDN should provide compression and HTTP/2 or HTTP/3.
 - The local relay posts the latest public state on renders and relies on browser/loopback backpressure. The demo rate is small and bounded by the client loop, but a production multi-streamer service needs coalescing, per-session authorization, quotas, and telemetry.
-- No 30-minute memory/CPU/frame-time trace exists. Animated fog, rain, compositing filters, Web Audio, SSE, and repeated room transitions still require a real Chrome/OBS soak.
+- The eight-cycle headless soak is strong local leak evidence, but it is not a 30-minute native Chrome+OBS CPU/GPU/frame-time trace. Animated fog, rain, compositing filters, Web Audio, SSE, and OBS still require that production-shaped run.
 - Audio quality, OBS audio routing, GPU behavior, and mobile battery impact are not proven by unit or headless-browser tests.
 
 ## Known residual security limits
@@ -87,7 +91,7 @@ Evidence captured against the current working tree:
 2. Use a broadcaster and separate viewer account to record chat command → accepted vote → physical world change → matching OBS state. Exercise reconnect, token expiry, and one real optional channel event.
 3. Capture the passive full-scene mirror and compact transparent overlay inside native OBS at 1920×1080 and 1280×720. Confirm alpha, audio, and zero competing-controller behavior.
 4. Run a 30-minute Chrome + OBS soak and record frame time, CPU/GPU, memory trend, relay request rate, reconnect recovery, and audio cleanup.
-5. Complete keyboard-only, NVDA, 200% zoom/reflow, and actual contrast checks; automated semantics are evidence, not WCAG conformance.
+5. Complete NVDA and human browser-native zoom/perception checks. Keyboard-only operation, computed contrast, and 200% zoom-equivalent reflow pass automated browser gates, but do not establish WCAG conformance.
 6. Run newcomer playtests and report measured timing and comprehension. Do not replace human evidence with engine targets.
 
-Until those gates are complete, the accurate status is **locally hardened release candidate; live Twitch, native OBS, public hosting, long-session performance, and human usability remain unverified external evidence**.
+Until those gates are complete, the accurate status is **locally hardened release candidate; live Twitch, native OBS, public hosting, native 30-minute performance, NVDA, and human usability remain unverified external evidence**.

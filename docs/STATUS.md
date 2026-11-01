@@ -20,16 +20,17 @@ Status terms:
 | Guardian / Chaos factions | IMPLEMENTED | Membership, energy, cooldowns, and faction powers are covered in the pure engine. A real chat-session usability run remains. |
 | Physical isolation door | VERIFIED LOCAL | Separate panel, linked bolts, lock state, hinge animation, connected theatre reveal, original door art, and open/closed fixtures pass visual QA. |
 | Staged Warden encounter | VERIFIED LOCAL | Original warning, approach/strike, passing, and repel assets are driven by engine phases and appear in deterministic browser fixtures. |
-| Multiple endings and recap | VERIFIED LOCAL | Humane, roof, tunnel, containment, weak-escape, and failure logic are reachable in tests; the browser gate checks route, evidence, audience, and fallback provenance. |
+| Multiple endings and recap | VERIFIED LOCAL | Humane, roof, tunnel, containment, weak-escape, and failure logic are reachable in tests; a full browser UI path earns **MARA WALKS INTO DAWN** with six evidence items, five audience resolutions, and zero fallbacks, while a separate fallback run verifies provenance. |
 | Streamer control room | VERIFIED LOCAL | Start/pause/resume/stop, signal, rehearsal events, activity feed, privacy/safety settings, pacing telemetry, room readiness, and checkpoint recovery are present. |
 | Transparent browser overlay | VERIFIED LOCAL / UNVERIFIED OBS | Computed backgrounds for html, body, app, and overlay are transparent at 1920×1080 and 1280×720. Actual transparency in the native OBS application remains unverified. |
 | Responsive broadcast UI | VERIFIED LOCAL | The visual matrix covers gameplay from 1920×1080 through 390×844, desktop/phone dashboard, Warden/door fixtures, overlay, and OS reduced motion with no current geometry or console failures. |
-| Accessibility and safety hooks | IMPLEMENTED / PARTIALLY VERIFIED | Dialog semantics, focus preservation, progress values, pause shortcut, 44px targets, reduced motion, reduced flashes, high contrast, hidden names, and optional jumpscares pass automated gates. Keyboard-only full run, NVDA, 200% zoom, and computed contrast review remain. |
+| Accessibility and safety hooks | VERIFIED LOCAL / UNVERIFIED NVDA | Eleven browser gates cover keyboard-only intro/gameplay/control-room operation, modal containment, 3px dual-contrast focus, the Chromium accessibility tree, computed normal/high-contrast color pairs, and 200% zoom-equivalent gameplay/control-room reflow. NVDA remains manual and no WCAG-conformance claim is made. |
 | Procedural audio and captions | IMPLEMENTED | Gesture-gated five-room ambience, transition/Warden/UI cues, master volume/mute, reduced-effects variants, cleanup, and caption events pass eight unit tests. A manual audible Chrome/OBS recording check remains. |
 | Twitch OAuth and EventSub | IMPLEMENTED / UNVERIFIED EXTERNAL | OAuth state validation, Helix identity, chat and optional event subscriptions, dedupe, keepalive watchdog, reconnect handoff, backoff, and re-subscription pass lifecycle tests. Broadcaster authorization and a second-viewer command on the final public callback remain. |
 | Clearly labeled rehearsal | VERIFIED LOCAL | Fixtures say **MODE: REHEARSAL** and disconnected normal play says **MODE: SIMULATED**. The local harness rejects an unverified live label. |
 | Original asset provenance | DOCUMENTED | V3 source PNGs, purpose, prompt constraints, alpha verification, and public derivatives are recorded in the asset manifest. |
 | Optimized public payload | VERIFIED LOCAL | The app references verified WebP derivatives and locally bundled open-licensed fonts; release audit passes at 11.6 MiB. Lossless art sources remain outside the deployable directory. |
+| Browser cold load and soak | VERIFIED LOCAL / NATIVE OBS PENDING | Hidden V3 scene art is deferred on Reception; cold transfer is 1.006 MiB. The latest eight measured full-campaign cycles pass with a 0.23 MiB post-GC heap delta, zero final DOM/listener growth, bounded relay posts, and clean teardown. A 30-minute native Chrome+OBS soak remains. |
 | Public logged-out deployment | UNVERIFIED EXTERNAL | Static hosting configuration, security headers, server, and release audit exist. No final public HTTPS URL has been verified logged out. |
 | Human campaign duration | NOT MEASURED | Engine timing is rehearsal telemetry only. No 20–35 minute or other duration claim is valid until complete newcomer runs are observed and recorded. |
 | Multi-streamer hosted authority | NOT IMPLEMENTED | The entry is intentionally browser-authoritative. A production service would require server-side authorization-code OAuth, encrypted refresh storage, signed sessions, and centralized state. |
@@ -38,9 +39,11 @@ Status terms:
 
 - **npm run check:** 64/64 tests pass.
 - **npm run qa:visual:** 28/28 scenarios pass with zero recorded browser console errors, including every authored camera composition.
-- **npm run qa:gameplay:** 7/7 browser campaign gates pass.
+- **npm run qa:gameplay:** 8/8 browser campaign gates pass, including a fully earned humane-ending UI path.
 - **npm run qa:integrity:** 5/5 browser truth, privacy, and single-controller gates pass.
 - **npm run qa:relay:** 16/16 independent-process state-sync and passive-mirror gates pass.
+- **npm run qa:accessibility:** 11/11 keyboard, focus, accessibility-tree, computed-contrast, and 200%-reflow gates pass.
+- **npm run qa:performance:** 10/10 cold-load, eight-cycle soak, network/console, and cleanup gates pass.
 - **npm run release:audit:** pass; 11.6 MiB across the public build.
 - **Image optimization:** 11 referenced sources reduced by 57.0% while preserving dimensions and alpha; post-switch visual and gameplay gates pass.
 
@@ -58,8 +61,8 @@ Status terms:
 - a broadcaster and second viewer can complete the final public Twitch flow;
 - native OBS renders alpha and audio exactly as intended;
 - a newcomer understands the game or completes it within a target duration;
-- the experience is screen-reader conformant;
-- long-session memory, frame pacing, and network behavior are production-ready;
+- the experience is screen-reader conformant (NVDA is still untested);
+- native 30-minute Chrome+OBS memory, frame pacing, audio, GPU, and network behavior are production-ready;
 - a public URL, repository, and video are available logged out.
 
 ## Release proof still required
@@ -68,6 +71,6 @@ Status terms:
 2. Register the exact OAuth callback and run the two-account Twitch matrix in the Twitch verification guide.
 3. Capture real OBS alpha at both target resolutions and confirm BroadcastChannel state propagation.
 4. Listen to each room/cue in Chrome and OBS; repeat with mute and reduced effects to verify captions.
-5. Complete keyboard-only, NVDA, zoom/reflow, contrast, and long-session checks.
+5. Complete NVDA, audible-mix, and a 30-minute native Chrome+OBS check; the automated keyboard, zoom/reflow, computed-contrast, and eight-cycle headless-soak gates now pass.
 6. Run independent newcomer playtests and publish observed timing and comprehension notes.
 7. Record and publish the final demo video without presenting rehearsal as live proof.

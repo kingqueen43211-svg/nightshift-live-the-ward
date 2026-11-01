@@ -59,11 +59,11 @@ The five-act state model is convincing, but no screenshot or automated gate prov
 ## Evidence reviewed
 
 - Visual matrix: **13 passed, 0 failed, 0 console errors** across six gameplay viewports, two threat/door fixtures, two dashboards, two overlays, and reduced motion.
-- Browser campaign smoke: **7 passed, 0 failed**, including focus persistence, camera ARIA/composition, rejected prerequisites, inventory, checkpoint restore, fallback truth, and ending recap.
+- Browser campaign smoke: **8 passed, 0 failed**, including focus persistence, camera ARIA/composition, rejected prerequisites, inventory, checkpoint restore, fallback truth, and a fully earned humane ending recap.
 - Key captures: `gameplay-1920x1080.png`, `gameplay-1280x720.png`, `gameplay-768x1024.png`, `gameplay-390x844.png`, `warden-1280x720.png`, `door-1280x720.png`, both dashboard sizes, both overlay sizes, reduced motion, and the ending recap.
 
 Automated geometry and browser checks materially strengthen confidence, but they do not prove live Twitch behavior, actual OBS compositing, audio perception, screen-reader usability, human pacing, or audience delight.
 
 ## Post-review resolution
 
-The local recommendations were acted on after this score was recorded: the active Warden received a restrained midtone lift and cyan/red rim separation, Space Grotesk and DM Mono are now bundled locally with OFL provenance, the stale QA baseline was replaced, and the visual matrix expanded to all 15 camera compositions. The resulting run passes 28/28 states with zero captured console errors. The real Twitch/OBS proof and human pacing gates remain open because they require the user's accounts, native OBS, and participants; the original 86/100 score is therefore retained rather than inflated by unverified external claims.
+The local recommendations were acted on after this score was recorded: the active Warden received a restrained midtone lift and cyan/red rim separation, Space Grotesk and DM Mono are bundled locally with OFL provenance, the stale QA baseline was replaced, the visual matrix expanded to all 15 camera compositions, mobile view navigation was restored, and the strongest evidence capture now shows the earned humane ending instead of only the fallback route. The resulting run passes 28/28 visual states, 8/8 campaign gates, 11/11 accessibility-browser gates, and 10/10 performance-soak gates with zero captured console errors. The real Twitch/OBS proof, NVDA, audible mix, and human pacing gates remain open; the original 86/100 score is retained rather than retroactively inflated.

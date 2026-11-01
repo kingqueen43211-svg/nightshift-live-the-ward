@@ -25,7 +25,7 @@ Follow/sub/cheer/raid → event mapper ─────────────�
 - `twitch.mjs`: Twitch identity validation, EventSub socket lifecycle, subscription creation, reconnect handling, and event normalization.
 - `public-state.mjs`: strict bounds, nested-shape, authored-camera, and privacy validation for any state entering the OBS view.
 - `runtime-mode.mjs`: Twitch/rehearsal mode policy, simulated-input gating, reconnect clock behavior, and truthful vote labels.
-- `app.mjs`: DOM rendering, screen routing, show timing, demo autopilot, manual production triggers, visual feedback, and same-profile/cross-process state transport.
+- `app.mjs`: DOM rendering, screen routing, show timing, clearly labeled simulated audience input, manual production triggers, visual feedback, and same-profile/cross-process state transport.
 
 ## Twitch event mapping
 

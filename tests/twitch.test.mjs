@@ -60,6 +60,17 @@ test("OAuth token capture requires the stored state and scrubs the fragment", ()
   assert.equal(bridge.captureTokenFromHash(), true);
   assert.equal(store.getItem("nightshift.token"), "accepted");
   assert.equal(store.getItem("nightshift.oauthState"), null);
+
+  let connectCalls = 0;
+  const connected = Promise.resolve({ id: "broadcaster" });
+  bridge.connect = () => { connectCalls++; return connected; };
+  store.setItem("nightshift.oauthState", "resume");
+  location.hash = "#access_token=resumed&state=resume";
+  assert.equal(bridge.resumeOAuthCallback(), connected);
+  assert.equal(connectCalls, 1);
+  location.hash = "";
+  assert.equal(bridge.resumeOAuthCallback(), null);
+  assert.equal(connectCalls, 1);
 });
 
 test("expired validation clears the token and reports AUTH_EXPIRED", async () => {

@@ -43,7 +43,38 @@ button{min-height:44px}
 @media(min-width:851px){.event-toast{left:calc(50% - 220px)}}
 #app:not([data-view="gameplay"]) .cinematic-intro{display:none}
 body.skip-intro .cinematic-intro{display:none!important}
-.door-panel{transform-origin:right center;background:linear-gradient(rgba(2,7,8,.12),rgba(2,7,8,.18)),url("./assets/v3/isolation-door-v1.webp") center/135% 112% no-repeat,#020607}.door-panel::before,.door-panel span,.door-panel b{display:none}.door-bolt{right:auto;left:-8%}.door-frame>small{right:auto;left:-75px;text-align:right}.door-rig.unlocked .door-bolt{transform:translateX(-120%)}.door-rig.unlocked .door-panel{transform:rotateY(78deg)}
+.door-panel{transform-origin:right center;background-color:#020607;background-image:linear-gradient(rgba(2,7,8,.12),rgba(2,7,8,.18))}.door-panel.room-art-ready{background-image:linear-gradient(rgba(2,7,8,.12),rgba(2,7,8,.18)),url("./assets/v3/isolation-door-v1.webp");background-position:0 0,center;background-size:auto,135% 112%;background-repeat:repeat,no-repeat}.door-panel::before,.door-panel span,.door-panel b{display:none}.door-bolt{right:auto;left:-8%}.door-frame>small{right:auto;left:-75px;text-align:right}.door-rig.unlocked .door-bolt{transform:translateX(-120%)}.door-rig.unlocked .door-panel{transform:rotateY(78deg)}
+
+/* Keyboard focus must survive both bright and dark cinematic frames. */
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a[href]:focus-visible{outline:3px solid #fff!important;outline-offset:3px!important;box-shadow:0 0 0 2px #03100e,0 0 0 5px var(--cyan)!important}
+.faction-guide{margin:7px 0 0;padding-top:7px;border-top:1px solid var(--line);color:#b7c6c3;font:7px "DM Mono";letter-spacing:.035em;line-height:1.35}.faction-guide b{color:var(--cyan);letter-spacing:.09em}
+
+/* Short viewports are the deterministic proxy for 200% zoom on a 1280x720
+   judging canvas. Reflow every functional gameplay region into one vertical
+   reading order instead of hiding the case file or clipping fixed HUD zones. */
+@media(max-width:850px) and (max-height:520px){
+  .cinematic-intro{display:block;overflow-y:auto;overscroll-behavior:contain;padding:0}
+  .intro-copy{width:100%;min-height:max-content;margin:0;padding:82px 22px 26px;text-shadow:0 6px 30px #000}
+  .intro-copy h1{font-size:clamp(42px,12vw,64px);line-height:.82;margin:16px 0 18px}
+  .intro-copy>p{font-size:15px;max-width:590px}.intro-rules{margin:20px 0;gap:12px}.enter-ward{min-width:min(285px,100%)}
+  #gameplay.active{display:block;position:relative;height:100%;overflow:hidden}
+  #gameplay .scene{position:fixed;inset:68px 0 0;opacity:.5}
+  #gameplay .hud{position:relative;inset:auto;height:100%;padding:82px 14px 28px;display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:10px;overflow-y:auto;overflow-x:hidden;scroll-padding:82px 0 24px;pointer-events:auto;overscroll-behavior:contain}
+  #gameplay .mission,#gameplay .meters,#gameplay .player-loop,#gameplay .vote-panel,#gameplay .journal{position:relative;inset:auto;top:auto;right:auto;bottom:auto;left:auto;transform:none;width:100%;min-width:0;margin:0;display:block}
+  #gameplay .mission{padding:14px}#gameplay .mission p{display:block}#gameplay .mission .room-map,#gameplay .mission .objective-progress{display:flex}
+  #gameplay .meters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  #gameplay .player-loop{padding:14px 16px}#gameplay .player-loop>.eyebrow,#gameplay .player-loop>p{display:block}#gameplay .player-loop>p{white-space:normal}
+  #gameplay .vote-panel{padding:14px}#gameplay .journal{padding:14px}
+  #gameplay .event-toast,#gameplay .audio-caption{position:relative;inset:auto;left:auto;right:auto;top:auto;bottom:auto;transform:none;width:100%;margin:0;grid-column:1}
+  #gameplay .event-toast:not(.show),#gameplay .audio-caption[hidden]{display:none!important}
+  #gameplay .crosshair{display:none}.foreground-rig{opacity:.45}
+  .dashboard{padding-top:68px}.dash-shell{padding:18px 14px 30px}.dash-title{gap:14px}.dash-title h1{font-size:32px}.show-controls{width:100%}.show-controls button{flex:1 1 120px}
+  .topbar{padding:0 10px}.nav{padding:8px 9px}.signal #modeLabel,.signal #viewerCount{display:none}
+}
+
+/* Keep every product surface reachable on phones. The compact header trades
+   the decorative brand for explicit Live / Control / OBS navigation. */
+@media(max-width:850px){.topbar{padding:0 8px}.brand{display:none}nav{display:flex;flex:1;min-width:0}.nav{flex:1;min-width:0;padding:8px 4px;font-size:11px;white-space:nowrap}.signal #modeLabel,.signal #viewerCount{display:none}}
 .audio-caption{position:absolute;z-index:13;left:50%;top:28px;transform:translateX(-50%);width:min(420px,34vw);padding:10px 14px;text-align:center;pointer-events:none;border-color:rgba(244,196,119,.38);transition:opacity .2s ease}.audio-caption small,.audio-caption span{display:block}.audio-caption small{color:var(--amber);font:7px "DM Mono";letter-spacing:.13em}.audio-caption span{margin-top:4px;color:var(--text);font-size:11px}.audio-caption[hidden]{display:none!important}.toggles .volume-row{grid-column:1/-1;display:grid;grid-template-columns:auto 1fr;gap:12px}.volume-row input[type="range"]{width:100%;margin:0;padding:0;accent-color:var(--cyan);background:transparent;border:0}body:has(.event-toast.show) .audio-caption{opacity:0}
 @media(max-width:850px){.audio-caption{left:14px;right:14px;top:auto;bottom:164px;transform:none;width:auto;padding:7px 10px}.audio-caption span{font-size:9px}.toggles .volume-row{grid-template-columns:1fr}}
 .scene{isolation:isolate;z-index:0}.hud{z-index:20}
@@ -68,3 +99,5 @@ body.low-effects .impact-flash,body.low-effects .alarm,body.low-effects .room-wi
   .meters{top:180px}.vote-panel{top:238px}.event-toast{padding:7px 10px}.event-toast b{margin:2px;font-size:15px}.event-toast span{font-size:9px;line-height:1.25}.event-toast small{font-size:7px}
   .signal{gap:6px}.signal-pause{width:40px;min-width:40px;min-height:40px}.ending{padding:20px}.ending h2{font-size:38px}.ending-recap{grid-template-columns:repeat(2,1fr);max-height:42vh;overflow:auto}.ending-recap p{grid-column:1/-1}.quick-items button{min-height:32px}.player-loop:has(.quick-items:not([hidden])){padding-top:8px}
 }
+
+@media(max-width:850px){.event-toast{bottom:164px;max-height:60px;padding:4px 8px;overflow:hidden}.event-toast small{font-size:6px}.event-toast b{margin:1px;font-size:13px}.event-toast span{font-size:8px;line-height:1.1}}

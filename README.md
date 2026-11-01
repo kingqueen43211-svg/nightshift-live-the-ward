@@ -12,16 +12,16 @@ NightShift Live turns a Twitch horror stream into a live game show. Viewers vote
 - A UI-only 2.5D scene compositor with independent depth, fog, lighting, reflection, occlusion, rain, physical-door, foreground-prop, Warden, and HUD layers; no 3D meshes or engine runtime.
 - Original phase-specific Warden, gurney, curtain, and isolation-door art with archived lossless sources and optimized public derivatives.
 - Gesture-gated procedural room ambience and cues with mute/volume controls, reduced-effects variants, and visual captions.
-- Demo autopilot and manual event triggers for a reliable no-credentials judging path.
+- Clearly labeled simulated audience voting and manual event triggers for a reliable no-credentials judging path.
 - Cross-tab state transport with `BroadcastChannel` for separate game and overlay browser sources.
-- Responsive safety/accessibility controls, modal focus handling, semantic state, pause shortcuts, reduced motion/flashes, and stable keyboard focus.
+- Responsive safety/accessibility controls, modal focus handling, semantic state, pause shortcuts, reduced motion/flashes, stable keyboard focus, and 200% zoom reflow.
 - Automated engine, Twitch lifecycle, accessibility, audio, visual, and full-browser campaign gates.
 
 ## Release captures
 
 | Warden threat beat | Persistent ending recap |
 | --- | --- |
-| ![The Warden approaches the isolation door while streamer actions and simulated rehearsal votes remain clearly separated.](docs/evidence/v3-warden-1280x720.png) | ![Episode ending recap showing route, evidence, truth, Warden state, audience count, and disclosed fallbacks.](docs/evidence/v3-ending-recap-1280x720.png) |
+| ![The Warden approaches the isolation door while streamer actions and simulated rehearsal votes remain clearly separated.](docs/evidence/v3-warden-1280x720.png) | ![Earned humane ending recap showing the roof route, six evidence items, decoded truth, bound Warden, five audience resolutions, and zero fallbacks.](docs/evidence/v3-ending-recap-1280x720.png) |
 | Full gameplay hierarchy | Streamer control room |
 | ![NightShift gameplay with mission, camera nodes, streamer-only actions, audience voting, and case file.](docs/evidence/v3-gameplay-1280x720.png) | ![NightShift streamer control room with signal, rehearsal, activity, accessibility, and show controls.](docs/evidence/v3-dashboard-1280x720.png) |
 
@@ -45,10 +45,12 @@ npm run qa:visual
 npm run qa:gameplay
 npm run qa:integrity
 npm run qa:relay
+npm run qa:accessibility
+npm run qa:performance
 npm run release:audit
 ```
 
-Current local release-candidate evidence: 64/64 automated tests, 28/28 visual states (including all 15 camera compositions), 7/7 browser campaign gates, 5/5 browser integrity gates, 16/16 two-process relay gates, zero captured browser-console errors, and an 11.6 MiB `dist/` payload. These checks do not replace the still-pending real Twitch, native OBS, public-HTTPS, and human-playtest gates.
+Current local release-candidate evidence: 64/64 automated tests, 28/28 visual states (including all 15 camera compositions), 8/8 browser campaign gates, 5/5 browser integrity gates, 16/16 two-process relay gates, 11/11 keyboard/contrast/200%-reflow gates, and 10/10 cold-load/performance-soak gates. The latest eight-cycle forced-GC run finished with no final DOM/listener growth, a 0.23 MiB heap delta, and zero captured browser-console errors; the public `dist/` payload remains 11.6 MiB. These checks do not replace the still-pending real Twitch, native OBS, NVDA, audible-mix, public-HTTPS, and human-playtest gates.
 
 Before sharing the entry, follow the logged-out hosting, OAuth callback, OBS alpha, and rollback steps in [`docs/PUBLIC_DEPLOYMENT.md`](docs/PUBLIC_DEPLOYMENT.md).
 

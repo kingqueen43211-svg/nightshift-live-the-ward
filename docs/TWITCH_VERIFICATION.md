@@ -64,9 +64,9 @@ These tests use deterministic fakes. They establish transport behavior, not Twit
 2. Authorize a broadcaster in a private test channel. Do not record or expose the access token.
 3. Confirm the dashboard reports `LIVE_TWITCH`, broadcaster identity, and active chat subscription.
 4. From a separate viewer account, send an eligible vote command.
-5. Capture one continuous recording showing Twitch chat, accepted unique viewer ID, vote tally, physical in-world effect, dashboard audit entry, and matching OBS state.
+5. Capture one continuous recording showing Twitch chat from the separate viewer account, the accepted vote, vote tally, physical in-world effect, dashboard audit entry, and matching OBS state. Do not expose the raw immutable viewer ID on screen.
 6. Deliver the same EventSub notification ID twice and prove only one mutation occurs.
-7. Change the same viewer's vote and prove only one active vote remains.
+7. Send a second vote from the same viewer and prove the one-vote-per-round rule rejects it without changing the tally.
 8. Trigger reconnect, wait for `LIVE_TWITCH` recovery, then accept a new command.
 9. Revoke/expire the token and prove the UI enters `AUTH_EXPIRED` without presenting rehearsal as live.
 

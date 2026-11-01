@@ -109,6 +109,11 @@ export class TwitchBridge extends EventTarget {
     return true;
   }
 
+  resumeOAuthCallback() {
+    if (!this.captureTokenFromHash()) return null;
+    return this.connect();
+  }
+
   login(clientId) {
     if (!clientId) throw new Error("Enter a Twitch Client ID first.");
     if (!this.crypto?.randomUUID || !this.location?.assign) throw new Error("Secure Twitch authorization is unavailable in this browser.");

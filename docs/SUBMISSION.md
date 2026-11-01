@@ -47,7 +47,7 @@ The remaining work is proof, not a different product concept:
 - capture real transparency inside OBS at 1920×1080 and 1280×720;
 - run and time complete newcomer playthroughs before making a duration claim;
 - record the final public demo video;
-- complete keyboard, screen-reader, performance, and independent-review evidence.
+- complete NVDA, audible-mix, native OBS, and 30-minute Chrome+OBS evidence; keyboard/zoom/contrast and the eight-cycle headless soak now pass.
 
 ## Judging criteria
 
@@ -60,9 +60,11 @@ The remaining work is proof, not a different product concept:
 
 - **npm run check:** 64/64 tests pass.
 - **npm run qa:visual:** 28/28 viewport, fixture, authored-camera, OBS-alpha, and reduced-motion scenarios pass.
-- **npm run qa:gameplay:** 7/7 browser campaign gates pass.
+- **npm run qa:gameplay:** 8/8 browser campaign gates pass, including a five-act earned humane-ending path with zero fallbacks.
 - **npm run qa:integrity:** 5/5 browser truthfulness, privacy, and single-controller gates pass.
 - **npm run qa:relay:** 16/16 checks pass across separate Chrome processes and profiles; exact session/vote/room state crosses the loopback relay while the mirror remains inert.
+- **npm run qa:accessibility:** 11/11 keyboard, focus, accessibility-tree, computed-contrast, and 200%-reflow checks pass.
+- **npm run qa:performance:** 10/10 checks pass across the latest eight measured campaigns; cold transfer is 1.006 MiB, post-GC heap delta is 0.23 MiB, and final DOM/listener growth is zero.
 - **npm run release:audit:** pass; public payload is 11.6 MiB.
 
 These results prove the local build and its deterministic browser paths. They do not substitute for real Twitch, real OBS, human pacing, public hosting, or screen-reader evidence.

@@ -2,9 +2,17 @@
 
 Audit date: 2026-11-01  
 Scope: `dist/index.html`, `dist/app.mjs`, `dist/styles.css`, and the gameplay/dashboard/overlay interaction model  
-Status: release blockers remain
+Status: original findings resolved locally; NVDA and manual perception checks remain
 
-This is a source-and-behavior audit, not a WCAG conformance claim. The current build has strong foundations—native buttons and inputs, visible focus styling, a polite announcement region, text labels alongside color-coded state, reduced-motion/low-effects/high-contrast controls, and decorative threat art hidden from assistive technology. The issues below must be fixed and verified before accessibility can be called complete.
+This is a source-and-behavior audit, not a WCAG conformance claim. The findings below record the pre-fix audit. They were retained to show what the gate caught rather than rewritten as if the defects never existed.
+
+## Post-audit resolution
+
+`npm run qa:accessibility` now passes **11/11** browser checks. The gate uses Chromium CDP key events—no DOM `.click()` calls—to start the episode, traverse gameplay, activate an action with Space, pause/resume, enter the control room, and reach its controls. It also verifies modal containment, a Chromium accessibility tree with no unnamed focusable control, 3px dual-contrast focus indicators, computed normal/high-contrast text pairs, and 640×360 at device scale 2 as a deterministic 200% reflow proxy.
+
+The resulting short-viewport layout exposes mission, meters, streamer actions, audience voting, and case file in one vertical scroll order; all Live / Control room / OBS routes remain reachable on phone widths. The original focus-replacement, modal, motion/flash, target-size, preference-persistence, and audio-caption findings are resolved in source and automated evidence.
+
+Still manual: NVDA + Chrome output quality, actual perception of the audible mix and captions, and a human review at browser-native 200% zoom. Accordingly, the build is not described as WCAG conformant.
 
 ## P0 — release blockers
 

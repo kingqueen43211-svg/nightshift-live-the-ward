@@ -29,7 +29,7 @@ This audit separates implemented behavior, automated/browser evidence, and exter
 | --- | --- |
 | `npm run check` | 64 passed, 0 failed |
 | `npm run qa:visual` | 28 passed, 0 failed; all 15 camera compositions; no console errors |
-| `npm run qa:gameplay` | 7 passed, 0 failed |
+| `npm run qa:gameplay` | 8 passed, 0 failed; includes earned humane ending and truthful fallback ending |
 | `npm run qa:integrity` | 5 passed, 0 failed; truth/privacy/controller checks |
 | `npm run qa:relay` | 16 passed, 0 failed across separate browser processes/profiles |
 | `npm run release:audit` | passed; 11.6 MiB public payload |
@@ -55,7 +55,7 @@ Visual evidence includes desktop, tablet, phone, every camera node, Warden warni
 - Real Twitch proof with the broadcaster account and a second viewer, including chat-to-world-to-overlay propagation and reconnection on the production callback.
 - Actual OBS checkerboard/background captures at 1920×1080 and 1280×720. Computed browser alpha is necessary but not sufficient.
 - Three timed newcomer full runs. The 20–35 minute value remains an authored target, not measured evidence.
-- NVDA + Chrome, 200% zoom, complete keyboard-only run, actual-audio listening/mix, and a 30-minute performance/memory session.
+- NVDA + Chrome, actual-audio listening/mix, and a 30-minute native Chrome+OBS performance/memory session. The complete keyboard route, 200% zoom-equivalent reflow, computed contrast, and eight-cycle headless soak now pass.
 - Public repository/video/Devpost URLs and final submission actions owned by the user.
 
 ## Current release decision

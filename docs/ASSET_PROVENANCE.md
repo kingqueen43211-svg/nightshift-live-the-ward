@@ -34,6 +34,6 @@ Every V3 prop and character file was requested as an isolated transparent PNG so
 - The Warden sprite is selected from explicit engine phases (`warning`, `approaching`/`striking`, `passing`, and `repelled`).
 - Curtain and gurney are independent foreground layers enabled only in Ward 06 and the operating theatre.
 - The isolation door is textured onto a CSS 3D panel with linked bolts, a real hinge transform, a connected-room reveal, and reduced-motion support.
-- Original PNGs remain under `art-source/` as the lossless source of truth. The public `dist/` uses visually verified WebP derivatives; the expanded post-switch visual matrix passed 28/28 and the browser campaign gate passed 7/7.
+- Original PNGs remain under `art-source/` as the lossless source of truth. The public `dist/` uses visually verified WebP derivatives; the expanded post-switch visual matrix passed 28/28 and the browser campaign gate passed 8/8.
 
 This manifest records authorship and intended use; it is not a claim that automated generation alone proves final visual quality. The release screenshots and visual-QA matrix remain the acceptance evidence.

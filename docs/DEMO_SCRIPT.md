@@ -56,9 +56,11 @@ Show the terminal summaries briefly:
 
 - 64/64 tests;
 - 28/28 visual and responsive states, including all 15 camera compositions;
-- 7/7 browser campaign gates;
+- 8/8 browser campaign gates, including an earned humane-ending UI path;
 - 5/5 browser truth/privacy/integrity gates;
 - 16/16 separate-process Chrome-to-OBS-relay gates;
+- 11/11 keyboard, contrast, accessibility-tree, and 200%-reflow gates;
+- 10/10 cold-load and eight-cycle performance-soak gates;
 - 11.6 MiB public payload.
 
 “Codex helped build the campaign, original art pipeline, Twitch lifecycle, interfaces, audio, accessibility, tests, and release package—and the gates caught real bugs before this recording.”

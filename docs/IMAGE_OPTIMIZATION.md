@@ -1,6 +1,6 @@
 # Image optimization and verification
 
-The public build uses verified WebP derivatives for every former PNG larger than 1 MB. After references were switched, the expanded visual matrix passed 28/28 and the browser campaign gate passed 7/7. Lossless PNG sources were moved out of the deployable directory to `art-source/`.
+The public build uses verified WebP derivatives for every former PNG larger than 1 MB. After references were switched, the expanded visual matrix passed 28/28 and the browser campaign gate passed 8/8. Lossless PNG sources were moved out of the deployable directory to `art-source/`.
 
 ## Reproducible command
 

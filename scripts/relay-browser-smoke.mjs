@@ -372,6 +372,10 @@ try {
   record("separate browser profiles", controller.profileRoot !== mirror.profileRoot, `${controller.profileRoot} != ${mirror.profileRoot}`);
 
   await mirror.cdp.send("Page.addScriptToEvaluateOnNewDocument", { source: relayObserverScript });
+  // This test supplies its own audience command. Disable the rehearsal RNG so
+  // a vote generated just before process shutdown cannot be mistaken for a
+  // passive-mirror mutation after the controller is gone.
+  await controller.cdp.send("Page.addScriptToEvaluateOnNewDocument", { source: `Math.random = () => 0.99;` });
   await navigate(mirror, "/?role=mirror&relay=local");
   await navigate(controller, "/?relay=local&autostart=rehearsal");
 
@@ -451,11 +455,15 @@ try {
   record("room state crosses process boundary", mirrorRoomMessage.state.roomIndex === roomMessage.state.roomIndex, `roomIndex ${roomMessage.state.roomIndex}`);
   await waitForCondition(() => evaluate(mirror, `document.querySelector("#dashRoom")?.textContent?.trim() === "Ward 06"`), "mirror Ward 06 render");
   const beforePassive = await evaluate(mirror, domSnapshotExpression);
-  const relayCountBeforePassive = beforePassive.relayMessages;
 
   controller.cdp.close();
   await stopChildProcess(controller.process);
   controller.process = null;
+  // Allow a POST already accepted by the relay to finish crossing the SSE
+  // transport before measuring quiescence. The controller is gone at this
+  // point, so any later message would be a genuine phantom publication.
+  await delay(600);
+  const relayCountAfterDrain = await evaluate(mirror, `globalThis.__nightshiftRelayMessages?.length || 0`);
   await evaluate(mirror, `(() => {
     globalThis.__nightshiftOriginalDateNow = Date.now;
     const future = Date.now() + 60000;
@@ -475,7 +483,7 @@ try {
       && JSON.stringify(afterPassive.options) === JSON.stringify(beforePassive.options),
     JSON.stringify({ before: beforePassive, after: afterPassive }),
   );
-  record("no phantom relay messages after controller exit", afterPassive.relayMessages === relayCountBeforePassive, `${relayCountBeforePassive} -> ${afterPassive.relayMessages}`);
+  record("no phantom relay messages after controller transport drains", afterPassive.relayMessages === relayCountAfterDrain, `${relayCountAfterDrain} -> ${afterPassive.relayMessages}`);
 
   const passiveScreenshot = await capture(mirror, "mirror-passive-expired-vote-1280x720.png");
   const allConsoleErrors = [...controller.consoleErrors, ...mirror.consoleErrors];

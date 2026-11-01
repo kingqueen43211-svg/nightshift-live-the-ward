@@ -110,7 +110,7 @@ export function pauseEpisode(state){ if(state.status!=="ended") state.status="pa
 export function resumeEpisode(state,now=Date.now()){ if(state.status==="paused") resetVote(state,now,30000); return state; }
 export function stopEpisode(state){ state.version++; state.status="briefing"; state.roundEndsAt=0; return state; }
 export function normalizeCommand(message=""){ return message.trim().toLowerCase().split(/\s+/)[0]; }
-export function castVote(state,viewer,message){
+export function castVote(state,viewer,message,actor=viewer){
   if(state.status!=="voting") return {state,accepted:false,reason:"Voting is closed"};
   const option=optionsFor(state).find(o=>o.command===normalizeCommand(message));
   if(!option) return {state,accepted:false,reason:"Unknown vote"};
@@ -118,7 +118,7 @@ export function castVote(state,viewer,message){
   if(state.voters[voter]) return {state,accepted:false,reason:"One vote per viewer"};
   state.voters[voter]=option.id; state.votes[option.id]=(state.votes[option.id]||0)+1;
   option.faction==="guardian" ? state.guardians++ : state.chaos++; state.energy[option.faction]=clamp(state.energy[option.faction]+2);
-  log(state,"vote",viewer,option.label); return {state,accepted:true,option};
+  log(state,"vote",actor,option.label); return {state,accepted:true,option};
 }
 export function tally(state){ return optionsFor(state).map((o,i)=>({option:o,count:state.votes[o.id]||0,i})).sort((a,b)=>b.count-a.count||a.i-b.i)[0]; }
 function addUnique(list,item){ if(!list.includes(item)) list.push(item); }
@@ -215,18 +215,18 @@ export function playerAction(state,action){
   state.player.lastAction=action; state.lastActionAccepted=accepted; state.player.fear=clamp(state.player.fear+(state.danger>70?3:-1)); state.player.noise=clamp(state.player.noise-2); state.lastOutcome=outcome||`Unknown action: ${action}`;
   recordPlayerProgress(state,action,accepted); log(state,accepted?"action":"action-rejected","STREAMER",state.lastOutcome); if(accepted&&(action==="open-roof"||action==="open-ambulance"))finishEpisode(state,action==="open-roof"?"roof":"ambulance"); return state;
 }
-export function joinFaction(state,user,faction){ if(!["guardian","chaos"].includes(faction)) return false; state.members[String(user).toLowerCase()]=faction; log(state,"faction",user,`joined ${faction}`); return true; }
-export function usePower(state,user,power){
+export function joinFaction(state,user,faction,actor=user){ if(!["guardian","chaos"].includes(faction)) return false; state.members[String(user).toLowerCase()]=faction; log(state,"faction",actor,`joined ${faction}`); return true; }
+export function usePower(state,user,power,actor=user){
   const faction=state.members[String(user).toLowerCase()]; if(!faction) return {accepted:false,reason:"Join a faction first"};
   if(state.cooldowns[faction]>Date.now()) return {accepted:false,reason:"Power cooling down"}; if(state.energy[faction]<25) return {accepted:false,reason:"Not enough faction energy"};
   state.energy[faction]-=25; state.cooldowns[faction]=Date.now()+20000;
   if(faction==="guardian"){state.health=clamp(state.health+12);state.danger=clamp(state.danger-8);state.warden.phase="repelled";} else {state.danger=clamp(state.danger+12);state.warden.visible=true;state.warden.phase="warning";}
-  log(state,"power",user,power||`${faction} surge`); return {accepted:true};
+  log(state,"power",actor,power||`${faction} surge`); return {accepted:true};
 }
-export function ingestCommand(state,user,message){
+export function ingestCommand(state,user,message,actor=user){
   const [cmd,arg]=String(message).trim().toLowerCase().split(/\s+/);
-  if(cmd==="!join") return {state,accepted:joinFaction(state,user,arg),kind:"faction"}; if(cmd==="!power") return {state,...usePower(state,user,arg),kind:"power"};
-  return {...castVote(state,user,message),kind:"vote"};
+  if(cmd==="!join") return {state,accepted:joinFaction(state,user,arg,actor),kind:"faction"}; if(cmd==="!power") return {state,...usePower(state,user,arg,actor),kind:"power"};
+  return {...castVote(state,user,message,actor),kind:"vote"};
 }
 export function applyChannelEvent(state,event){
   const id=event.id||`${event.type}:${event.user||"anon"}:${event.at||Date.now()}`; if(state.seenEventIds.includes(id)) return {state,accepted:false,reason:"Duplicate event"};

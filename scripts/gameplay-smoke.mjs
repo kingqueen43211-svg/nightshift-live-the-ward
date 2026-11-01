@@ -447,7 +447,7 @@ try {
   });
 
   await check("zero-chat resolution is visibly labelled as a director fallback", async () => {
-    await navigate("/?autostart=rehearsal");
+    await navigate("/?fixture=camera-node&room=intake&camera=lobby-wide");
     await evaluate(`(() => {
       document.querySelector('[data-view-target="dashboard"]').click();
       const motion = document.querySelector('#motionToggle');
@@ -466,8 +466,106 @@ try {
     return result;
   });
 
+  await check("a complete earned UI path reaches the humane ending", async () => {
+    // A fixture disables random simulated voters but still drives the real DOM,
+    // action prerequisites, vote ingestion, transitions, and ending renderer.
+    await navigate("/?fixture=camera-node&room=intake&camera=lobby-wide");
+
+    for (const action of ["search-desk", "open-locker", "reconstruct-file"]) {
+      await click(`[data-action="${action}"]`);
+      await delay(30);
+    }
+    await click('[data-view-target="dashboard"]');
+    await evaluate(`(() => {
+      const motion = document.querySelector('#motionToggle');
+      if (motion.checked) motion.click();
+      const input = document.querySelector('#chatCommand');
+      input.value = '!records';
+      document.querySelector('#sendChat').click();
+    })()`);
+    await click("#advanceRoom");
+    await waitFor(`document.querySelector('#dashRoom')?.textContent === 'Ward 06'`, 5000);
+
+    await click('[data-view-target="gameplay"]');
+    for (const action of ["inspect-gurney", "listen-intercom", "hide-curtain"]) {
+      await click(`[data-action="${action}"]`);
+      await delay(30);
+    }
+    await click('[data-view-target="dashboard"]');
+    await evaluate(`(() => {
+      const input = document.querySelector('#chatCommand');
+      input.value = '!restore';
+      document.querySelector('#sendChat').click();
+      document.querySelector('#advanceRoom').click();
+      document.querySelector('[data-view-target="gameplay"]').click();
+    })()`);
+    await click('[data-action="force-door"]');
+    await waitFor(`document.querySelector('#dashRoom')?.textContent === 'Operating Theatre'`, 5000);
+
+    for (const action of ["align-lamps", "play-tape", "counter-warden"]) {
+      await click(`[data-action="${action}"]`);
+      await delay(30);
+    }
+    await click('[data-view-target="dashboard"]');
+    await evaluate(`(() => {
+      const motion = document.querySelector('#motionToggle');
+      if (!motion.checked) motion.click();
+      const input = document.querySelector('#chatCommand');
+      input.value = '!lights';
+      document.querySelector('#sendChat').click();
+    })()`);
+    await click("#advanceRoom");
+    await waitFor(`document.querySelector('#dashRoom')?.textContent === 'Generator Room'`, 3000);
+
+    await click('[data-view-target="gameplay"]');
+    for (const action of ["breaker-2", "breaker-1", "breaker-3", "reroute-power"]) {
+      await click(`[data-action="${action}"]`);
+      await delay(30);
+    }
+    await click('[data-view-target="dashboard"]');
+    await evaluate(`(() => {
+      const input = document.querySelector('#chatCommand');
+      input.value = '!charge';
+      document.querySelector('#sendChat').click();
+    })()`);
+    await click("#advanceRoom");
+    await waitFor(`document.querySelector('#dashRoom')?.textContent === 'Stairwell / Exits'`, 3000);
+
+    await click('[data-view-target="gameplay"]');
+    await click('[data-action="seal-warden"]');
+    await click('[data-view-target="dashboard"]');
+    await evaluate(`(() => {
+      const input = document.querySelector('#chatCommand');
+      input.value = '!roof';
+      document.querySelector('#sendChat').click();
+    })()`);
+    await click("#advanceRoom");
+    await waitFor(`document.querySelector('#ending')?.classList.contains('show')`, 3000);
+    await delay(60);
+
+    const result = await evaluate(`(() => ({
+      title: document.querySelector('#endingTitle')?.textContent,
+      summary: document.querySelector('#endingSummary')?.textContent,
+      values: [...document.querySelectorAll('#endingRecap span')].map(span => span.textContent.replace(/\\s+/g, ' ').trim()),
+      mechanics: document.querySelector('#endingRecap p')?.textContent,
+      focused: document.activeElement === document.querySelector('#endingTitle'),
+      backgroundInert: document.querySelector('.hud')?.inert === true
+    }))()`);
+    assert(result.title === "MARA WALKS INTO DAWN", `Expected humane ending, found ${result.title || "none"}`);
+    assert(/streamer and audience/i.test(result.summary) && !/fallback/i.test(result.summary), "Earned ending summary did not credit the real rehearsal path truthfully");
+    assert(result.values.some(value => /EVIDENCE.*[4-9]/i.test(value)), "Earned ending recap omitted strong evidence");
+    assert(result.values.some(value => /WARDEN.*BOUND/i.test(value)), "Earned ending recap omitted the humane seal");
+    assert(result.values.some(value => /FALLBACKS.*0/i.test(value)), "Earned ending unexpectedly used a director fallback");
+    assert(result.focused && result.backgroundInert, `Earned ending dialog did not isolate and focus the recap: ${JSON.stringify({ focused: result.focused, backgroundInert: result.backgroundInert })}`);
+
+    const screenshot = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true, captureBeyondViewport: false });
+    const screenshotPath = join(artifactRoot, "earned-ending-1280x720.png");
+    writeFileSync(screenshotPath, Buffer.from(screenshot.data, "base64"));
+    return { ...result, screenshotPath };
+  });
+
   await check("a complete fallback run renders a truthful ending recap", async () => {
-    await navigate("/?autostart=rehearsal");
+    await navigate("/?fixture=camera-node&room=intake&camera=lobby-wide");
     await click('[data-view-target="dashboard"]');
     const motionEnabled = await evaluate(`(() => {
       const toggle = document.querySelector('#motionToggle');

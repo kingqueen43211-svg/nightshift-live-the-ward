@@ -397,9 +397,20 @@ function syncAudienceClock() {
   }
 }
 
+function ensureRoomVisualAssets(room) {
+  const detailedCorridor = room.id === "surgery" || room.id === "theatre";
+  if (detailedCorridor) {
+    $$("#foregroundRig [data-room-src]").forEach(image => {
+      if (!image.getAttribute("src")) image.src = image.dataset.roomSrc;
+    });
+  }
+  $(".door-panel").classList.toggle("room-art-ready", room.id === "surgery");
+}
+
 function render() {
   syncAudienceClock();
   const room = roomFor(state);
+  ensureRoomVisualAssets(room);
   const remaining = state.status === "voting"
     ? Math.max(0, Math.ceil((state.roundEndsAt - (audienceClockPausedAt ?? Date.now())) / 1000))
     : state.status === "paused" ? "II" : "--";
@@ -452,7 +463,8 @@ function render() {
     : state.warden.phase === "warning" || state.warden.phase === "passing"
       ? "warden-warning-v1.webp"
       : "warden-approach-v1.webp";
-  if (!$("#wardenSprite").src.endsWith(wardenAsset)) $("#wardenSprite").src = `./assets/v3/${wardenAsset}`;
+  const wardenVisible = state.warden.visible && state.settings.jumpscares;
+  if (wardenVisible && !$("#wardenSprite").src.endsWith(wardenAsset)) $("#wardenSprite").src = `./assets/v3/${wardenAsset}`;
   $(".blackout").style.opacity = state.power < 15 ? ".68" : "0";
   $(".alarm").style.opacity = !state.settings.lowEffects && state.danger > 70 ? "1" : "0";
 
@@ -503,6 +515,7 @@ function render() {
 
   $("#ending").classList.toggle("show", state.status === "ended");
   renderEnding();
+  if (state.status === "ended" && !isPassiveView() && $("#app").dataset.view !== "gameplay") switchView("gameplay");
   setEndingOpen(state.status === "ended");
 
   document.body.classList.toggle("reduced-motion", state.settings.reducedMotion);
@@ -646,15 +659,30 @@ twitch.addEventListener("status", ({ detail }) => {
 });
 twitch.addEventListener("chat", ({ detail }) => {
   state.mode = "LIVE TWITCH";
-  ingestCommand(state, detail.viewer, detail.message);
+  // Fairness is keyed to Twitch's immutable chatter ID. The display name is
+  // kept only as the human-readable actor in the activity feed.
+  ingestCommand(state, detail.viewerId || detail.viewer, detail.message, detail.viewer);
   render();
 });
 twitch.addEventListener("event", ({ detail }) => {
   state.mode = "LIVE TWITCH";
-  applyChannelEvent(state, { ...detail, user: detail.actor, id: `twitch-${detail.type}-${Date.now()}` });
+  applyChannelEvent(state, {
+    ...detail,
+    user: detail.actor,
+    id: detail.sourceEventId || `twitch-${detail.type}-${detail.actorId || detail.actor || "anonymous"}-${Date.now()}`
+  });
   render();
 });
-twitch.captureTokenFromHash();
+const oauthResume = twitch.resumeOAuthCallback();
+if (oauthResume) {
+  state.mode = "TWITCH CONNECTING";
+  oauthResume.catch(error => {
+    if (state.mode === "TWITCH CONNECTING") state.mode = "TWITCH ERROR";
+    $("#twitchStatus").textContent = error.message;
+    announce(error.message);
+    render();
+  });
+}
 
 $$("[data-view-target]").forEach(button => button.addEventListener("click", () => switchView(button.dataset.viewTarget, true)));
 $("#enterWard").addEventListener("click", () => start({ userGesture: true }));
