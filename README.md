@@ -17,6 +17,14 @@ NightShift Live turns a Twitch horror stream into a live game show. Viewers vote
 - Responsive safety/accessibility controls, modal focus handling, semantic state, pause shortcuts, reduced motion/flashes, and stable keyboard focus.
 - Automated engine, Twitch lifecycle, accessibility, audio, visual, and full-browser campaign gates.
 
+## Release captures
+
+| Warden threat beat | Persistent ending recap |
+| --- | --- |
+| ![The Warden approaches the isolation door while streamer actions and simulated rehearsal votes remain clearly separated.](docs/evidence/v3-warden-1280x720.png) | ![Episode ending recap showing route, evidence, truth, Warden state, audience count, and disclosed fallbacks.](docs/evidence/v3-ending-recap-1280x720.png) |
+| Full gameplay hierarchy | Streamer control room |
+| ![NightShift gameplay with mission, camera nodes, streamer-only actions, audience voting, and case file.](docs/evidence/v3-gameplay-1280x720.png) | ![NightShift streamer control room with signal, rehearsal, activity, accessibility, and show controls.](docs/evidence/v3-dashboard-1280x720.png) |
+
 ## Run in 30 seconds
 
 Requires Node.js 20+.
