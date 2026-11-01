@@ -35,7 +35,7 @@ body.reduced-motion *,body.reduced-motion *::before,body.reduced-motion *::after
   .meter{width:auto;min-width:0;padding:7px 8px;letter-spacing:.04em}
   .meter>span{font-size:8px}.meter>b{font-size:16px}.meter>i{margin-top:5px}
   .vote-panel{right:14px;top:232px;width:min(420px,calc(100vw - 28px))}
-  .event-toast{left:14px;right:14px;top:auto;bottom:164px;width:auto;transform:translateY(10px);padding:11px 13px}
+  .event-toast{left:14px;right:14px;top:auto;bottom:176px;width:auto;transform:translateY(10px);padding:11px 13px}
   .event-toast.show{transform:translateY(0)}
   .foreground-rig .curtain{left:-12%;width:48%}.foreground-rig .gurney{right:-17%;bottom:-6%;width:66%;height:40%}
 }

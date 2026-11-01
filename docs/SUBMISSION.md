@@ -24,7 +24,7 @@ The result is not a poll laid over a video. Streamer actions and audience conseq
 
 The broadcast product is part of the game: a control room handles show state, rehearsal events, Twitch connection, checkpoints, pacing telemetry, privacy, and safety settings; a separate browser route provides a transparent OBS overlay; and BroadcastChannel carries state between views. The procedural Web Audio layer starts only after an explicit gesture, has mute and volume control, softens under reduced-effects preferences, and emits a visual caption for every meaningful sound cue.
 
-The V3 art pass uses original project-specific room plates plus transparent Warden poses, curtain, gurney, and isolation-door layers. Lossless sources and prompt constraints are recorded in the asset-provenance manifest. The public build uses visually verified WebP derivatives to keep the deployable payload at 11.5 MiB.
+The V3 art pass uses original project-specific room plates plus transparent Warden poses, curtain, gurney, and isolation-door layers. Lossless sources and prompt constraints are recorded in the asset-provenance manifest. The public build uses visually verified WebP derivatives and locally bundled open-licensed fonts to keep the deployable payload at 11.6 MiB.
 
 ### How it uses Twitch
 
@@ -36,7 +36,7 @@ The Twitch implementation is complete in source and lifecycle tests, but live en
 
 Codex was the primary build partner across product design, campaign architecture, original asset generation and integration, Twitch lifecycle hardening, deterministic game logic, responsive UI implementation, accessibility and safety work, procedural audio, release optimization, and the submission package. Codex also built the unit, visual, and browser-campaign gates used to catch progression, focus, camera ARIA, mobile-layout, OBS-alpha, and reduced-motion defects.
 
-Add the Codex session ID from this build thread to the Devpost form.
+Primary Codex build session ID: `01a1976e-d289-7a22-9e87-7aefa57d3379`.
 
 ### What is next
 
@@ -58,10 +58,12 @@ The remaining work is proof, not a different product concept:
 
 ## Verified local evidence
 
-- **npm run check:** 48/48 tests pass.
-- **npm run qa:visual:** 13/13 viewport, fixture, OBS-alpha, and reduced-motion scenarios pass.
+- **npm run check:** 64/64 tests pass.
+- **npm run qa:visual:** 28/28 viewport, fixture, authored-camera, OBS-alpha, and reduced-motion scenarios pass.
 - **npm run qa:gameplay:** 7/7 browser campaign gates pass.
-- **npm run release:audit:** pass; public payload is 11.5 MiB.
+- **npm run qa:integrity:** 5/5 browser truthfulness, privacy, and single-controller gates pass.
+- **npm run qa:relay:** 16/16 checks pass across separate Chrome processes and profiles; exact session/vote/room state crosses the loopback relay while the mirror remains inert.
+- **npm run release:audit:** pass; public payload is 11.6 MiB.
 
 These results prove the local build and its deterministic browser paths. They do not substitute for real Twitch, real OBS, human pacing, public hosting, or screen-reader evidence.
 
@@ -76,4 +78,5 @@ These results prove the local build and its deterministic browser paths. They do
 - [ ] Capture the transparent browser source in real OBS at both target resolutions.
 - [ ] Complete and record newcomer pacing runs; report observed timing rather than the design target.
 - [ ] Upload a public video under three minutes and verify it logged out.
-- [ ] Add the public demo URL, repository URL, and Codex session ID.
+- [x] Record the primary Codex build session ID (`01a1976e-d289-7a22-9e87-7aefa57d3379`).
+- [ ] Add the public demo URL and repository URL.

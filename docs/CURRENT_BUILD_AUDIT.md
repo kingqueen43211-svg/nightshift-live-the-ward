@@ -1,56 +1,63 @@
 # Current build audit — V3 quality branch
 
 Date: 2026-11-01  
-Baseline commit: `86d470176c713e1dd09cbb2bf79778dab3bb288e`  
 Branch: `v3/gold-corridor`
+Original V2 baseline: `86d470176c713e1dd09cbb2bf79778dab3bb288e`
 
-This audit distinguishes what was directly inspected from what remains unverified. The original deployed `chatgpt.site` URL is authentication-gated for external visitors. Local evidence was collected from `http://localhost:4173/` at 1280×720 using the in-app browser and saved under `docs/evidence/`, including the intro, gameplay, open isolation door, and Warden warning fixtures.
+This audit separates implemented behavior, automated/browser evidence, and external verification. It supersedes the milestone-one audit. The app must continue to say **SIMULATED** or **REHEARSAL** unless a validated EventSub session is actually connected.
 
-## Verified good
+## Verified in the current build
 
-- The local build starts successfully with `npm start` and has three working views: gameplay, control room, and OBS overlay (`dist/index.html`, `dist/app.mjs`).
-- The existing five-room state engine preserves evidence, inventory, doors, power, faction energy, cooldowns, and endings (`dist/engine.mjs`).
-- Live and simulated states are visually distinguished. Real Twitch is not claimed as verified (`dist/app.mjs`, `dist/twitch.mjs`).
-- The title and room plates share a coherent grounded hospital aesthetic. The V3 title treatment was visually inspected at 1280×720 and has a clear focal hierarchy.
-- The V3 gameplay composition was visually inspected at 1280×720: mission, vitals, case file, streamer actions, and audience vote have separate reserved zones with no mission-critical text collision.
-- Syntax checks and 13 engine tests pass via `npm run check`.
+- Three working product views: live episode, streamer control room, and an OBS browser-source route with root-level transparency.
+- A five-act persistent campaign: Reception/Triage, Ward 06, Operating Theatre, Generator, and Stairwell/Exits.
+- Three authored camera nodes per act with visible composition changes, persistent visited-node state, keyboard-operable controls, and a single correct `aria-pressed` node.
+- Streamer-only investigation, deduction, stealth, sequencing, inventory craft/use, threat counterplay, containment, and final-route decisions.
+- Audience voting, one-vote-per-viewer fairness, Guardian/Chaos state, channel-event consequences, and disclosed zero-chat director fallbacks.
+- Clean run resets, successful-action-only readiness, checkpoint recovery, re-entrant advance protection, earned final exits, distinct endings, and structured recaps.
+- A physical isolation door with original generated panel art, linked bolts, a connected-theatre reveal, hinge animation, reduced-motion behavior, and deterministic open/closed fixtures.
+- Original Warden warning, approach/strike, and repel poses; original curtain and gurney foreground layers; independent fog, lighting, reflection, rain, shadow, and occlusion layers.
+- Gesture-gated procedural Web Audio with five room ambiences, transition/Warden/UI cues, mute/volume controls, reduced-effects variants, visual captions, failure fallback, and deterministic cleanup.
+- OAuth callback-state/expiry handling, EventSub critical/optional subscription separation, bounded dedupe, keepalive watchdog, seamless reconnect, and truthful connection phases.
+- Strict privacy-safe OBS serialization, one-controller leasing, passive overlays/mirrors, and an opt-in loopback relay verified across independent Chrome processes and profiles.
+- Dialog semantics and focus containment, focus-stable action controls, semantic progress values, pause shortcut, 44px primary targets, reduced motion/flashes, high contrast, hidden viewer names, and persistent browser-local safety settings.
+- Dependency-free static preview, public-host security/cache configuration, Netlify publish configuration, logged-out deployment runbook, and release audit.
+- Lossless PNG sources archived under `art-source/`; visually verified WebP derivatives ship from `dist/`.
 
-## Weak before V3 pass
+## Objective evidence
 
-- The previous experience opened directly into gameplay with no strong title-to-world handoff.
-- Streamer gameplay consisted mostly of one-click actions while voting occupied the dominant interaction loop.
-- The corridor used one plate plus atmospheric overlays; the visible door was a generic marker rather than a physical multi-phase object.
-- The Warden was one composited image with opacity/scale. It did not yet meet the V3 staged-character requirement.
-- The vote panel and player action tray could visually crowd one another at 1280×720.
-- Room travel used an occluding wipe but did not yet simulate a camera crossing a physical threshold.
+| Command | Result |
+| --- | --- |
+| `npm run check` | 64 passed, 0 failed |
+| `npm run qa:visual` | 28 passed, 0 failed; all 15 camera compositions; no console errors |
+| `npm run qa:gameplay` | 7 passed, 0 failed |
+| `npm run qa:integrity` | 5 passed, 0 failed; truth/privacy/controller checks |
+| `npm run qa:relay` | 16 passed, 0 failed across separate browser processes/profiles |
+| `npm run release:audit` | passed; 11.6 MiB public payload |
+| `node scripts/optimize-images.mjs` | 11 referenced assets; 57.0% projected/source-to-public reduction |
 
-## Implemented in milestone 1
+Visual evidence includes desktop, tablet, phone, every camera node, Warden warning, open door, dashboard, transparent overlay, reduced motion, and ending recap captures under `work/visual-qa` and `work/gameplay-smoke`. Focused integrity and cross-process reports live under `work/integrity-browser-smoke` and `work/relay-browser-smoke`. The committed runbooks explain what these gates do and do not prove.
 
-- Added a cinematic, skippable title with clear promise and immediate start action (`dist/index.html`, `dist/styles.css`).
-- Rebalanced the 1280×720 gameplay layout into reserved left/center/right zones; the player action rail and audience vote no longer share functional bounds.
-- Added a physical surgical isolation door with separate bolts, panel, lock label, hinge rotation, impact response, and persistent engine-driven open state.
-- Added foreground curtain/gurney occluders, crosshair, objective progression, threat state, story thread, and action feedback.
-- Expanded player mechanics to observation, deduction, stealth, resource use, threat counterplay, power routing, and a final seal attempt (`dist/engine.mjs`).
-- Added narrative prerequisites: identify Subject 06, decode the confession, earn a binding sigil, and use evidence to attempt containment.
-- Added staged Warden phases (`warning`, `approaching`, `passing`, `striking`, `repelled`) with separate shadow, arms, body, eye, and mist layers. The first pass is visibly occluded by the corridor/door composition rather than pasted over the HUD.
-- Added a clearly labeled local rehearsal autostart query for deterministic capture; it does not claim live Twitch.
+## Fixed since the original audit
 
-## Broken or incomplete
+- The Warden is no longer one static pasted image; it has phase-specific transparent poses and authored CSS staging.
+- The corridor no longer exposes a generic marker door; it uses a detailed original isolation-door panel with physical state.
+- Camera nodes are no longer engine-only metadata; they are playable controls that change framing and persist.
+- Campaign APIs are no longer hidden from the browser; inventory, checkpoints, readiness, fallbacks, pacing telemetry, and recaps are visible and exercised by browser tests.
+- Failed actions no longer count as completed objectives, old runs no longer contaminate new runs, repeated advance clicks cannot skip acts, and exits cannot bypass prerequisites.
+- Mobile HUD collisions, clipped consequence copy, opaque OBS roots, and ineffective reduced-motion CSS are fixed and regression-tested.
+- Action controls retain keyboard focus across the one-second render loop; intro/ending behave as modal dialogs.
+- Audio is no longer an unsupported promise; it is optional, gesture-gated, captioned, safety-aware, and tested.
+- Public large-image transfer was reduced substantially without discarding lossless sources.
 
-- `chatgpt.site` remains unsuitable as the only judge-accessible deployment because logged-out visitors see a sign-in gate. A separate public host is still required.
-- The surgical door currently uses CSS perspective rather than authored 6–10 frame art. Its shadow/reflection linkage is partial.
-- The Warden now has independently moving arms and distinct approach/strike/repel states, but it still needs authored sprite poses, stronger silhouette readability, audio timing, and two fully recorded interaction outcomes before S1 can pass.
-- The current HUD text is stylish but some labels remain below the V3 preferred 14px/720p threshold. These require a readability pass.
-- Full responsive matrix, keyboard-only full run, reduced-flash, audio captions, performance measurements, and screenshot baselines are not complete.
-- The campaign has five room plates, not yet eight or nine authored camera spaces. No 20–35 minute claim is valid.
+## Still unverified or external
 
-## Unverified
+- A logged-out public HTTPS deployment. The previous `chatgpt.site` URL remains authentication-gated and cannot be the only judging URL.
+- Real Twitch proof with the broadcaster account and a second viewer, including chat-to-world-to-overlay propagation and reconnection on the production callback.
+- Actual OBS checkerboard/background captures at 1920×1080 and 1280×720. Computed browser alpha is necessary but not sufficient.
+- Three timed newcomer full runs. The 20–35 minute value remains an authored target, not measured evidence.
+- NVDA + Chrome, 200% zoom, complete keyboard-only run, actual-audio listening/mix, and a 30-minute performance/memory session.
+- Public repository/video/Devpost URLs and final submission actions owned by the user.
 
-- Real Twitch broadcaster OAuth, a second viewer command, EventSub reconnection, and live vote-to-world-to-OBS propagation.
-- True alpha rendering inside actual OBS at both 1920×1080 and 1280×720.
-- Three newcomer full-run timings and independent 90/100 quality review.
-- Asset redistribution/license provenance for all current PNG files.
+## Current release decision
 
-## Immediate next increment
-
-Build the surgical corridor as the gold-standard scene: three authored camera nodes, door shadow/reflection linkage, staged Warden warning/approach/counterplay, world-space hotspots, and viewport collision tests. Preserve the current runnable build throughout.
+The local build is a credible, cohesive V3 release candidate and no automated blocker is open. It is **not yet a fully verified public entry** because the account-owned Twitch, OBS, deployment, human-playtest, and submission gates cannot be completed without the user's external accounts and participants. Those gates must remain visible rather than being relabeled as complete.

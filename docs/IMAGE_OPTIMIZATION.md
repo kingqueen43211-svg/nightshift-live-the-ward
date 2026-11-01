@@ -1,6 +1,6 @@
 # Image optimization and verification
 
-The release now includes WebP alternatives for every PNG larger than 1 MB. The originals remain beside them until the application switches references and final screenshots are approved.
+The public build uses verified WebP derivatives for every former PNG larger than 1 MB. After references were switched, the expanded visual matrix passed 28/28 and the browser campaign gate passed 7/7. Lossless PNG sources were moved out of the deployable directory to `art-source/`.
 
 ## Reproducible command
 
@@ -15,7 +15,7 @@ Defaults:
 - opaque scene plates: WebP quality `0.94`;
 - transparent character and prop art: WebP quality `1.0`;
 - source threshold: 1,000,000 bytes;
-- source PNGs are never deleted;
+- source PNGs are never deleted by the optimizer;
 - output dimensions must exactly match;
 - transparent inputs must remain transparent;
 - mean alpha error must be no greater than `0.05` (the current run is exactly `0` for every asset);
@@ -25,12 +25,12 @@ Environment overrides are available as `IMAGE_OPTIMIZE_THRESHOLD`, `IMAGE_WEBP_Q
 
 ## Verified 2026-11-01 result
 
-Twelve source images totaled 30,216,064 bytes. Their optimized alternatives total 13,370,792 bytes, a reduction of 16,845,272 bytes or 55.7% once references are switched.
+The eleven referenced source images total 27,704,661 bytes. Their public derivatives total 11,911,190 bytes, a reduction of 15,793,471 bytes or 57.0%. The superseded legacy `the-surgeon` source remains archived but its unused derivative is excluded from `dist/`.
 
-- All 12 dimension checks passed.
-- All 7 transparent assets retained transparency and had zero mean alpha error.
+- All 11 shipped dimension checks passed.
+- All 6 shipped transparent assets retained transparency and had zero mean alpha error.
 - Transparent sprites and props measured 49.57–51.99 dB visible-color PSNR.
 - Opaque scene plates measured 38.28–41.78 dB PSNR.
 - The Warden and reception plate were also reviewed side by side at rendered resolution.
 
-The optimized files are alternatives, not a claim that the shipped page is smaller yet. Network savings only begin after the HTML, CSS, and JavaScript asset references are changed and the visual matrix is rerun. Do not remove the PNG fallbacks until the production screenshots, OBS alpha check, and rollback package are complete.
+The application now references the WebP files from HTML, CSS, JavaScript, and room metadata. The lossless PNGs remain in `art-source/` for rollback and re-encoding but are excluded from the static deployment directory. A real OBS capture is still required before public-release verification is complete.

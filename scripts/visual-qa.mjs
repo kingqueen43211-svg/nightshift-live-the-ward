@@ -230,6 +230,16 @@ function resultValue(evaluation) {
   return evaluation?.result?.value;
 }
 
+async function waitForExpression(expression, timeoutMs = 5000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const evaluation = await cdp.send("Runtime.evaluate", { expression: `Boolean(${expression})`, returnByValue: true });
+    if (resultValue(evaluation)) return;
+    await delay(50);
+  }
+  throw new Error(`Timed out waiting for page condition: ${expression}`);
+}
+
 function sanitizeName(name) {
   return name.replace(/[^a-z0-9_-]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
 }
@@ -239,22 +249,52 @@ function delay(milliseconds) {
 }
 
 async function stopChildProcess(child) {
-  if (!child || child.exitCode !== null || child.signalCode !== null) return;
+  if (!child) return;
+  if (process.platform === "win32" && child.pid) {
+    const killer = spawn("taskkill", ["/pid", String(child.pid), "/t", "/f"], { stdio: "ignore", windowsHide: true });
+    await Promise.race([new Promise(resolveExit => killer.once("exit", resolveExit)), delay(5000)]);
+    return;
+  }
+  if (child.exitCode !== null || child.signalCode !== null) return;
   const exited = new Promise((resolveExit) => child.once("exit", resolveExit));
   child.kill();
+  if (await Promise.race([exited.then(() => true), delay(3000).then(() => false)])) return;
+  child.kill("SIGKILL");
   await Promise.race([exited, delay(3000)]);
 }
 
 async function removeProfileWithRetries() {
-  for (let attempt = 0; attempt < 20; attempt++) {
-    try {
-      rmSync(profileRoot, { recursive: true, force: true });
-      if (!existsSync(profileRoot)) return;
-    } catch {}
-    await delay(100);
+  const safeProfile = resolve(profileRoot);
+  if (!safeProfile.startsWith(`${artifactRoot}${sep}`) || !safeProfile.split(sep).at(-1).startsWith(".chrome-profile-")) {
+    throw new Error(`Refusing to remove unexpected profile path: ${safeProfile}`);
   }
-  console.warn(`Unable to remove temporary browser profile: ${profileRoot}`);
+  for (let attempt = 0; attempt < 50; attempt++) {
+    try {
+      rmSync(safeProfile, { recursive: true, force: true });
+      if (!existsSync(safeProfile)) return;
+    } catch {}
+    await delay(200);
+  }
+  throw new Error(`Unable to remove temporary browser profile: ${safeProfile}`);
 }
+
+const cameraScenarioMap = {
+  intake: ["lobby-wide", "records-desk", "locker-close"],
+  surgery: ["corridor-wide", "door-approach", "threshold"],
+  theatre: ["theatre-wide", "lamp-array", "restraint-table"],
+  generator: ["generator-wide", "breaker-close", "service-stairs"],
+  stairwell: ["landing-wide", "roof-exit", "ambulance-tunnel"],
+};
+
+const cameraScenarios = Object.entries(cameraScenarioMap).flatMap(([room, nodes]) => nodes.map(camera => ({
+  name: `camera-${room}-${camera}`,
+  width: 1280,
+  height: 720,
+  path: `/?fixture=camera-node&room=${room}&camera=${camera}`,
+  kind: "geometry",
+  waitMs: 800,
+  expectedMode: "REHEARSAL",
+})));
 
 const scenarios = [
   { name: "gameplay-1920x1080", width: 1920, height: 1080, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
@@ -269,6 +309,7 @@ const scenarios = [
   { name: "dashboard-390x844", width: 390, height: 844, path: "/?view=dashboard", kind: "geometry", waitMs: 1000, expectedMode: "SIMULATED" },
   { name: "overlay-1920x1080", width: 1920, height: 1080, path: "/?view=overlay", kind: "overlay", waitMs: 1000, expectedMode: "SIMULATED" },
   { name: "overlay-1280x720", width: 1280, height: 720, path: "/?view=overlay", kind: "overlay", waitMs: 1000, expectedMode: "SIMULATED" },
+  ...cameraScenarios,
 ];
 
 let staticServer;
@@ -330,6 +371,10 @@ try {
     });
     await cdp.send("Emulation.setEmulatedMedia", { media: "screen", features: [] });
     await cdp.send("Page.navigate", { url: `http://127.0.0.1:${appPort}${scenario.path}` });
+    await waitForExpression(`document.readyState === "complete" && document.querySelector("#app")`);
+    if (/autostart=|fixture=/.test(scenario.path)) {
+      await waitForExpression(`document.querySelector("#cinematicIntro")?.classList.contains("dismissed") && getComputedStyle(document.querySelector("#cinematicIntro")).display === "none"`);
+    }
     await new Promise((resolveWait) => setTimeout(resolveWait, scenario.waitMs));
     const geometry = resultValue(await cdp.send("Runtime.evaluate", { expression: geometryExpression, returnByValue: true }));
     const overlay = scenario.kind === "overlay"
@@ -386,10 +431,12 @@ try {
   console.error(error?.stack || error);
   exitCode = 2;
 } finally {
+  try { await cdp?.send("Browser.close"); } catch {}
   cdp?.close();
   staticServer?.close();
   await stopChildProcess(browserProcess);
-  await removeProfileWithRetries();
+  try { await removeProfileWithRetries(); }
+  catch (error) { console.error(error.message); exitCode = 2; }
 }
 
 process.exit(exitCode);

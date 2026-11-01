@@ -32,6 +32,7 @@ Exit codes:
 
 - Gameplay at 1920×1080, 1600×900, 1366×768, 1280×720, 768×1024, and 390×844.
 - Busy Warden and opened-door fixtures at 1280×720.
+- All 15 authored camera compositions at 1280×720.
 - Dashboard at desktop and phone sizes.
 - OBS overlay at 1920×1080 and 1280×720.
 - Native `prefers-reduced-motion: reduce` behavior.
@@ -70,22 +71,8 @@ Overlay scenarios additionally verify that `html`, `body`, `#app`, and the overl
 
 Treat failures as release blockers or explicitly documented limitations. Do not weaken thresholds merely to make the command green.
 
-## Baseline captured 2026-11-01
+## Current baseline
 
-The latest checked run used Chrome 156.0.8078.79 / DevTools protocol 1.3. It completed all 13 gates with 8 passes and 5 failures, so `npm run qa:visual` correctly exited `1`. The JSON report and 13 PNGs were written to `work/visual-qa`; no generated artifact is committed.
+The release baseline is the machine-readable report written by the latest `npm run qa:visual` invocation. It includes the responsive gameplay/dashboard/overlay matrix, Warden and door fixtures, every authored camera composition, reduced-motion timing, mode provenance, and browser-console capture. Generated screenshots and the JSON report live under `work/visual-qa` and are not committed.
 
-Passing scenarios:
-
-- Gameplay at 1920×1080, 1600×900, 1366×768, and 1280×720.
-- Warden-warning and open-door rehearsal fixtures at 1280×720.
-- Dashboard at 1280×720 and 390×844; controls below the fold are inside the dashboard's intentional scroll container.
-- Every tested mode label matched its expected `SIMULATED` or `REHEARSAL` provenance, and the browser reported no warnings or runtime exceptions.
-
-Release-blocking findings:
-
-- At both 768×1024 and 390×844, `.meters` intersects `.vote-panel` by 145×95 pixels.
-- At 390×844, `#eventToast` is only 36 pixels wide while its content needs 79 pixels, producing a visibly vertical, clipped message.
-- At both overlay resolutions, `html`, `body`, and `#app` compute to `rgb(3, 7, 8)`. The overlay section itself is transparent, but the page root is opaque, so OBS alpha is not valid.
-- With native reduced motion enabled, `.rain`, `.far-fog`, `.mid-fog`, and `.warden` retain animation durations of 1.8s, 8s, 14s, and 6s respectively.
-
-All browser scenarios recorded zero horizontal overflow and a consistent one-pixel document-height delta, which is inside the harness tolerance. Re-run the matrix after any layout, root-background, or motion CSS fix and replace this baseline with the new result.
+The current pass/fail totals are copied into `docs/QUALITY_TRACKER.md` only after the command completes successfully. Treat any mismatch between that tracker and the newest JSON report as stale documentation, not as a reason to weaken the gate.

@@ -54,10 +54,12 @@ Never present a rehearsal trigger as a real Twitch event.
 
 Show the terminal summaries briefly:
 
-- 48/48 tests;
-- 13/13 visual and responsive states;
+- 64/64 tests;
+- 28/28 visual and responsive states, including all 15 camera compositions;
 - 7/7 browser campaign gates;
-- 11.5 MiB public payload.
+- 5/5 browser truth/privacy/integrity gates;
+- 16/16 separate-process Chrome-to-OBS-relay gates;
+- 11.6 MiB public payload.
 
 “Codex helped build the campaign, original art pipeline, Twitch lifecycle, interfaces, audio, accessibility, tests, and release package—and the gates caught real bugs before this recording.”
 

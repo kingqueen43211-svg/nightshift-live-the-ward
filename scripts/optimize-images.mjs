@@ -16,6 +16,8 @@ import { fileURLToPath } from "node:url";
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const distRoot = join(repoRoot, "dist");
 const assetsRoot = join(distRoot, "assets");
+const archivedSourceRoot = join(repoRoot, "art-source");
+const sourceRoot = existsSync(archivedSourceRoot) ? archivedSourceRoot : assetsRoot;
 const workRoot = resolve(repoRoot, "..", "..", "work", "image-optimization");
 const profileRoot = join(workRoot, `.chrome-profile-${process.pid}`);
 const shouldWrite = process.argv.includes("--write");
@@ -63,8 +65,12 @@ function startStaticServer() {
           return;
         }
         const relativePath = decodeURIComponent(requestUrl.pathname).replace(/^\/+/, "");
-        const absolute = resolve(distRoot, relativePath);
-        if (!absolute.startsWith(`${distRoot}${sep}`) || !existsSync(absolute)) {
+        const servingSource = relativePath.startsWith("source/");
+        const servingTarget = relativePath.startsWith("target/");
+        const root = servingSource ? sourceRoot : servingTarget ? assetsRoot : distRoot;
+        const stripped = servingSource ? relativePath.slice(7) : servingTarget ? relativePath.slice(7) : relativePath;
+        const absolute = resolve(root, stripped);
+        if (!absolute.startsWith(`${root}${sep}`) || !existsSync(absolute)) {
           response.writeHead(404);
           response.end("Not found");
           return;
@@ -249,8 +255,9 @@ async function removeProfileWithRetries() {
   console.warn(`Unable to remove temporary browser profile: ${profileRoot}`);
 }
 
-const targets = walk(assetsRoot)
+const targets = walk(sourceRoot)
   .filter(file => extname(file).toLowerCase() === ".png" && statSync(file).size >= thresholdBytes)
+  .filter(file => !file.endsWith(`${sep}the-surgeon.png`))
   .sort((left, right) => statSync(right).size - statSync(left).size);
 
 if (!targets.length) {
@@ -297,22 +304,26 @@ try {
 
   const results = [];
   for (const sourcePath of targets) {
-    const relativePath = relative(distRoot, sourcePath).split(sep).join("/");
-    const targetPath = sourcePath.replace(/\.png$/i, ".webp");
-    const targetRelative = relative(distRoot, targetPath).split(sep).join("/");
-    const sourceUrl = `http://127.0.0.1:${staticPort}/${relativePath}`;
-    const targetUrl = `http://127.0.0.1:${staticPort}/${targetRelative}?v=${Date.now()}`;
+    const sourceRelative = relative(sourceRoot, sourcePath).split(sep).join("/");
+    const publicRelative = sourceRoot === archivedSourceRoot && sourceRelative.startsWith("base/") ? sourceRelative.slice(5) : sourceRelative;
+    const targetRelative = publicRelative.replace(/\.png$/i, ".webp");
+    const targetPath = join(assetsRoot, ...targetRelative.split("/"));
+    const sourceUrl = `http://127.0.0.1:${staticPort}/source/${sourceRelative}`;
+    const targetUrl = `http://127.0.0.1:${staticPort}/target/${targetRelative}?v=${Date.now()}`;
     const encoded = await evaluate(cdp, expressionForEncode(sourceUrl));
-    if (encoded.outputMime !== "image/webp") throw new Error(`Chromium did not encode WebP for ${relativePath}`);
+    if (encoded.outputMime !== "image/webp") throw new Error(`Chromium did not encode WebP for ${sourceRelative}`);
     const buffer = Buffer.from(encoded.encoded.slice(encoded.encoded.indexOf(",") + 1), "base64");
-    if (shouldWrite) writeFileSync(targetPath, buffer);
+    if (shouldWrite) {
+      mkdirSync(dirname(targetPath), { recursive: true });
+      writeFileSync(targetPath, buffer);
+    }
 
     let comparison = null;
     if (shouldWrite) comparison = await evaluate(cdp, expressionForCompare(sourceUrl, targetUrl));
     const sourceBytes = statSync(sourcePath).size;
     results.push({
-      source: relativePath,
-      target: targetRelative,
+      source: relative(repoRoot, sourcePath).split(sep).join("/"),
+      target: relative(repoRoot, targetPath).split(sep).join("/"),
       width: encoded.width,
       height: encoded.height,
       sourceBytes,

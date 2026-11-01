@@ -2,6 +2,8 @@
 
 The playable build is static and can be hosted without a game server. A release is public-ready only after the URL works in a logged-out private window and the checks below pass. The existing authenticated `chatgpt.site` preview is not sufficient judge access.
 
+Static hosting is ideal for judge access. For the live OBS recording, use `npm start` and the explicit `relay=local` URLs documented below so a Chrome control window and OBS's separate browser process share state through the loopback-only relay. The relay carries no OAuth token and is not exposed beyond `127.0.0.1`.
+
 ## Preflight
 
 Run from the repository root:
@@ -38,6 +40,7 @@ Preview domains and production domains are distinct OAuth callbacks. Register ea
 - Confirm every asset and module returns `200` and the browser console has no errors.
 - Test once with network throttling. The current large PNG warnings identify the assets most likely to delay first interaction; replace them only with visually inspected derivatives.
 - Add the overlay URL to OBS at both 1920×1080 and 1280×720, place a checkerboard or camera source below it, and capture proof of real alpha.
+- For cross-process local capture, use `http://localhost:4173/?relay=local` in the authoritative Chrome controller, `http://localhost:4173/?role=mirror&relay=local` for a full-scene OBS source, and `http://localhost:4173/?view=overlay&role=mirror&relay=local` for the compact transparent overlay. Register `http://localhost:4173/` as the OAuth callback.
 - Run a second-viewer chat command and preserve the timestamped evidence requested by `TWITCH_VERIFICATION.md`.
 - Update the Twitch redirect and OBS URLs if the production domain changes.
 

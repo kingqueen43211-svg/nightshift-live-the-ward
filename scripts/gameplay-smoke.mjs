@@ -156,21 +156,33 @@ function resultValue(evaluation) {
 }
 
 async function stopChildProcess(child) {
-  if (!child || child.exitCode !== null || child.signalCode !== null) return;
+  if (!child) return;
+  if (process.platform === "win32" && child.pid) {
+    const killer = spawn("taskkill", ["/pid", String(child.pid), "/t", "/f"], { stdio: "ignore", windowsHide: true });
+    await Promise.race([new Promise(resolveExit => killer.once("exit", resolveExit)), delay(5000)]);
+    return;
+  }
+  if (child.exitCode !== null || child.signalCode !== null) return;
   const exited = new Promise(resolveExit => child.once("exit", resolveExit));
   child.kill();
+  if (await Promise.race([exited.then(() => true), delay(3000).then(() => false)])) return;
+  child.kill("SIGKILL");
   await Promise.race([exited, delay(3000)]);
 }
 
 async function removeProfileWithRetries() {
-  for (let attempt = 0; attempt < 20; attempt++) {
-    try {
-      rmSync(profileRoot, { recursive: true, force: true });
-      if (!existsSync(profileRoot)) return;
-    } catch {}
-    await delay(100);
+  const safeProfile = resolve(profileRoot);
+  if (!safeProfile.startsWith(`${artifactRoot}${sep}`) || !safeProfile.split(sep).at(-1).startsWith(".chrome-profile-")) {
+    throw new Error(`Refusing to remove unexpected profile path: ${safeProfile}`);
   }
-  console.warn(`Unable to remove temporary browser profile: ${profileRoot}`);
+  for (let attempt = 0; attempt < 50; attempt++) {
+    try {
+      rmSync(safeProfile, { recursive: true, force: true });
+      if (!existsSync(safeProfile)) return;
+    } catch {}
+    await delay(200);
+  }
+  throw new Error(`Unable to remove temporary browser profile: ${safeProfile}`);
 }
 
 let staticServer;
@@ -381,6 +393,8 @@ try {
     const setup = await evaluate(`(() => {
       document.querySelector('[data-action="open-locker"]').click();
       document.querySelector('[data-view-target="dashboard"]').click();
+      const motion = document.querySelector('#motionToggle');
+      if (!motion.checked) motion.click();
       const input = document.querySelector('#chatCommand');
       input.value = '!medkit';
       document.querySelector('#sendChat').click();
@@ -436,6 +450,8 @@ try {
     await navigate("/?autostart=rehearsal");
     await evaluate(`(() => {
       document.querySelector('[data-view-target="dashboard"]').click();
+      const motion = document.querySelector('#motionToggle');
+      if (motion.checked) motion.click();
       document.querySelector('#advanceRoom').click();
     })()`);
     await delay(60);
@@ -506,10 +522,12 @@ try {
   console.error(error?.stack || error);
   exitCode = 2;
 } finally {
+  try { await cdp?.send("Browser.close"); } catch {}
   cdp?.close();
   staticServer?.close();
   await stopChildProcess(browserProcess);
-  await removeProfileWithRetries();
+  try { await removeProfileWithRetries(); }
+  catch (error) { console.error(error.message); exitCode = 2; }
 }
 
 process.exit(exitCode);

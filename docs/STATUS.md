@@ -29,17 +29,19 @@ Status terms:
 | Twitch OAuth and EventSub | IMPLEMENTED / UNVERIFIED EXTERNAL | OAuth state validation, Helix identity, chat and optional event subscriptions, dedupe, keepalive watchdog, reconnect handoff, backoff, and re-subscription pass lifecycle tests. Broadcaster authorization and a second-viewer command on the final public callback remain. |
 | Clearly labeled rehearsal | VERIFIED LOCAL | Fixtures say **MODE: REHEARSAL** and disconnected normal play says **MODE: SIMULATED**. The local harness rejects an unverified live label. |
 | Original asset provenance | DOCUMENTED | V3 source PNGs, purpose, prompt constraints, alpha verification, and public derivatives are recorded in the asset manifest. |
-| Optimized public payload | VERIFIED LOCAL | The app references verified WebP derivatives; release audit passes at 11.5 MiB. Lossless sources remain outside the deployable directory. |
+| Optimized public payload | VERIFIED LOCAL | The app references verified WebP derivatives and locally bundled open-licensed fonts; release audit passes at 11.6 MiB. Lossless art sources remain outside the deployable directory. |
 | Public logged-out deployment | UNVERIFIED EXTERNAL | Static hosting configuration, security headers, server, and release audit exist. No final public HTTPS URL has been verified logged out. |
 | Human campaign duration | NOT MEASURED | Engine timing is rehearsal telemetry only. No 20–35 minute or other duration claim is valid until complete newcomer runs are observed and recorded. |
 | Multi-streamer hosted authority | NOT IMPLEMENTED | The entry is intentionally browser-authoritative. A production service would require server-side authorization-code OAuth, encrypted refresh storage, signed sessions, and centralized state. |
 
 ## Current automated evidence
 
-- **npm run check:** 48/48 tests pass.
-- **npm run qa:visual:** 13/13 scenarios pass with zero recorded browser console errors.
+- **npm run check:** 64/64 tests pass.
+- **npm run qa:visual:** 28/28 scenarios pass with zero recorded browser console errors, including every authored camera composition.
 - **npm run qa:gameplay:** 7/7 browser campaign gates pass.
-- **npm run release:audit:** pass; 11.5 MiB across the public build.
+- **npm run qa:integrity:** 5/5 browser truth, privacy, and single-controller gates pass.
+- **npm run qa:relay:** 16/16 independent-process state-sync and passive-mirror gates pass.
+- **npm run release:audit:** pass; 11.6 MiB across the public build.
 - **Image optimization:** 11 referenced sources reduced by 57.0% while preserving dimensions and alpha; post-switch visual and gameplay gates pass.
 
 ## Tests prove

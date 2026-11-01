@@ -29,7 +29,10 @@ Only `LIVE_TWITCH` sets `connected: true`. Rehearsal mode remains owned by the g
 - Normalized chat includes immutable viewer ID and EventSub source ID in addition to display name.
 - Twitch-requested reconnect keeps the old socket until the replacement receives `session_welcome`.
 - Unexpected disconnect uses bounded exponential backoff, revalidates the token, and recreates subscriptions.
-- Manual disconnect cancels keepalive/reconnect timers and cannot silently reconnect itself.
+- Manual disconnect invalidates in-flight validation/subscription work, cancels timers, and cannot be reversed by a stale async continuation.
+- Optional EventSub revocations remain a degraded live-chat session; a critical chat revocation is fatal and closes the socket.
+- Transient Twitch phases disable simulated input and freeze the current vote window until live input returns or the broadcaster explicitly clears back to simulation.
+- The opt-in local relay carries sanitized public state between Chrome and OBS without exposing viewer maps, EventSub IDs, or checkpoint snapshots.
 
 ## Automated proof
 
@@ -39,14 +42,19 @@ Run:
 node --test tests/twitch.test.mjs
 ```
 
-Covered cases:
+Covered Twitch lifecycle cases:
 
 1. OAuth state mismatch rejection and fragment scrubbing.
 2. Expired validation token removal and `AUTH_EXPIRED` state.
 3. Critical chat subscription plus optional subscription failure reporting.
-4. Duplicate EventSub notification rejection.
-5. Twitch-requested seamless reconnect socket handoff.
-6. Keepalive timeout transition and socket closure.
+4. Critical subscription cleanup and subscription metadata replacement.
+5. Clear during validation and disconnect during subscription creation.
+6. Optional versus critical subscription revocation behavior.
+7. Duplicate EventSub notification rejection.
+8. Twitch-requested seamless reconnect socket handoff.
+9. Keepalive timeout transition and socket closure.
+
+`tests/runtime-mode.test.mjs`, `tests/broadcast.test.mjs`, and `tests/relay.test.mjs` separately cover fake/live vote separation, frozen reconnect clocks, one-controller publishing, strict incoming-state validation, privacy redaction, and the same-origin cross-process relay.
 
 These tests use deterministic fakes. They establish transport behavior, not Twitch service interoperability.
 
