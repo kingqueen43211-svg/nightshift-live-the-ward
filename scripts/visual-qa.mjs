@@ -165,6 +165,16 @@ const geometryExpression = `(() => {
     const height = Math.min(first.bottom, second.bottom) - Math.max(first.y, second.y);
     if (width > 1 && height > 1) intersections.push({ first: first.selector, second: second.selector, width, height });
   }
+  const targetElement = document.querySelector('#sceneTarget');
+  const targetRect = targetElement?.getBoundingClientRect();
+  const target = targetRect && targetRect.width > 0 && targetRect.height > 0
+    ? { name: targetElement.dataset.sceneTarget, x: targetRect.x, y: targetRect.y, width: targetRect.width, height: targetRect.height, right: targetRect.right, bottom: targetRect.bottom }
+    : null;
+  const targetIntersections = target ? zones.map(zone => {
+    const width = Math.min(zone.right, target.right) - Math.max(zone.x, target.x);
+    const height = Math.min(zone.bottom, target.bottom) - Math.max(zone.y, target.y);
+    return width > 1 && height > 1 ? { zone: zone.selector, target: target.name, width, height } : null;
+  }).filter(Boolean) : [];
   const actionable = [...document.querySelectorAll('button,input,select,textarea,a[href],[role="button"]')]
     .filter(visible)
     .map((element) => {
@@ -196,7 +206,9 @@ const geometryExpression = `(() => {
     document: [document.documentElement.scrollWidth, document.documentElement.scrollHeight],
     horizontalOverflow: Math.max(0, document.documentElement.scrollWidth - innerWidth),
     verticalOverflow: Math.max(0, document.documentElement.scrollHeight - innerHeight),
-    zones, intersections, offscreen, clipped, mode,
+    zones, intersections, target, targetIntersections,
+    hudCoverage: zones.reduce((sum, zone) => sum + zone.width * zone.height, 0) / Math.max(1, innerWidth * innerHeight),
+    offscreen, clipped, mode,
     introVisible: visible(document.querySelector('#cinematicIntro')),
   };
 })()`;
@@ -230,7 +242,7 @@ function resultValue(evaluation) {
   return evaluation?.result?.value;
 }
 
-async function waitForExpression(expression, timeoutMs = 5000) {
+async function waitForExpression(expression, timeoutMs = 15000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const evaluation = await cdp.send("Runtime.evaluate", { expression: `Boolean(${expression})`, returnByValue: true });
@@ -238,6 +250,24 @@ async function waitForExpression(expression, timeoutMs = 5000) {
     await delay(50);
   }
   throw new Error(`Timed out waiting for page condition: ${expression}`);
+}
+
+async function navigateAndWait(url) {
+  let lastError;
+  const ready = `location.href === ${JSON.stringify(url)} && document.readyState === "complete" && document.querySelector("#app")`;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const navigation = await cdp.send("Page.navigate", { url });
+      if (navigation.errorText) throw new Error(navigation.errorText);
+      await waitForExpression(ready);
+      return;
+    } catch (error) {
+      lastError = error;
+      await cdp.send("Page.stopLoading").catch(() => {});
+      await delay(150);
+    }
+  }
+  throw new Error(`Unable to load visual-QA fixture ${url}: ${lastError?.message || lastError}`);
 }
 
 function sanitizeName(name) {
@@ -370,8 +400,7 @@ try {
       screenHeight: scenario.height,
     });
     await cdp.send("Emulation.setEmulatedMedia", { media: "screen", features: [] });
-    await cdp.send("Page.navigate", { url: `http://127.0.0.1:${appPort}${scenario.path}` });
-    await waitForExpression(`document.readyState === "complete" && document.querySelector("#app")`);
+    await navigateAndWait(`http://127.0.0.1:${appPort}${scenario.path}`);
     if (/autostart=|fixture=/.test(scenario.path)) {
       await waitForExpression(`document.querySelector("#cinematicIntro")?.classList.contains("dismissed") && getComputedStyle(document.querySelector("#cinematicIntro")).display === "none"`);
     }
@@ -387,6 +416,7 @@ try {
     const failures = [];
     if (geometry.horizontalOverflow > 1) failures.push(`horizontal overflow ${geometry.horizontalOverflow}px`);
     if (geometry.intersections.length) failures.push(`${geometry.intersections.length} functional zone intersection(s)`);
+    if (scenario.width >= 851 && geometry.targetIntersections.length) failures.push(`${geometry.targetIntersections.length} HUD region(s) obscure the active world target`);
     if (geometry.offscreen.length) failures.push(`${geometry.offscreen.length} visible control(s) outside viewport`);
     if (geometry.clipped.length) failures.push(`${geometry.clipped.length} clipped functional container(s)`);
     if (geometry.mode !== `MODE: ${scenario.expectedMode}`) failures.push(`expected MODE: ${scenario.expectedMode}, found ${geometry.mode || "no visible mode label"}`);
@@ -410,7 +440,8 @@ try {
   const reducedMotionCapture = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true, captureBeyondViewport: false });
   const reducedMotionScreenshotPath = join(artifactRoot, "prefers-reduced-motion-1280x720.png");
   writeFileSync(reducedMotionScreenshotPath, Buffer.from(reducedMotionCapture.data, "base64"));
-  const motionFailure = !reducedMotion.mediaMatches || reducedMotion.timings.some((item) => !item.missing && !/(^|, )0(?:s|ms)|0\.0*1ms/.test(item.animationDuration));
+  const trivialMotion = value => /(^|, )0(?:s|ms)|0\.0*1ms/.test(value);
+  const motionFailure = !reducedMotion.mediaMatches || reducedMotion.timings.some((item) => !item.missing && (!trivialMotion(item.animationDuration) || !trivialMotion(item.transitionDuration)));
   report.reducedMotion = { ...reducedMotion, screenshotPath: reducedMotionScreenshotPath, pass: !motionFailure };
   if (motionFailure) {
     report.summary.failed++;

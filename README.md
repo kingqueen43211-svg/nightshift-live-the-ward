@@ -10,8 +10,11 @@ NightShift Live turns a Twitch horror stream into a live game show. Viewers vote
 - Deterministic audience voting with one active vote per viewer and command aliases.
 - Twitch OAuth and EventSub WebSocket support for `channel.chat.message`, follows, subscriptions, cheers, and raids.
 - A persistent five-act episode with evidence, usable/craftable inventory, checkpoints, authored prerequisites, door and power state, a breaker puzzle, director-safe fallbacks, and materially different endings with recaps.
-- Three playable camera nodes in every act, with composition changes and persistent visited-node state.
+- A persistent in-game next-step panel that explains the missing authored beat, audience-resolution state, consequence, transition, and final physical route choice without sending a first-time player to the control room.
+- Exact, persistent inventory-effect feedback with no-op protection, so an item reports the health, fear, danger, shield, or Warden change and is retained when it cannot help.
+- Three playable camera nodes in every act, with spatial multi-depth travel, deterministic settle, reduced-motion equivalents, target cues, and persistent visited-node state.
 - A UI-only 2.5D scene compositor with independent depth, fog, lighting, reflection, occlusion, rain, physical-door, foreground-prop, Warden, and HUD layers; no 3D meshes or engine runtime.
+- Staged physical beats for the isolation door, curtain, clues, in-world breaker levers, and the Warden's visible repel/retreat reaction.
 - Original phase-specific Warden, gurney, curtain, and isolation-door art with archived lossless sources and optimized public derivatives.
 - Gesture-gated procedural room ambience and cues with mute/volume controls, reduced-effects variants, and visual captions.
 - Clearly labeled simulated audience voting and manual event triggers for a reliable no-credentials judging path.
@@ -52,9 +55,13 @@ npm run qa:performance
 npm run release:audit
 ```
 
-Current local release-candidate evidence: 64/64 automated tests, 28/28 visual states (including all 15 camera compositions), 8/8 browser campaign gates, 5/5 browser integrity gates, 16/16 two-process relay gates, 11/11 keyboard/contrast/200%-reflow gates, and 10/10 cold-load/performance-soak gates. The latest eight-cycle forced-GC run finished with no final DOM/listener growth, a 0.23 MiB heap delta, and zero captured browser-console errors; the public `dist/` payload remains 11.6 MiB. A stateless public probe also returned 200 for every deployable file plus gameplay, dashboard, overlay, and mirror entry URLs. These checks do not replace the still-pending real Twitch, native OBS, NVDA, audible-mix, and human-playtest gates.
+The 2026-11-01 RC4 composite verification passed: 73/73 unit and contract tests, 28/28 visual states, 9/9 browser gameplay gates, 5/5 integrity gates, 17/17 independent-process relay gates, 11/11 accessibility/reflow gates, 10/10 performance gates, and the release audit at 11.6 MiB across 23 public files. The performance run completed eight measured campaigns with a 0.192 MiB final heap delta, zero final DOM growth, and zero final listener growth. Gameplay proof includes dynamic multi-depth camera travel and three clean visible-guidance runs that reached the earned ending without fixtures or fallbacks, using visible rehearsal votes. These checks do not replace the still-pending real Twitch, native OBS, five-unfamiliar-human, NVDA, audible-mix, public-repository/video, and Devpost gates. RC4 public deployment is a separate promotion step and is not claimed here.
 
 Before sharing the entry, follow the logged-out hosting, OAuth callback, OBS alpha, and rollback steps in [`docs/PUBLIC_DEPLOYMENT.md`](docs/PUBLIC_DEPLOYMENT.md).
+
+The judge findings, deterministic acceptance criteria, and non-automatable proof boundary are tracked in [`docs/RC4_JUDGE_FIX_CONTRACT.md`](docs/RC4_JUDGE_FIX_CONTRACT.md).
+
+Final screenshots and machine-readable browser reports are indexed in [`docs/evidence/RC4_EVIDENCE.md`](docs/evidence/RC4_EVIDENCE.md).
 
 ## Connect a real Twitch channel
 
@@ -94,7 +101,9 @@ tests/
   *.test.mjs        Engine, campaign, Twitch, relay, audio, and accessibility tests
 docs/
   ARCHITECTURE.md   Technical design and event flow
-  QUALITY_TRACKER.md Evidence-backed V3 gate status
+  QUALITY_TRACKER.md Evidence-backed RC4 gate status
+  RC4_JUDGE_FIX_CONTRACT.md Judge finding → behavior → proof mapping
+  evidence/RC4_EVIDENCE.md Final screenshots and browser reports
   SUBMISSION.md     Devpost-ready copy and checklist
   DEMO_SCRIPT.md    Under-three-minute video plan
   STATUS.md         Truthful implemented/simulated/unverified matrix

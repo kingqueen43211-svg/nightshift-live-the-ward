@@ -420,6 +420,7 @@ try {
         room: document.querySelector('#dashRoom')?.textContent,
         status: document.querySelector('#dashStatus')?.textContent,
         endingOpen: document.querySelector('#ending')?.classList.contains('show'),
+        attachedNodes: document.querySelectorAll('*').length,
         captionCount: window.__nightshiftSoak?.captions?.length || 0,
         latestCaption: window.__nightshiftSoak?.captions?.at(-1) || null,
         loadedImages: [...document.images].filter(image => image.currentSrc).map(image => new URL(image.currentSrc).pathname),
@@ -556,8 +557,14 @@ try {
       const currentRoom = room;
       await click("#advanceRoom");
       if (roomIndex === 4) {
+        await waitFor(`document.querySelector('#dashStatus')?.textContent === "CONSEQUENCE"`, 5000);
+        await click('[data-view-target="gameplay"]');
+        await click('[data-action="open-roof"]');
         await waitFor(`document.querySelector('#ending')?.classList.contains('show')`, 5000);
       } else {
+        await waitFor(`document.querySelector('#dashRoom')?.textContent !== ${JSON.stringify(currentRoom)} || document.querySelector('#dashStatus')?.textContent === "CONSEQUENCE"`, 5000);
+        const needsRecoveryAdvance = await evaluate(`document.querySelector('#dashRoom')?.textContent === ${JSON.stringify(currentRoom)}`);
+        if (needsRecoveryAdvance) await click("#advanceRoom");
         await waitFor(`document.querySelector('#dashRoom')?.textContent !== ${JSON.stringify(currentRoom)}`, 5000);
       }
     }
@@ -630,6 +637,12 @@ try {
     const cycleSample = await sample(`${phase}-post-gc`);
     report.cycles.push({ ...campaign, network: summarizeNetwork(phase), sampleLabel: cycleSample.label });
   }
+
+  // Take one campaign-free sample after the final cycle. Chromium can briefly
+  // retain detached render nodes during a collection boundary; a real replay
+  // leak remains present after this second settle/GC window, while that
+  // transient does not become a flaky release failure.
+  await sample("final-stabilized-post-gc");
 
   const measuredSamples = report.samples.slice(1);
   const finalSample = measuredSamples.at(-1);

@@ -1,0 +1,949 @@
+{
+  "generatedAt": "2026-11-01T21:55:39.589Z",
+  "browser": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "browserVersion": "Chrome/156.0.8078.79",
+  "app": "http://127.0.0.1:50380",
+  "methodology": {
+    "input": "Chromium CDP key events only for audited operation; no DOM click() calls",
+    "zoom": "640x360 CSS-pixel layout viewport at deviceScaleFactor 2, equivalent to 200% reflow of a 1280x720 canvas",
+    "contrast": "Computed foreground colors composited over computed solid background-color layers; image/gradient pixels remain a manual review gap"
+  },
+  "checks": [
+    {
+      "name": "intro dialog traps focus and starts entirely by keyboard",
+      "pass": true,
+      "durationMs": 4290,
+      "details": {
+        "headerInert": true,
+        "mainInert": true,
+        "dialog": "dialog",
+        "postStartFocus": "#objective"
+      }
+    },
+    {
+      "name": "gameplay Tab order is DOM-logical with a strong visible indicator",
+      "pass": true,
+      "durationMs": 752,
+      "details": {
+        "count": 11,
+        "order": [
+          "[data-camera-node=\"lobby-wide\"]",
+          "[data-camera-node=\"records-desk\"]",
+          "[data-camera-node=\"locker-close\"]",
+          "[data-action=\"search-desk\"]",
+          "[data-action=\"open-locker\"]",
+          "[data-action=\"reconstruct-file\"]",
+          "[data-view-target=\"gameplay\"]",
+          "[data-view-target=\"gameplay\"]",
+          "[data-view-target=\"dashboard\"]",
+          "[data-view-target=\"overlay\"]",
+          "#gameplayPause"
+        ],
+        "minimumOutlinePx": 3
+      }
+    },
+    {
+      "name": "Space activates a gameplay action without pointer input",
+      "pass": true,
+      "durationMs": 423,
+      "details": {
+        "completed": true,
+        "progress": "33",
+        "focus": "search-desk"
+      }
+    },
+    {
+      "name": "pause shortcut is keyboard-operable and preserves focus",
+      "pass": true,
+      "durationMs": 281,
+      "details": {
+        "paused": {
+          "label": "Resume episode",
+          "focus": "objective"
+        },
+        "resumed": {
+          "label": "Pause episode",
+          "focus": "objective"
+        }
+      }
+    },
+    {
+      "name": "control room is reachable and traversable using only Tab and Enter",
+      "pass": true,
+      "durationMs": 2037,
+      "details": {
+        "count": 27,
+        "order": [
+          "#startShow",
+          "#pauseShow",
+          "#resumeShow",
+          "#stopShow",
+          "#clientId",
+          "#connectTwitch",
+          "#disconnectTwitch",
+          "[data-trigger=\"follow\"]",
+          "[data-trigger=\"subscribe\"]",
+          "[data-trigger=\"cheer\"]",
+          "[data-trigger=\"raid\"]",
+          "#chatCommand",
+          "#sendChat",
+          "#motionToggle",
+          "#effectsToggle",
+          "#contrastToggle",
+          "#namesToggle",
+          "#scareToggle",
+          "#audioMuteToggle",
+          "#audioVolume",
+          "#restoreCheckpoint",
+          "#advanceRoom",
+          "[data-view-target=\"gameplay\"]",
+          "[data-view-target=\"gameplay\"]",
+          "[data-view-target=\"dashboard\"]",
+          "[data-view-target=\"overlay\"]",
+          "#gameplayPause"
+        ],
+        "minimumOutlinePx": 3
+      }
+    },
+    {
+      "name": "Chromium accessibility tree has no unnamed focusable control",
+      "pass": true,
+      "durationMs": 213,
+      "details": {
+        "focusableNodes": 27,
+        "unnamedFocusableNodes": 0,
+        "roles": [
+          "RootWebArea",
+          "button",
+          "heading",
+          "textbox",
+          "checkbox",
+          "slider"
+        ]
+      }
+    },
+    {
+      "name": "computed normal and high-contrast UI color pairs meet WCAG text ratios",
+      "pass": true,
+      "durationMs": 1182,
+      "details": {
+        "normal": {
+          "samples": 15,
+          "minimumRatio": 5.38,
+          "results": [
+            {
+              "selector": ".brand small",
+              "text": "LIVE · THE WARD",
+              "foreground": [
+                138,
+                160,
+                157
+              ],
+              "background": [
+                3,
+                7,
+                8
+              ],
+              "fontSize": 10,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 7.32,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": ".nav:not(.active)",
+              "text": "Live episode",
+              "foreground": [
+                138,
+                160,
+                157
+              ],
+              "background": [
+                3,
+                7,
+                8
+              ],
+              "fontSize": 16,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 7.32,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#dashboard .panel p",
+              "text": "Simulation is clearly labeled. Connect genuine Twitch from this browser.",
+              "foreground": [
+                138,
+                160,
+                157
+              ],
+              "background": [
+                7,
+                14,
+                16
+              ],
+              "fontSize": 16,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 7.03,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#dashboard .panel label",
+              "text": "Developer Client ID",
+              "foreground": [
+                138,
+                160,
+                157
+              ],
+              "background": [
+                7,
+                14,
+                16
+              ],
+              "fontSize": 10,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 7.03,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#dashboard .fine",
+              "text": "OAuth tokens remain in this browser. The included server provides static preview",
+              "foreground": [
+                138,
+                160,
+                157
+              ],
+              "background": [
+                7,
+                14,
+                16
+              ],
+              "fontSize": 11,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 7.03,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#dashboard .panel button:not(.primary):not(.danger-btn)",
+              "text": "Clear",
+              "foreground": [
+                233,
+                242,
+                239
+              ],
+              "background": [
+                16,
+                26,
+                27
+              ],
+              "fontSize": 16,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 15.53,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#dashboard .danger-btn",
+              "text": "Stop",
+              "foreground": [
+                240,
+                91,
+                99
+              ],
+              "background": [
+                16,
+                26,
+                27
+              ],
+              "fontSize": 16,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 5.38,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#dashboard .primary",
+              "text": "Start episode",
+              "foreground": [
+                4,
+                16,
+                15
+              ],
+              "background": [
+                114,
+                229,
+                213
+              ],
+              "fontSize": 16,
+              "fontWeight": 700,
+              "minimum": 4.5,
+              "ratio": 12.78,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": ".state-strip span",
+              "text": "Room Reception / Triage",
+              "foreground": [
+                138,
+                160,
+                157
+              ],
+              "background": [
+                7,
+                13,
+                14
+              ],
+              "fontSize": 11,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 7.08,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": ".state-strip b",
+              "text": "Reception / Triage",
+              "foreground": [
+                233,
+                242,
+                239
+              ],
+              "background": [
+                7,
+                13,
+                14
+              ],
+              "fontSize": 11,
+              "fontWeight": 700,
+              "minimum": 4.5,
+              "ratio": 17.16,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": ".feed-item em",
+              "text": "Episode ready",
+              "foreground": [
+                138,
+                160,
+                157
+              ],
+              "background": [
+                8,
+                14,
+                15
+              ],
+              "fontSize": 10,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 7.03,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": ".feed-item span",
+              "text": "SYSTEM",
+              "foreground": [
+                114,
+                229,
+                213
+              ],
+              "background": [
+                8,
+                14,
+                15
+              ],
+              "fontSize": 10,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 12.86,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": ".toggles label",
+              "text": "Reduced motion",
+              "foreground": [
+                138,
+                160,
+                157
+              ],
+              "background": [
+                12,
+                19,
+                21
+              ],
+              "fontSize": 13,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 6.79,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#clientId",
+              "text": "",
+              "foreground": [
+                233,
+                242,
+                239
+              ],
+              "background": [
+                5,
+                10,
+                11
+              ],
+              "fontSize": 16,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 17.46,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#chatCommand",
+              "text": "!records",
+              "foreground": [
+                233,
+                242,
+                239
+              ],
+              "background": [
+                5,
+                10,
+                11
+              ],
+              "fontSize": 16,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 17.46,
+              "pass": true,
+              "backgroundImageLayers": 1
+            }
+          ]
+        },
+        "highContrast": {
+          "samples": 15,
+          "minimumRatio": 5.38,
+          "results": [
+            {
+              "selector": ".brand small",
+              "text": "LIVE · THE WARD",
+              "foreground": [
+                213,
+                223,
+                221
+              ],
+              "background": [
+                3,
+                7,
+                8
+              ],
+              "fontSize": 10,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 14.87,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": ".nav:not(.active)",
+              "text": "Live episode",
+              "foreground": [
+                213,
+                223,
+                221
+              ],
+              "background": [
+                3,
+                7,
+                8
+              ],
+              "fontSize": 16,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 14.87,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#dashboard .panel p",
+              "text": "Simulation is clearly labeled. Connect genuine Twitch from this browser.",
+              "foreground": [
+                213,
+                223,
+                221
+              ],
+              "background": [
+                7,
+                14,
+                16
+              ],
+              "fontSize": 16,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 14.29,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#dashboard .panel label",
+              "text": "Developer Client ID",
+              "foreground": [
+                213,
+                223,
+                221
+              ],
+              "background": [
+                7,
+                14,
+                16
+              ],
+              "fontSize": 10,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 14.29,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#dashboard .fine",
+              "text": "OAuth tokens remain in this browser. The included server provides static preview",
+              "foreground": [
+                213,
+                223,
+                221
+              ],
+              "background": [
+                7,
+                14,
+                16
+              ],
+              "fontSize": 11,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 14.29,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#dashboard .panel button:not(.primary):not(.danger-btn)",
+              "text": "Clear",
+              "foreground": [
+                255,
+                255,
+                255
+              ],
+              "background": [
+                16,
+                26,
+                27
+              ],
+              "fontSize": 16,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 17.71,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#dashboard .danger-btn",
+              "text": "Stop",
+              "foreground": [
+                240,
+                91,
+                99
+              ],
+              "background": [
+                16,
+                26,
+                27
+              ],
+              "fontSize": 16,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 5.38,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#dashboard .primary",
+              "text": "Start episode",
+              "foreground": [
+                4,
+                16,
+                15
+              ],
+              "background": [
+                114,
+                229,
+                213
+              ],
+              "fontSize": 16,
+              "fontWeight": 700,
+              "minimum": 4.5,
+              "ratio": 12.78,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": ".state-strip span",
+              "text": "Room Reception / Triage",
+              "foreground": [
+                213,
+                223,
+                221
+              ],
+              "background": [
+                7,
+                13,
+                14
+              ],
+              "fontSize": 11,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 14.38,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": ".state-strip b",
+              "text": "Reception / Triage",
+              "foreground": [
+                255,
+                255,
+                255
+              ],
+              "background": [
+                7,
+                13,
+                14
+              ],
+              "fontSize": 11,
+              "fontWeight": 700,
+              "minimum": 4.5,
+              "ratio": 19.57,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": ".feed-item em",
+              "text": "Episode ready",
+              "foreground": [
+                213,
+                223,
+                221
+              ],
+              "background": [
+                8,
+                14,
+                15
+              ],
+              "fontSize": 10,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 14.29,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": ".feed-item span",
+              "text": "SYSTEM",
+              "foreground": [
+                114,
+                229,
+                213
+              ],
+              "background": [
+                8,
+                14,
+                15
+              ],
+              "fontSize": 10,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 12.86,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": ".toggles label",
+              "text": "Reduced motion",
+              "foreground": [
+                213,
+                223,
+                221
+              ],
+              "background": [
+                12,
+                19,
+                21
+              ],
+              "fontSize": 13,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 13.79,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#clientId",
+              "text": "",
+              "foreground": [
+                255,
+                255,
+                255
+              ],
+              "background": [
+                5,
+                10,
+                11
+              ],
+              "fontSize": 16,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 19.91,
+              "pass": true,
+              "backgroundImageLayers": 1
+            },
+            {
+              "selector": "#chatCommand",
+              "text": "!records",
+              "foreground": [
+                255,
+                255,
+                255
+              ],
+              "background": [
+                5,
+                10,
+                11
+              ],
+              "fontSize": 16,
+              "fontWeight": 400,
+              "minimum": 4.5,
+              "ratio": 19.91,
+              "pass": true,
+              "backgroundImageLayers": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "200% zoom-equivalent intro reflows and remains keyboard reachable",
+      "pass": true,
+      "durationMs": 1468,
+      "details": {
+        "viewport": [
+          640,
+          360
+        ],
+        "dpr": 2,
+        "documentWidth": 640,
+        "intro": [
+          360,
+          439,
+          "auto"
+        ],
+        "button": {
+          "left": 22,
+          "top": 307.9375,
+          "right": 307,
+          "bottom": 359.9375
+        }
+      }
+    },
+    {
+      "name": "200% zoom-equivalent gameplay becomes one-dimensional scrollable reflow",
+      "pass": true,
+      "durationMs": 945,
+      "details": {
+        "layout": {
+          "viewport": [
+            640,
+            360
+          ],
+          "devicePixelRatio": 2,
+          "document": [
+            640,
+            361
+          ],
+          "root": [
+            640,
+            360
+          ],
+          "zones": [
+            {
+              "selector": ".mission",
+              "left": 14,
+              "top": 82,
+              "right": 611,
+              "bottom": 295.4375,
+              "width": 597,
+              "height": 213.4375
+            },
+            {
+              "selector": ".meters",
+              "left": 14,
+              "top": 305.4375,
+              "right": 611,
+              "bottom": 350.4375,
+              "width": 597,
+              "height": 45
+            },
+            {
+              "selector": ".player-loop",
+              "left": 14,
+              "top": 360.4375,
+              "right": 611,
+              "bottom": 390.4375,
+              "width": 597,
+              "height": 30
+            },
+            {
+              "selector": ".vote-panel",
+              "left": 14,
+              "top": 479.234375,
+              "right": 611,
+              "bottom": 684.15625,
+              "width": 597,
+              "height": 204.921875
+            },
+            {
+              "selector": ".journal",
+              "left": 14,
+              "top": 694.15625,
+              "right": 611,
+              "bottom": 868.15625,
+              "width": 597,
+              "height": 174
+            }
+          ],
+          "intersections": [],
+          "horizontalClipping": [],
+          "scrollables": [
+            {
+              "selector": ".hud",
+              "clientHeight": 360,
+              "scrollHeight": 896
+            },
+            {
+              "selector": ".player-loop.glass",
+              "clientHeight": 28,
+              "scrollHeight": 303
+            }
+          ],
+          "visibleControls": 7
+        },
+        "traversal": {
+          "count": 10,
+          "order": [
+            "[data-camera-node=\"lobby-wide\"]",
+            "[data-camera-node=\"records-desk\"]",
+            "[data-camera-node=\"locker-close\"]",
+            "[data-action=\"search-desk\"]",
+            "[data-action=\"open-locker\"]",
+            "[data-action=\"reconstruct-file\"]",
+            "[data-view-target=\"gameplay\"]",
+            "[data-view-target=\"dashboard\"]",
+            "[data-view-target=\"overlay\"]",
+            "#gameplayPause"
+          ],
+          "minimumOutlinePx": 3
+        },
+        "screenshotPath": "<WORKSPACE>\\work\\accessibility-browser-smoke\\gameplay-200pct-640x360.png"
+      }
+    },
+    {
+      "name": "200% zoom-equivalent control room preserves every keyboard control",
+      "pass": true,
+      "durationMs": 2315,
+      "details": {
+        "layout": {
+          "viewport": [
+            640,
+            360
+          ],
+          "devicePixelRatio": 2,
+          "document": [
+            640,
+            361
+          ],
+          "root": [
+            625,
+            2145
+          ],
+          "zones": [],
+          "intersections": [],
+          "horizontalClipping": [],
+          "scrollables": [
+            {
+              "selector": "#dashboard",
+              "clientHeight": 360,
+              "scrollHeight": 2145
+            }
+          ],
+          "visibleControls": 22
+        },
+        "traversal": {
+          "count": 26,
+          "order": [
+            "#startShow",
+            "#pauseShow",
+            "#resumeShow",
+            "#stopShow",
+            "#clientId",
+            "#connectTwitch",
+            "#disconnectTwitch",
+            "[data-trigger=\"follow\"]",
+            "[data-trigger=\"subscribe\"]",
+            "[data-trigger=\"cheer\"]",
+            "[data-trigger=\"raid\"]",
+            "#chatCommand",
+            "#sendChat",
+            "#motionToggle",
+            "#effectsToggle",
+            "#contrastToggle",
+            "#namesToggle",
+            "#scareToggle",
+            "#audioMuteToggle",
+            "#audioVolume",
+            "#restoreCheckpoint",
+            "#advanceRoom",
+            "[data-view-target=\"gameplay\"]",
+            "[data-view-target=\"dashboard\"]",
+            "[data-view-target=\"overlay\"]",
+            "#gameplayPause"
+          ],
+          "minimumOutlinePx": 3
+        },
+        "screenshotPath": "<WORKSPACE>\\work\\accessibility-browser-smoke\\dashboard-200pct-640x360.png"
+      }
+    },
+    {
+      "name": "browser console remains clean",
+      "pass": true,
+      "durationMs": 0,
+      "details": {
+        "warningsAndErrors": 0
+      }
+    }
+  ],
+  "summary": {
+    "passed": 11,
+    "failed": 0
+  },
+  "consoleErrors": []
+}

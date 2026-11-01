@@ -63,7 +63,7 @@ export function createState(now=Date.now()){
     inventory:[],evidence:[],doors:{isolation:false,theatre:false,exit:false},
     props:{desk:false,locker:false,lamps:false,tape:false,breakers:[false,false,false],breakerProgress:[]},
     player:{fear:12,noise:0,hidden:false,focus:100,lastAction:null,combo:0},
-    story:{subjectIdentified:false,confessionDecoded:false,wardenBound:false},lastOutcome:"",lastActionAccepted:null,lastAdvanceAccepted:null,
+    story:{subjectIdentified:false,confessionDecoded:false,wardenBound:false},lastOutcome:"",lastActionAccepted:null,lastAdvanceAccepted:null,lastItemEffect:null,
     warden:{level:0,visible:false,contained:false,phase:"dormant"},guardians:50,chaos:50,
     energy:{guardian:45,chaos:45},cooldowns:{guardian:0,chaos:0},members:{},
     votes:{},voters:{},winner:null,ending:null,shield:false,recent:[],seenEventIds:[],
@@ -159,7 +159,7 @@ export function roomReadiness(state){
 export function advanceRoom(state,now=Date.now(),duration=30000){
   ensureCampaignState(state); state.lastAdvanceAccepted=false;
   if(state.status!=="consequence"){state.lastOutcome=state.status==="ended"?"This episode has already ended.":"Resolve the current audience vote before advancing.";return state;}
-  if(state.roomIndex>=ROOMS.length-1){if(!state.doors.exit){state.lastOutcome="The ending cannot resolve until the emergency exit network is powered.";return state;}state.lastAdvanceAccepted=true;return finishEpisode(state,state.winner?.id||"roof");}
+  if(state.roomIndex>=ROOMS.length-1){if(!state.doors.exit){state.lastOutcome="The ending cannot resolve until the emergency exit network is powered.";return state;}state.lastOutcome="The audience consequence is locked. The streamer must choose the roof or ambulance route in the world.";return state;}
   const current=roomFor(state),readiness=roomReadiness(state),currentState=state.rooms[current.id]; currentState.completed=readiness.ready; currentState.exitedAt=now;
   if(!readiness.ready)log(state,"progress-warning","DIRECTOR",`Continuing with fallback support; missed: ${readiness.missing.join(", ")}`);
   if(current.id==="generator"&&!state.doors.exit){state.doors.exit=true;state.power=Math.max(35,state.power);state.danger=clamp(state.danger+12);addUnique(state.inventory,"Emergency exit bypass");state.campaign.fallbackRecoveries++;log(state,"director-recovery","DIRECTOR","Emergency bypass engaged so the campaign cannot softlock; danger increased.");}
@@ -175,15 +175,55 @@ function recordPlayerProgress(state,action,accepted){
 export function combineInventoryItems(state,itemA,itemB){
   ensureCampaignState(state); const pair=[itemA,itemB].sort(); const sedativePair=["Sedative ampoule","Trauma kit"].sort();
   if(pair[0]===sedativePair[0]&&pair[1]===sedativePair[1]&&state.inventory.includes(itemA)&&state.inventory.includes(itemB)){
-    state.inventory=state.inventory.filter(item=>item!==itemA&&item!==itemB); addUnique(state.inventory,"Stabilized trauma kit"); state.campaign.mechanics.includes("inventory-combination")||state.campaign.mechanics.push("inventory-combination"); state.campaign.meaningfulActions++; state.campaign.lastMeaningfulAt=Date.now(); state.version++; state.lastOutcome="You combine the sedative and trauma kit into one emergency treatment."; log(state,"craft","STREAMER",state.lastOutcome); return {state,accepted:true,item:"Stabilized trauma kit"};
+    state.inventory=state.inventory.filter(item=>item!==itemA&&item!==itemB); addUnique(state.inventory,"Stabilized trauma kit"); state.campaign.mechanics.includes("inventory-combination")||state.campaign.mechanics.push("inventory-combination"); state.campaign.meaningfulActions++; state.campaign.lastMeaningfulAt=Date.now(); state.version++; state.lastOutcome="Sedative ampoule + Trauma kit → Stabilized trauma kit. One emergency treatment is ready."; state.lastItemEffect={accepted:true,item:"Stabilized trauma kit",summary:state.lastOutcome,effects:[{key:"craft",label:"CRAFTED",before:"2 components",after:"1 stabilized treatment"}],at:Date.now()}; log(state,"craft","STREAMER",state.lastOutcome); return {state,accepted:true,item:"Stabilized trauma kit",effects:state.lastItemEffect.effects,summary:state.lastOutcome};
   }
   return {state,accepted:false,reason:"Those items cannot be combined"};
 }
 
+function numericEffect(key,label,before,after){
+  return {key,label,before,after,delta:after-before};
+}
+
+function effectSummary(effects){
+  return effects.map(effect=>{
+    if(typeof effect.before!=="number"||typeof effect.after!=="number")return `${effect.label}: ${effect.after}`;
+    const sign=effect.delta>0?"+":"";
+    return `${effect.label} ${sign}${effect.delta} (${effect.before} → ${effect.after})`;
+  }).join(" · ");
+}
+
 export function useInventoryItem(state,item){
-  ensureCampaignState(state); if(!state.inventory.includes(item))return {state,accepted:false,reason:"Item is not in inventory"}; let consumed=true;
-  if(item==="Trauma kit")state.health=clamp(state.health+25); else if(item==="Sedative ampoule"){state.player.fear=clamp(state.player.fear-25);state.danger=clamp(state.danger-5);} else if(item==="Stabilized trauma kit"){state.health=clamp(state.health+40);state.player.fear=clamp(state.player.fear-20);} else if(item==="Subscriber flare"){state.danger=clamp(state.danger-18);state.warden.visible=false;state.warden.phase="repelled";} else if(item==="Audience shield"){state.shield=true;} else consumed=false;
-  if(!consumed)return {state,accepted:false,reason:"Item must be used at a matching world object"}; state.inventory.splice(state.inventory.indexOf(item),1); state.campaign.mechanics.includes("inventory-use")||state.campaign.mechanics.push("inventory-use"); state.campaign.meaningfulActions++; state.campaign.lastMeaningfulAt=Date.now(); state.version++; state.lastOutcome=`${item} used`; log(state,"item","STREAMER",state.lastOutcome); return {state,accepted:true,item};
+  ensureCampaignState(state);
+  const reject=reason=>{state.lastItemEffect={accepted:false,item,summary:reason,effects:[],at:Date.now()};state.lastOutcome=reason;return {state,accepted:false,reason,effects:[]};};
+  if(!state.inventory.includes(item))return reject("Item is not in inventory.");
+  const before={health:state.health,fear:state.player.fear,danger:state.danger,shield:state.shield,wardenVisible:state.warden.visible,wardenPhase:state.warden.phase};
+  if(item==="Trauma kit"){
+    if(state.health>=100)return reject("Trauma kit retained: vitals are already at maximum.");
+    state.health=clamp(state.health+25);
+  }else if(item==="Sedative ampoule"){
+    if(state.player.fear<=0&&state.danger<=0)return reject("Sedative retained: fear and entity threat are already stable.");
+    state.player.fear=clamp(state.player.fear-25);state.danger=clamp(state.danger-5);
+  }else if(item==="Stabilized trauma kit"){
+    if(state.health>=100&&state.player.fear<=0)return reject("Stabilized kit retained: vitals and fear are already stable.");
+    state.health=clamp(state.health+40);state.player.fear=clamp(state.player.fear-20);
+  }else if(item==="Subscriber flare"){
+    if(state.danger<=0&&!state.warden.visible&&state.warden.phase==="repelled")return reject("Subscriber flare retained: the Warden is already repelled and threat is at minimum.");
+    state.danger=clamp(state.danger-18);state.warden.visible=false;state.warden.phase="repelled";
+  }else if(item==="Audience shield"){
+    if(state.shield)return reject("Audience shield retained: a shield is already armed.");
+    state.shield=true;
+  }else return reject("Item must be used at a matching world object.");
+
+  const effects=[];
+  if(state.health!==before.health)effects.push(numericEffect("health","VITALS",before.health,state.health));
+  if(state.player.fear!==before.fear)effects.push(numericEffect("fear","FEAR",before.fear,state.player.fear));
+  if(state.danger!==before.danger)effects.push(numericEffect("danger","THREAT",before.danger,state.danger));
+  if(state.shield!==before.shield)effects.push({key:"shield",label:"SHIELD",before:before.shield?"armed":"offline",after:state.shield?"armed":"offline"});
+  if(state.warden.phase!==before.wardenPhase||state.warden.visible!==before.wardenVisible)effects.push({key:"warden",label:"WARDEN",before:before.wardenPhase,after:state.warden.phase});
+  if(!effects.length)return reject(`${item} retained: it would not change the current state.`);
+
+  state.inventory.splice(state.inventory.indexOf(item),1); state.campaign.mechanics.includes("inventory-use")||state.campaign.mechanics.push("inventory-use"); state.campaign.meaningfulActions++; state.campaign.lastMeaningfulAt=Date.now(); state.version++;
+  const summary=`${item}: ${effectSummary(effects)}.`; state.lastOutcome=summary; state.lastItemEffect={accepted:true,item,summary,effects,at:Date.now()}; log(state,"item","STREAMER",summary); return {state,accepted:true,item,effects,summary};
 }
 
 export function playerAction(state,action){
@@ -195,7 +235,12 @@ export function playerAction(state,action){
   if(action==="inspect-gurney"){accepted=true;addUnique(state.evidence,"Restraint tag 06");state.danger=clamp(state.danger+5);state.player.focus=clamp(state.player.focus-5);outcome="Fresh restraint marks point toward the isolation door.";}
   if(action==="listen-intercom"){accepted=true;state.player.noise=clamp(state.player.noise-10);addUnique(state.evidence,"Intercom cadence: short-short-long");outcome="Behind the static: a warning timed to the door’s magnetic cycle.";}
   if(action==="hide-curtain"){accepted=true;state.player.hidden=true;state.player.noise=0;state.danger=clamp(state.danger-10);state.player.fear=clamp(state.player.fear+4);state.warden.phase="passing";outcome="You hold your breath as the Warden passes the curtain.";}
-  if(action==="force-door"){if(state.power>=20&&state.evidence.length>=2){accepted=true;state.doors.isolation=true;state.doors.theatre=true;state.player.noise=clamp(state.player.noise+18);outcome="The bolts retract. The isolation door opens into real darkness.";}else{state.health=clamp(state.health-8);state.player.fear=clamp(state.player.fear+12);outcome="The maglock rejects you. Find evidence and restore enough power.";}}
+  if(action==="force-door"){
+    const chaosCounter=state.winner?.id==="dark"&&state.evidence.length>=2&&state.rooms?.surgery?.actions?.includes("hide-curtain");
+    if(state.power>=20&&state.evidence.length>=2){accepted=true;state.doors.isolation=true;state.doors.theatre=true;state.player.noise=clamp(state.player.noise+18);outcome="The bolts retract. The isolation door opens into real darkness.";}
+    else if(chaosCounter){accepted=true;state.doors.isolation=true;state.doors.theatre=true;state.health=clamp(state.health-10);state.danger=clamp(state.danger+10);state.player.noise=clamp(state.player.noise+28);outcome="With the lights dead, you use the curtain rail as a lever. The door tears open, but the manual breach costs 10 vitals and draws the Warden.";}
+    else{state.health=clamp(state.health-8);state.player.fear=clamp(state.player.fear+12);outcome="The maglock rejects you. Read the corridor, resolve its power vote, or prepare a manual darkness breach.";}
+  }
   if(action==="align-lamps"){accepted=true;state.props.lamps=true;state.warden.visible=false;state.warden.phase="repelled";state.danger=clamp(state.danger-12);state.power=clamp(state.power-8);outcome="Three surgical beams pin the Warden’s shadow to the wall.";}
   if(action==="play-tape"){accepted=true;state.props.tape=true;addUnique(state.evidence,"Theatre audio log");state.story.confessionDecoded=state.story.subjectIdentified;outcome=state.story.confessionDecoded?"Vale confesses: the Warden was built to contain Mara, not kill her.":"The confession references a patient you have not identified.";}
   if(action==="counter-warden"){if(state.props.lamps&&state.story.confessionDecoded){accepted=true;state.warden.visible=false;state.warden.phase="repelled";state.danger=clamp(state.danger-25);state.player.combo+=2;addUnique(state.inventory,"Binding sigil");outcome="Light and confession synchronize. You tear a binding sigil free.";}else{state.warden.visible=true;state.warden.phase="striking";state.health=clamp(state.health-14);state.danger=clamp(state.danger+14);outcome="Your counter fails. The Warden closes the distance.";}}

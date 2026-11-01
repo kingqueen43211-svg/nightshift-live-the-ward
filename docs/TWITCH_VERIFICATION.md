@@ -74,6 +74,17 @@ These tests use deterministic fakes. They establish transport behavior, not Twit
 
 Mark the integration `VERIFIED LIVE` only when all nine steps are evidenced. The current result remains `UNVERIFIED LIVE`.
 
+## Evidence packet
+
+Store no access token, Client ID value, immutable viewer ID, private chat, or personal notification in the repository. The publishable packet should contain:
+
+- one continuous, timestamped video showing the separate viewer's command, accepted vote, persistent audience outcome, physical world change, control-room event, and matching OBS state;
+- two native OBS alpha captures, at 1920×1080 and 1280×720, over a clearly contrasting source;
+- a short redacted run note with broadcaster account role, separate-viewer role, callback origin, EventSub subscription types, command, consequence, reconnect result, and token-expiry result;
+- an explicit statement that the rehearsal controls were not used as Twitch evidence.
+
+The final repository, YouTube video, and Devpost description may call the bridge `VERIFIED LIVE` only after this packet exists and all nine acceptance steps pass. Until then, keep `IMPLEMENTED / UNVERIFIED LIVE` visible in the product description and demo narration.
+
 ## Known architectural limit
 
 The current static client still uses Twitch's browser token flow and stores the token in local browser storage. The public demo bundles no Client ID, token, or shared authority; each visitor controls only that browser's local session. OAuth state validation reduces callback forgery risk, but a multi-streamer production service should move authorization-code/PKCE or confidential token handling and authoritative EventSub/session state to a server rather than treating this local control surface as a shared admin system.

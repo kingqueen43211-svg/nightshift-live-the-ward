@@ -34,7 +34,19 @@ test("missing optional interactions never softlock room progression",()=>{
 
 test("inventory can be combined and used for a real resource consequence",()=>{
   const state=createState(1);playerAction(state,"open-locker");applyEffect(state,"medkit");assert.equal(combineInventoryItems(state,"Sedative ampoule","Trauma kit").accepted,true);state.health=35;state.player.fear=70;
-  assert.equal(useInventoryItem(state,"Stabilized trauma kit").accepted,true);assert.equal(state.health,75);assert.equal(state.player.fear,50);assert.equal(state.inventory.includes("Stabilized trauma kit"),false);
+  const result=useInventoryItem(state,"Stabilized trauma kit");assert.equal(result.accepted,true);assert.equal(state.health,75);assert.equal(state.player.fear,50);assert.equal(state.inventory.includes("Stabilized trauma kit"),false);assert.match(result.summary,/VITALS \+40 \(35 → 75\).*FEAR -20 \(70 → 50\)/);assert.equal(result.effects.length,2);
+});
+
+test("inventory items cannot be wasted and rejected uses remain carried",()=>{
+  const state=createState(1);state.inventory=["Trauma kit","Audience shield"];state.health=100;state.shield=true;
+  const healthResult=useInventoryItem(state,"Trauma kit");const shieldResult=useInventoryItem(state,"Audience shield");
+  assert.equal(healthResult.accepted,false);assert.match(healthResult.reason,/retained.*maximum/i);assert.equal(shieldResult.accepted,false);assert.match(shieldResult.reason,/retained.*already armed/i);assert.deepEqual(state.inventory,["Trauma kit","Audience shield"]);
+});
+
+test("sedative and flare report exact resource and world-state consequences",()=>{
+  const state=createState(1);state.inventory=["Sedative ampoule","Subscriber flare"];state.player.fear=30;state.danger=40;state.warden.visible=true;state.warden.phase="approaching";
+  const sedative=useInventoryItem(state,"Sedative ampoule");assert.equal(sedative.accepted,true);assert.match(sedative.summary,/FEAR -25 \(30 → 5\).*THREAT -5 \(40 → 35\)/);
+  const flare=useInventoryItem(state,"Subscriber flare");assert.equal(flare.accepted,true);assert.match(flare.summary,/THREAT -18 \(35 → 17\).*WARDEN: repelled/);assert.equal(state.warden.visible,false);assert.equal(state.warden.phase,"repelled");
 });
 
 test("checkpoint restore returns a deterministic recoverable campaign state",()=>{
@@ -65,6 +77,16 @@ test("advancement requires a resolved vote and repeated calls cannot skip a room
 
 test("final routes require powered exits and a resolved final vote",()=>{
   const state=createState(1);startEpisode(state,1);state.roomIndex=4;state.act=5;playerAction(state,"open-roof");assert.equal(state.status,"voting");assert.equal(state.lastActionAccepted,false);resolveVote(state);advanceRoom(state,2);assert.equal(state.status,"consequence");assert.equal(state.lastAdvanceAccepted,false);state.doors.exit=true;playerAction(state,"open-roof");assert.equal(state.status,"ended");assert.equal(state.lastActionAccepted,true);
+});
+
+test("a Chaos blackout raises the cost but leaves the streamer a manual door counter",()=>{
+  const state=createState(1);startEpisode(state,1);completeIntake(state);castVote(state,"viewer-a","!records");resolveVote(state);advanceRoom(state,100);
+  playerAction(state,"inspect-gurney");playerAction(state,"listen-intercom");playerAction(state,"hide-curtain");castVote(state,"viewer-b","!dark");resolveVote(state);const before=state.health;playerAction(state,"force-door");
+  assert.equal(state.lastActionAccepted,true);assert.equal(state.doors.theatre,true);assert.equal(state.health,before-10);assert.match(state.lastOutcome,/manual breach costs 10 vitals/i);assert.equal(roomReadiness(state).ready,true);
+});
+
+test("director advancement cannot replace the streamer's physical final route",()=>{
+  const state=createState(1);startEpisode(state,1);state.roomIndex=4;state.act=5;state.rooms.stairwell.visited=true;state.doors.exit=true;resolveVote(state);advanceRoom(state,2);assert.equal(state.status,"consequence");assert.equal(state.ending,null);assert.equal(state.lastAdvanceAccepted,false);assert.match(state.lastOutcome,/streamer must choose/i);
 });
 
 test("an incomplete generator applies a disclosed costly bypass instead of softlocking the finale",()=>{

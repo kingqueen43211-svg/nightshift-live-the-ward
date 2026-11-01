@@ -324,9 +324,35 @@ try {
     return after;
   });
 
-  await check("camera node changes composition and pressed state", async () => {
+  await check("camera node performs multi-layer travel and settles accessibly", async () => {
+    await evaluate(`(() => { const toggle = document.querySelector('#motionToggle'); if (toggle.checked) toggle.click(); return toggle.checked; })()`);
+    const before = await evaluate(`(() => ({ plate: document.querySelector('#plate')?.src, node: document.querySelector('#scene')?.dataset.cameraNode }))()`);
     await click('[data-camera-node="records-desk"]');
-    await delay(650);
+    await delay(80);
+    const traveling = await evaluate(`(() => {
+      const layers = [...document.querySelectorAll('#scene .layer')].map(layer => ({
+        name: layer.id || layer.className,
+        depth: Number(layer.dataset.depth || 0),
+        x: Number.parseFloat(layer.style.getPropertyValue('--camera-layer-x')) || 0,
+        y: Number.parseFloat(layer.style.getPropertyValue('--camera-layer-y')) || 0
+      }));
+      return {
+        plate: document.querySelector('#plate')?.src,
+        moving: document.querySelector('#scene')?.dataset.cameraMoving,
+        busy: document.querySelector('#scene')?.getAttribute('aria-busy'),
+        disabled: [...document.querySelectorAll('[data-camera-node]')].every(button => button.disabled),
+        railInert: document.querySelector('#cameraRail')?.inert,
+        layers
+      };
+    })()`);
+    assert(traveling.plate === before.plate, "Camera travel swapped the room plate instead of moving through one environment");
+    assert(traveling.moving === "true" && traveling.busy === "true" && traveling.railInert, `Camera travel lifecycle was not exposed to controls and accessibility APIs: ${JSON.stringify({ moving: traveling.moving, busy: traveling.busy, disabled: traveling.disabled, railInert: traveling.railInert })}`);
+    const movingLayers = traveling.layers.filter(layer => Math.abs(layer.x) + Math.abs(layer.y) > 0);
+    assert(movingLayers.length >= 4, `Only ${movingLayers.length} depth layers moved during camera travel`);
+    const far = movingLayers.reduce((best, layer) => layer.depth < best.depth ? layer : best, movingLayers[0]);
+    const near = movingLayers.reduce((best, layer) => layer.depth > best.depth ? layer : best, movingLayers[0]);
+    assert((Math.abs(near.x) + Math.abs(near.y)) >= (Math.abs(far.x) + Math.abs(far.y)) * 1.75, "Foreground travel was not materially deeper than the far plate");
+    await delay(1000);
     const result = await evaluate(`(() => {
       const buttons = [...document.querySelectorAll('[data-camera-node]')];
       const active = buttons.filter(button => button.getAttribute('aria-pressed') === 'true');
@@ -337,17 +363,20 @@ try {
         activeNodes: active.map(button => button.dataset.cameraNode),
         cue: document.querySelector('#cameraCue')?.textContent,
         objectPosition: plateStyle.objectPosition,
-        transform: plateStyle.transform
+        transform: plateStyle.transform,
+        moving: document.querySelector('#scene')?.dataset.cameraMoving,
+        busy: document.querySelector('#scene')?.getAttribute('aria-busy')
       };
     })()`);
     assert(result.sceneNode === "records-desk" && result.sceneIndex === "1", "Scene did not enter the records camera composition");
     assert(result.activeNodes.length === 1 && result.activeNodes[0] === "records-desk", "Camera rail does not expose one pressed node");
     assert(/intake record/i.test(result.cue), "Camera purpose cue did not update");
     assert(result.objectPosition !== "50% 50%", "Camera selection did not alter authored framing");
-    return result;
+    assert(result.moving === "false" && result.busy === "false", "Camera did not expose a deterministic settled state");
+    return { before, traveling, result };
   });
 
-  await check("rejected action does not satisfy objective progress", async () => {
+  await check("rejected actions preserve progress and completion exposes a gameplay next step", async () => {
     const before = await evaluate(`({ progress: document.querySelector('#objectiveProgressTrack')?.getAttribute('aria-valuenow') })`);
     await click('[data-action="reconstruct-file"]');
     await delay(60);
@@ -382,10 +411,19 @@ try {
     await delay(40);
     const completed = await evaluate(`({
       progress: document.querySelector('#objectiveProgressTrack')?.getAttribute('aria-valuenow'),
-      completed: document.querySelector('[data-action="reconstruct-file"]')?.classList.contains('completed')
+      completed: document.querySelector('[data-action="reconstruct-file"]')?.classList.contains('completed'),
+      nextTitle: document.querySelector('#nextStepTitle')?.textContent,
+      nextDetail: document.querySelector('#nextStepDetail')?.textContent,
+      nextLabel: document.querySelector('#gameplayAdvance')?.textContent,
+      nextDisabled: document.querySelector('#gameplayAdvance')?.disabled
     })`);
     assert(completed.progress === "100" && completed.completed, "Successful reconstruction did not complete the objective");
-    return { rejected, ready, completed };
+    assert(!completed.nextDisabled && /objective complete/i.test(completed.nextTitle) && /Ward 06/i.test(completed.nextDetail + completed.nextLabel), "Completed objective did not expose an obvious gameplay continuation");
+    await click('#gameplayAdvance');
+    await waitFor(`document.querySelector('#dashRoom')?.textContent === 'Ward 06'`, 5000);
+    const advanced = await evaluate(`(() => ({ room: document.querySelector('#dashRoom')?.textContent, gameplayActive: document.querySelector('#gameplay')?.classList.contains('active') }))()`);
+    assert(advanced.room === "Ward 06" && advanced.gameplayActive, "Gameplay continuation required a hidden Control Room step");
+    return { rejected, ready, completed, advanced };
   });
 
   await check("inventory crafting, use, and checkpoint recovery are playable", async () => {
@@ -398,6 +436,7 @@ try {
       const input = document.querySelector('#chatCommand');
       input.value = '!medkit';
       document.querySelector('#sendChat').click();
+      document.querySelector('#advanceRoom').click();
       document.querySelector('#advanceRoom').click();
       return { advancing: document.querySelector('#advanceRoom').disabled };
     })()`);
@@ -419,13 +458,18 @@ try {
     }))()`);
     assert(crafted.tags.includes("Stabilized trauma kit") && crafted.usable && crafted.toast === "ITEM CRAFTED", "Craft action did not create the stabilized kit");
 
+    const beforeUse = await evaluate(`(() => ({ vitals: document.querySelector('#healthValue')?.textContent, conditions: document.querySelector('#conditionStrip')?.textContent }))()`);
     await click('#inventoryActions [data-use-item="Stabilized trauma kit"]');
     await delay(50);
     const used = await evaluate(`(() => ({
       tags: [...document.querySelectorAll('#inventoryActions .item-tag')].map(tag => tag.textContent),
-      toast: document.querySelector('#eventToast b')?.textContent
+      toast: document.querySelector('#eventToast b')?.textContent,
+      effect: document.querySelector('#itemEffectSummary span')?.textContent,
+      vitals: document.querySelector('#healthValue')?.textContent,
+      conditions: document.querySelector('#conditionStrip')?.textContent
     }))()`);
-    assert(!used.tags.includes("Stabilized trauma kit") && used.toast === "ITEM USED", "Use action did not consume the stabilized kit");
+    assert(!used.tags.includes("Stabilized trauma kit") && used.toast === "ITEM EFFECT APPLIED", "Use action did not consume the stabilized kit");
+    assert(/FEAR.*→/i.test(used.effect) && beforeUse.conditions !== used.conditions, "Item use did not persist an exact, visible condition change");
 
     await click('[data-action="inspect-gurney"]');
     await delay(40);
@@ -443,7 +487,7 @@ try {
     assert(restored.room === "Ward 06" && restored.evidence === "0", "Checkpoint did not restore the room-entry evidence state");
     assert(restored.tags.includes("Sedative ampoule") && restored.tags.includes("Trauma kit"), "Checkpoint did not restore the pre-craft inventory");
     assert(restored.toast === "CHECKPOINT RESTORED", "Checkpoint recovery did not provide production feedback");
-    return { inventory, crafted, used, restored };
+    return { inventory, crafted, beforeUse, used, restored };
   });
 
   await check("zero-chat resolution is visibly labelled as a director fallback", async () => {
@@ -500,6 +544,7 @@ try {
       document.querySelector('[data-view-target="gameplay"]').click();
     })()`);
     await click('[data-action="force-door"]');
+    await click('#gameplayAdvance');
     await waitFor(`document.querySelector('#dashRoom')?.textContent === 'Operating Theatre'`, 5000);
 
     for (const action of ["align-lamps", "play-tape", "counter-warden"]) {
@@ -540,6 +585,8 @@ try {
       document.querySelector('#sendChat').click();
     })()`);
     await click("#advanceRoom");
+    await click('[data-view-target="gameplay"]');
+    await click('[data-action="open-roof"]');
     await waitFor(`document.querySelector('#ending')?.classList.contains('show')`, 3000);
     await delay(60);
 
@@ -564,6 +611,101 @@ try {
     return { ...result, screenshotPath };
   });
 
+  await check("three clean visible-guidance runs reach an earned ending without fixtures or fallbacks", async () => {
+    const runs = [];
+    const castVisibleVote = async command => {
+      await click('[data-view-target="dashboard"]');
+      let accepted;
+      for (let attempt = 1; attempt <= 10; attempt++) {
+        accepted = await evaluate(`(() => {
+          const input = document.querySelector('#chatCommand');
+          input.value = ${JSON.stringify(command)};
+          document.querySelector('#sendChat').click();
+          return {
+            toast: document.querySelector('#eventToast b')?.textContent,
+            command: input.value,
+            votes: document.querySelector('#viewerCount')?.textContent,
+            source: document.querySelector('#voteSource')?.textContent,
+            attempt: ${attempt}
+          };
+        })()`);
+        if (accepted.toast === "CHAT ACCEPTED") break;
+        await delay(20);
+      }
+      assert(accepted.toast === "CHAT ACCEPTED", `Visible rehearsal vote ${command} was rejected: ${JSON.stringify(accepted)}`);
+      assert(Number.parseInt(accepted.votes, 10) >= 1, `Visible rehearsal vote ${command} did not create a verified vote`);
+      assert(/REHEARSAL VOTE/.test(accepted.source), `Visible rehearsal vote ${command} lost truthful source labelling`);
+      await click('[data-view-target="gameplay"]');
+      return accepted;
+    };
+
+    for (let run = 1; run <= 3; run++) {
+      const startedAt = Date.now();
+      const roomTimes = [];
+      const guidance = [];
+      const votes = [];
+      await navigate(`/?autostart=rehearsal&guided=${run}`);
+      await click('[data-view-target="dashboard"]');
+      await evaluate(`(() => { const toggle = document.querySelector('#motionToggle'); if (!toggle.checked) toggle.click(); })()`);
+      await click('[data-view-target="gameplay"]');
+
+      for (const action of ["search-desk", "open-locker", "reconstruct-file"]) await click(`[data-action="${action}"]`);
+      votes.push(await castVisibleVote("!records"));
+      guidance.push(await evaluate(`document.querySelector('#nextStep')?.innerText`));
+      await click('#gameplayAdvance');
+      await waitFor(`document.querySelector('#dashRoom')?.textContent === 'Ward 06'`, 3000);
+      roomTimes.push({ room: "Ward 06", atMs: Date.now() - startedAt });
+
+      for (const action of ["inspect-gurney", "listen-intercom", "hide-curtain"]) await click(`[data-action="${action}"]`);
+      votes.push(await castVisibleVote("!restore"));
+      guidance.push(await evaluate(`document.querySelector('#nextStep')?.innerText`));
+      await click('#gameplayAdvance');
+      await waitFor(`!document.querySelector('[data-action="force-door"]')?.classList.contains('locked')`, 2000);
+      await click('[data-action="force-door"]');
+      await click('#gameplayAdvance');
+      await waitFor(`document.querySelector('#dashRoom')?.textContent === 'Operating Theatre'`, 3000);
+      roomTimes.push({ room: "Operating Theatre", atMs: Date.now() - startedAt });
+
+      for (const action of ["align-lamps", "play-tape", "counter-warden"]) await click(`[data-action="${action}"]`);
+      votes.push(await castVisibleVote("!lights"));
+      guidance.push(await evaluate(`document.querySelector('#nextStep')?.innerText`));
+      await click('#gameplayAdvance');
+      await waitFor(`document.querySelector('#dashRoom')?.textContent === 'Generator Room'`, 3000);
+      roomTimes.push({ room: "Generator Room", atMs: Date.now() - startedAt });
+
+      const generatorHint = await evaluate(`document.querySelector('#hint')?.textContent`);
+      assert(/2\s*·\s*1\s*·\s*3/.test(generatorHint), "Visible generator hint did not disclose the authored sequence");
+      for (const action of ["breaker-2", "breaker-1", "breaker-3", "reroute-power"]) await click(`[data-action="${action}"]`);
+      votes.push(await castVisibleVote("!charge"));
+      guidance.push(await evaluate(`document.querySelector('#nextStep')?.innerText`));
+      await click('#gameplayAdvance');
+      await waitFor(`document.querySelector('#dashRoom')?.textContent === 'Stairwell / Exits'`, 3000);
+      roomTimes.push({ room: "Stairwell / Exits", atMs: Date.now() - startedAt });
+
+      await click('[data-action="seal-warden"]');
+      votes.push(await castVisibleVote("!roof"));
+      guidance.push(await evaluate(`document.querySelector('#nextStep')?.innerText`));
+      await click('#gameplayAdvance');
+      await waitFor(`!document.querySelector('[data-action="open-roof"]')?.classList.contains('locked')`, 2000);
+      await click('[data-action="open-roof"]');
+      await waitFor(`document.querySelector('#ending')?.classList.contains('show')`, 3000);
+
+      const result = await evaluate(`(() => ({
+        title: document.querySelector('#endingTitle')?.textContent,
+        recap: [...document.querySelectorAll('#endingRecap span')].map(span => span.textContent.replace(/\\s+/g, ' ').trim()),
+        summary: document.querySelector('#endingSummary')?.textContent
+      }))()`);
+      assert(result.title === "MARA WALKS INTO DAWN", `Guided run ${run} reached ${result.title || "no ending"}`);
+      assert(result.recap.some(value => /WARDEN.*BOUND/i.test(value)), `Guided run ${run} did not earn containment`);
+      assert(result.recap.some(value => /AUDIENCE.*(?:[5-9]|[1-9]\d+)/i.test(value)), `Guided run ${run} did not preserve at least five visible rehearsal votes`);
+      assert(result.recap.some(value => /FALLBACKS.*0/i.test(value)), `Guided run ${run} used a director fallback`);
+      assert(/streamer and audience/i.test(result.summary) && !/fallback/i.test(result.summary), `Guided run ${run} ending summary did not truthfully credit the earned path`);
+      assert(guidance.every(value => /verified vote/i.test(value)), `Guided run ${run} did not expose the accepted audience vote in every next-step state`);
+      runs.push({ run, durationMs: Date.now() - startedAt, roomTimes, votes, guidance, ...result });
+    }
+    return { cleanRuns: runs.length, runs };
+  });
+
   await check("a complete fallback run renders a truthful ending recap", async () => {
     await navigate("/?fixture=camera-node&room=intake&camera=lobby-wide");
     await click('[data-view-target="dashboard"]');
@@ -577,10 +719,12 @@ try {
     const expectedRooms = ["Ward 06", "Operating Theatre", "Generator Room", "Stairwell / Exits"];
     for (const expectedRoom of expectedRooms) {
       await click('#advanceRoom');
+      await click('#advanceRoom');
       await waitFor(`document.querySelector('#dashRoom')?.textContent === ${JSON.stringify(expectedRoom)}`, 3000);
     }
     await click('[data-view-target="gameplay"]');
     await click('#advanceRoom');
+    await click('[data-action="open-roof"]');
     await waitFor(`document.querySelector('#ending')?.classList.contains('show')`, 3000);
     await delay(60);
 

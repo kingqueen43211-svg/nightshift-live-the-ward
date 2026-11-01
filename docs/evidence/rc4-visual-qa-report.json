@@ -1,0 +1,2118 @@
+{
+  "generatedAt": "2026-11-01T21:53:45.989Z",
+  "browser": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "browserVersion": "Chrome/156.0.8078.79",
+  "protocolVersion": "1.3",
+  "app": "http://127.0.0.1:62003",
+  "artifactRoot": "<WORKSPACE>\\work\\visual-qa",
+  "scenarios": [
+    {
+      "name": "gameplay-1920x1080",
+      "width": 1920,
+      "height": 1080,
+      "path": "/?autostart=rehearsal",
+      "kind": "geometry",
+      "waitMs": 1300,
+      "expectedMode": "SIMULATED",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\gameplay-1920x1080.png",
+      "geometry": {
+        "viewport": [
+          1920,
+          1080
+        ],
+        "document": [
+          1920,
+          1081
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 279.59375,
+            "right": 406,
+            "bottom": 373.59375
+          },
+          {
+            "selector": ".meters",
+            "x": 1719,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1894,
+            "bottom": 276
+          },
+          {
+            "selector": ".journal",
+            "x": 26,
+            "y": 884,
+            "width": 270,
+            "height": 174,
+            "right": 296,
+            "bottom": 1058
+          },
+          {
+            "selector": ".player-loop",
+            "x": 690,
+            "y": 792.90625,
+            "width": 540,
+            "height": 265.09375,
+            "right": 1230,
+            "bottom": 1058
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 1544,
+            "y": 702.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1894,
+            "bottom": 1058
+          },
+          {
+            "selector": ".event-toast",
+            "x": 785,
+            "y": 76,
+            "width": 350,
+            "height": 93,
+            "right": 1135,
+            "bottom": 169
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "records",
+          "x": 729.59375,
+          "y": 291.59375,
+          "width": 422.390625,
+          "height": 270,
+          "right": 1151.984375,
+          "bottom": 561.59375
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.23403199749228396,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: SIMULATED",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "gameplay-1600x900",
+      "width": 1600,
+      "height": 900,
+      "path": "/?autostart=rehearsal",
+      "kind": "geometry",
+      "waitMs": 1300,
+      "expectedMode": "SIMULATED",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\gameplay-1600x900.png",
+      "geometry": {
+        "viewport": [
+          1600,
+          900
+        ],
+        "document": [
+          1600,
+          901
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 279.59375,
+            "right": 406,
+            "bottom": 373.59375
+          },
+          {
+            "selector": ".meters",
+            "x": 1399,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1574,
+            "bottom": 276
+          },
+          {
+            "selector": ".journal",
+            "x": 26,
+            "y": 704,
+            "width": 270,
+            "height": 174,
+            "right": 296,
+            "bottom": 878
+          },
+          {
+            "selector": ".player-loop",
+            "x": 530,
+            "y": 612.90625,
+            "width": 540,
+            "height": 265.09375,
+            "right": 1070,
+            "bottom": 878
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 1224,
+            "y": 522.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1574,
+            "bottom": 878
+          },
+          {
+            "selector": ".event-toast",
+            "x": 625,
+            "y": 76,
+            "width": 350,
+            "height": 93,
+            "right": 975,
+            "bottom": 169
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "records",
+          "x": 608,
+          "y": 243,
+          "width": 352,
+          "height": 225,
+          "right": 960,
+          "bottom": 468
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.3370060763888889,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: SIMULATED",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "gameplay-1366x768",
+      "width": 1366,
+      "height": 768,
+      "path": "/?autostart=rehearsal",
+      "kind": "geometry",
+      "waitMs": 1300,
+      "expectedMode": "SIMULATED",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\gameplay-1366x768.png",
+      "geometry": {
+        "viewport": [
+          1366,
+          768
+        ],
+        "document": [
+          1366,
+          769
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 276.84375,
+            "right": 406,
+            "bottom": 370.84375
+          },
+          {
+            "selector": ".meters",
+            "x": 1165,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1340,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 480.90625,
+            "width": 961,
+            "height": 265.09375,
+            "right": 979,
+            "bottom": 746
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 990,
+            "y": 390.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1340,
+            "bottom": 746
+          },
+          {
+            "selector": ".event-toast",
+            "x": 508,
+            "y": 76,
+            "width": 350,
+            "height": 93,
+            "right": 858,
+            "bottom": 169
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "records",
+          "x": 519.078125,
+          "y": 207.359375,
+          "width": 300.515625,
+          "height": 192,
+          "right": 819.59375,
+          "bottom": 399.359375
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5231860613694943,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: SIMULATED",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "gameplay-1280x720",
+      "width": 1280,
+      "height": 720,
+      "path": "/?autostart=rehearsal",
+      "kind": "geometry",
+      "waitMs": 1300,
+      "expectedMode": "SIMULATED",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\gameplay-1280x720.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 275.09375,
+            "right": 406,
+            "bottom": 369.09375
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          },
+          {
+            "selector": ".event-toast",
+            "x": 465,
+            "y": 76,
+            "width": 350,
+            "height": 93,
+            "right": 815,
+            "bottom": 169
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "records",
+          "x": 486.390625,
+          "y": 194.390625,
+          "width": 281.59375,
+          "height": 180,
+          "right": 767.984375,
+          "bottom": 374.390625
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.570101081000434,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: SIMULATED",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "gameplay-768x1024",
+      "width": 768,
+      "height": 1024,
+      "path": "/?autostart=rehearsal",
+      "kind": "geometry",
+      "waitMs": 1300,
+      "expectedMode": "SIMULATED",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\gameplay-768x1024.png",
+      "geometry": {
+        "viewport": [
+          768,
+          1024
+        ],
+        "document": [
+          768,
+          1025
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 14,
+            "y": 82,
+            "width": 740,
+            "height": 146.4375,
+            "right": 754,
+            "bottom": 228.4375
+          },
+          {
+            "selector": ".meters",
+            "x": 14,
+            "y": 248,
+            "width": 740,
+            "height": 45,
+            "right": 754,
+            "bottom": 293
+          },
+          {
+            "selector": ".player-loop",
+            "x": 14,
+            "y": 749.8125,
+            "width": 740,
+            "height": 260.1875,
+            "right": 754,
+            "bottom": 1010
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 334,
+            "y": 384,
+            "width": 420,
+            "height": 204.921875,
+            "right": 754,
+            "bottom": 588.921875
+          },
+          {
+            "selector": ".event-toast",
+            "x": 14,
+            "y": 308,
+            "width": 740,
+            "height": 68.796875,
+            "right": 754,
+            "bottom": 376.796875
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "records",
+          "x": 291.828125,
+          "y": 276.46875,
+          "width": 168.953125,
+          "height": 256,
+          "right": 460.78125,
+          "bottom": 532.46875
+        },
+        "targetIntersections": [
+          {
+            "zone": ".meters",
+            "target": "records",
+            "width": 168.953125,
+            "height": 16.53125
+          },
+          {
+            "zone": ".vote-panel",
+            "target": "records",
+            "width": 126.78125,
+            "height": 148.46875
+          },
+          {
+            "zone": ".event-toast",
+            "target": "records",
+            "width": 168.953125,
+            "height": 68.796875
+          }
+        ],
+        "hudCoverage": 0.5991355578104655,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: SIMULATED",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "gameplay-390x844",
+      "width": 390,
+      "height": 844,
+      "path": "/?autostart=rehearsal",
+      "kind": "geometry",
+      "waitMs": 1300,
+      "expectedMode": "SIMULATED",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\gameplay-390x844.png",
+      "geometry": {
+        "viewport": [
+          390,
+          844
+        ],
+        "document": [
+          390,
+          845
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 14,
+            "y": 82,
+            "width": 362,
+            "height": 146.4375,
+            "right": 376,
+            "bottom": 228.4375
+          },
+          {
+            "selector": ".meters",
+            "x": 14,
+            "y": 248,
+            "width": 362,
+            "height": 45,
+            "right": 376,
+            "bottom": 293
+          },
+          {
+            "selector": ".player-loop",
+            "x": 14,
+            "y": 569.8125,
+            "width": 362,
+            "height": 260.1875,
+            "right": 376,
+            "bottom": 830
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 14,
+            "y": 384,
+            "width": 362,
+            "height": 174.359375,
+            "right": 376,
+            "bottom": 558.359375
+          },
+          {
+            "selector": ".event-toast",
+            "x": 14,
+            "y": 308,
+            "width": 362,
+            "height": 68.796875,
+            "right": 376,
+            "bottom": 376.796875
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "records",
+          "x": 148.1875,
+          "y": 227.875,
+          "width": 85.796875,
+          "height": 211,
+          "right": 233.984375,
+          "bottom": 438.875
+        },
+        "targetIntersections": [
+          {
+            "zone": ".meters",
+            "target": "records",
+            "width": 85.796875,
+            "height": 45
+          },
+          {
+            "zone": ".vote-panel",
+            "target": "records",
+            "width": 85.796875,
+            "height": 54.875
+          },
+          {
+            "zone": ".event-toast",
+            "target": "records",
+            "width": 85.796875,
+            "height": 68.796875
+          }
+        ],
+        "hudCoverage": 0.7640989564345607,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: SIMULATED",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "warden-1280x720",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=warden-warning",
+      "kind": "geometry",
+      "waitMs": 4300,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\warden-1280x720.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 301.1875,
+            "right": 406,
+            "bottom": 395.1875
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          },
+          {
+            "selector": ".event-toast",
+            "x": 465,
+            "y": 68.24610137939453,
+            "width": 350,
+            "height": 92.99999237060547,
+            "right": 815,
+            "bottom": 161.24609375
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "warden",
+          "x": 512,
+          "y": 194.390625,
+          "width": 307.1875,
+          "height": 216,
+          "right": 819.1875,
+          "bottom": 410.390625
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5808602198130555,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "door-1280x720",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=surgery-door",
+      "kind": "geometry",
+      "waitMs": 1800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\door-1280x720.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 301.1875,
+            "right": 406,
+            "bottom": 395.1875
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 438,
+            "width": 875,
+            "height": 260,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          },
+          {
+            "selector": ".event-toast",
+            "x": 465,
+            "y": 76,
+            "width": 350,
+            "height": 93,
+            "right": 815,
+            "bottom": 169
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "warden",
+          "x": 512,
+          "y": 194.390625,
+          "width": 307.1875,
+          "height": 216,
+          "right": 819.1875,
+          "bottom": 410.390625
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5760240342881945,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "dashboard-1280x720",
+      "width": 1280,
+      "height": 720,
+      "path": "/?view=dashboard",
+      "kind": "geometry",
+      "waitMs": 1000,
+      "expectedMode": "SIMULATED",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\dashboard-1280x720.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [],
+        "intersections": [],
+        "target": null,
+        "targetIntersections": [],
+        "hudCoverage": 0,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: SIMULATED",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "dashboard-390x844",
+      "width": 390,
+      "height": 844,
+      "path": "/?view=dashboard",
+      "kind": "geometry",
+      "waitMs": 1000,
+      "expectedMode": "SIMULATED",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\dashboard-390x844.png",
+      "geometry": {
+        "viewport": [
+          390,
+          844
+        ],
+        "document": [
+          390,
+          845
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [],
+        "intersections": [],
+        "target": null,
+        "targetIntersections": [],
+        "hudCoverage": 0,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: SIMULATED",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "overlay-1920x1080",
+      "width": 1920,
+      "height": 1080,
+      "path": "/?view=overlay",
+      "kind": "overlay",
+      "waitMs": 1000,
+      "expectedMode": "SIMULATED",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\overlay-1920x1080.png",
+      "geometry": {
+        "viewport": [
+          1920,
+          1080
+        ],
+        "document": [
+          1920,
+          1081
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [],
+        "intersections": [],
+        "target": null,
+        "targetIntersections": [],
+        "hudCoverage": 0,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: SIMULATED",
+        "introVisible": false
+      },
+      "overlay": {
+        "colors": {
+          "html": "rgba(0, 0, 0, 0)",
+          "body": "rgba(0, 0, 0, 0)",
+          "app": "rgba(0, 0, 0, 0)",
+          "overlay": "rgba(0, 0, 0, 0)"
+        },
+        "transparent": true
+      },
+      "failures": []
+    },
+    {
+      "name": "overlay-1280x720",
+      "width": 1280,
+      "height": 720,
+      "path": "/?view=overlay",
+      "kind": "overlay",
+      "waitMs": 1000,
+      "expectedMode": "SIMULATED",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\overlay-1280x720.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [],
+        "intersections": [],
+        "target": null,
+        "targetIntersections": [],
+        "hudCoverage": 0,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: SIMULATED",
+        "introVisible": false
+      },
+      "overlay": {
+        "colors": {
+          "html": "rgba(0, 0, 0, 0)",
+          "body": "rgba(0, 0, 0, 0)",
+          "app": "rgba(0, 0, 0, 0)",
+          "overlay": "rgba(0, 0, 0, 0)"
+        },
+        "transparent": true
+      },
+      "failures": []
+    },
+    {
+      "name": "camera-intake-lobby-wide",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=camera-node&room=intake&camera=lobby-wide",
+      "kind": "geometry",
+      "waitMs": 800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\camera-intake-lobby-wide.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 275.09375,
+            "right": 406,
+            "bottom": 369.09375
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "records",
+          "x": 486.390625,
+          "y": 194.390625,
+          "width": 281.59375,
+          "height": 180,
+          "right": 767.984375,
+          "bottom": 374.390625
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5347820705837674,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "camera-intake-records-desk",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=camera-node&room=intake&camera=records-desk",
+      "kind": "geometry",
+      "waitMs": 800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\camera-intake-records-desk.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 275.09375,
+            "right": 406,
+            "bottom": 369.09375
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "records",
+          "x": 486.390625,
+          "y": 194.390625,
+          "width": 281.59375,
+          "height": 180,
+          "right": 767.984375,
+          "bottom": 374.390625
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5347820705837674,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "camera-intake-locker-close",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=camera-node&room=intake&camera=locker-close",
+      "kind": "geometry",
+      "waitMs": 800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\camera-intake-locker-close.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 275.09375,
+            "right": 406,
+            "bottom": 369.09375
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "locker",
+          "x": 588.796875,
+          "y": 194.390625,
+          "width": 230.390625,
+          "height": 194.390625,
+          "right": 819.1875,
+          "bottom": 388.78125
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5347820705837674,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "camera-surgery-corridor-wide",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=camera-node&room=surgery&camera=corridor-wide",
+      "kind": "geometry",
+      "waitMs": 800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\camera-surgery-corridor-wide.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 301.1875,
+            "right": 406,
+            "bottom": 395.1875
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "warden",
+          "x": 512,
+          "y": 194.390625,
+          "width": 307.1875,
+          "height": 216,
+          "right": 819.1875,
+          "bottom": 410.390625
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5455412122938368,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "camera-surgery-door-approach",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=camera-node&room=surgery&camera=door-approach",
+      "kind": "geometry",
+      "waitMs": 800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\camera-surgery-door-approach.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 301.1875,
+            "right": 406,
+            "bottom": 395.1875
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "gurney",
+          "x": 550.390625,
+          "y": 266.390625,
+          "width": 281.59375,
+          "height": 129.59375,
+          "right": 831.984375,
+          "bottom": 395.984375
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5455412122938368,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "camera-surgery-threshold",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=camera-node&room=surgery&camera=threshold",
+      "kind": "geometry",
+      "waitMs": 800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\camera-surgery-threshold.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 301.1875,
+            "right": 406,
+            "bottom": 395.1875
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "door",
+          "x": 537.59375,
+          "y": 180,
+          "width": 256,
+          "height": 237.59375,
+          "right": 793.59375,
+          "bottom": 417.59375
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5455412122938368,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "camera-theatre-theatre-wide",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=camera-node&room=theatre&camera=theatre-wide",
+      "kind": "geometry",
+      "waitMs": 800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\camera-theatre-theatre-wide.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 301.1875,
+            "right": 406,
+            "bottom": 395.1875
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "warden",
+          "x": 512,
+          "y": 194.390625,
+          "width": 307.1875,
+          "height": 216,
+          "right": 819.1875,
+          "bottom": 410.390625
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5455412122938368,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "camera-theatre-lamp-array",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=camera-node&room=theatre&camera=lamp-array",
+      "kind": "geometry",
+      "waitMs": 800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\camera-theatre-lamp-array.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 301.1875,
+            "right": 406,
+            "bottom": 395.1875
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "lamps",
+          "x": 486.390625,
+          "y": 180,
+          "width": 332.796875,
+          "height": 165.59375,
+          "right": 819.1875,
+          "bottom": 345.59375
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5455412122938368,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "camera-theatre-restraint-table",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=camera-node&room=theatre&camera=restraint-table",
+      "kind": "geometry",
+      "waitMs": 800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\camera-theatre-restraint-table.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 301.1875,
+            "right": 406,
+            "bottom": 395.1875
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "restraint",
+          "x": 486.390625,
+          "y": 288,
+          "width": 345.59375,
+          "height": 144,
+          "right": 831.984375,
+          "bottom": 432
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5455412122938368,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "camera-generator-generator-wide",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=camera-node&room=generator&camera=generator-wide",
+      "kind": "geometry",
+      "waitMs": 800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\camera-generator-generator-wide.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 258.09375,
+            "right": 406,
+            "bottom": 352.09375
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "generator",
+          "x": 499.1875,
+          "y": 187.1875,
+          "width": 320,
+          "height": 244.796875,
+          "right": 819.1875,
+          "bottom": 431.984375
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5277725219726562,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "camera-generator-breaker-close",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=camera-node&room=generator&camera=breaker-close",
+      "kind": "geometry",
+      "waitMs": 800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\camera-generator-breaker-close.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 258.09375,
+            "right": 406,
+            "bottom": 352.09375
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "breakers",
+          "x": 537.59375,
+          "y": 194.390625,
+          "width": 281.59375,
+          "height": 230.390625,
+          "right": 819.1875,
+          "bottom": 424.78125
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5277725219726562,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "camera-generator-service-stairs",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=camera-node&room=generator&camera=service-stairs",
+      "kind": "geometry",
+      "waitMs": 800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\camera-generator-service-stairs.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 258.09375,
+            "right": 406,
+            "bottom": 352.09375
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "stairs",
+          "x": 486.390625,
+          "y": 187.1875,
+          "width": 281.59375,
+          "height": 244.796875,
+          "right": 767.984375,
+          "bottom": 431.984375
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5277725219726562,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "camera-stairwell-landing-wide",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=camera-node&room=stairwell&camera=landing-wide",
+      "kind": "geometry",
+      "waitMs": 800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\camera-stairwell-landing-wide.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 301.1875,
+            "right": 406,
+            "bottom": 395.1875
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "routes",
+          "x": 499.1875,
+          "y": 180,
+          "width": 307.1875,
+          "height": 252,
+          "right": 806.375,
+          "bottom": 432
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5455412122938368,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "camera-stairwell-roof-exit",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=camera-node&room=stairwell&camera=roof-exit",
+      "kind": "geometry",
+      "waitMs": 800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\camera-stairwell-roof-exit.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 301.1875,
+            "right": 406,
+            "bottom": 395.1875
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "roof",
+          "x": 563.1875,
+          "y": 180,
+          "width": 256,
+          "height": 244.796875,
+          "right": 819.1875,
+          "bottom": 424.796875
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5455412122938368,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    },
+    {
+      "name": "camera-stairwell-ambulance-tunnel",
+      "width": 1280,
+      "height": 720,
+      "path": "/?fixture=camera-node&room=stairwell&camera=ambulance-tunnel",
+      "kind": "geometry",
+      "waitMs": 800,
+      "expectedMode": "REHEARSAL",
+      "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\camera-stairwell-ambulance-tunnel.png",
+      "geometry": {
+        "viewport": [
+          1280,
+          720
+        ],
+        "document": [
+          1280,
+          721
+        ],
+        "horizontalOverflow": 0,
+        "verticalOverflow": 1,
+        "zones": [
+          {
+            "selector": ".mission",
+            "x": 26,
+            "y": 94,
+            "width": 380,
+            "height": 301.1875,
+            "right": 406,
+            "bottom": 395.1875
+          },
+          {
+            "selector": ".meters",
+            "x": 1079,
+            "y": 94,
+            "width": 175,
+            "height": 182,
+            "right": 1254,
+            "bottom": 276
+          },
+          {
+            "selector": ".player-loop",
+            "x": 18,
+            "y": 432.90625,
+            "width": 875,
+            "height": 265.09375,
+            "right": 893,
+            "bottom": 698
+          },
+          {
+            "selector": ".vote-panel",
+            "x": 904,
+            "y": 342.25,
+            "width": 350,
+            "height": 355.75,
+            "right": 1254,
+            "bottom": 698
+          }
+        ],
+        "intersections": [],
+        "target": {
+          "name": "tunnel",
+          "x": 460.796875,
+          "y": 273.59375,
+          "width": 307.1875,
+          "height": 158.390625,
+          "right": 767.984375,
+          "bottom": 431.984375
+        },
+        "targetIntersections": [],
+        "hudCoverage": 0.5455412122938368,
+        "offscreen": [],
+        "clipped": [],
+        "mode": "MODE: REHEARSAL",
+        "introVisible": false
+      },
+      "overlay": null,
+      "failures": []
+    }
+  ],
+  "reducedMotion": {
+    "mediaMatches": true,
+    "timings": [
+      {
+        "selector": ".rain",
+        "animationDuration": "0s",
+        "transitionDuration": "0s"
+      },
+      {
+        "selector": ".far-fog",
+        "animationDuration": "0s",
+        "transitionDuration": "0s"
+      },
+      {
+        "selector": ".mid-fog",
+        "animationDuration": "0s",
+        "transitionDuration": "0s"
+      },
+      {
+        "selector": ".warden",
+        "animationDuration": "0s",
+        "transitionDuration": "0s"
+      },
+      {
+        "selector": ".room-wipe",
+        "animationDuration": "0s",
+        "transitionDuration": "0s"
+      }
+    ],
+    "screenshotPath": "<WORKSPACE>\\work\\visual-qa\\prefers-reduced-motion-1280x720.png",
+    "pass": true
+  },
+  "summary": {
+    "passed": 28,
+    "failed": 0,
+    "failures": []
+  },
+  "consoleErrors": []
+}

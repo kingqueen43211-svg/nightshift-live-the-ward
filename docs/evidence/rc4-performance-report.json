@@ -1,0 +1,2535 @@
+{
+  "generatedAt": "2026-11-01T21:55:56.598Z",
+  "app": "http://127.0.0.1:58928",
+  "browser": {
+    "path": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "version": "Chrome/156.0.8078.79",
+    "protocolVersion": "1.3"
+  },
+  "configuration": {
+    "warmupCycles": 1,
+    "measuredCycles": 8,
+    "relayEnabled": true,
+    "forcedGcBeforeSamples": true,
+    "sampleSettleMs": 4100,
+    "coldStartExceptionAllowed": false
+  },
+  "coldStart": {
+    "phase": "cold-start",
+    "requests": 16,
+    "transferred": {
+      "bytes": 1089680,
+      "mebibytes": 1.039
+    },
+    "relayPosts": 1,
+    "failed": [],
+    "httpErrors": [],
+    "resources": [
+      {
+        "path": "/",
+        "resourceType": "Document",
+        "bytes": 13941,
+        "mimeType": "text/html",
+        "fromDiskCache": false
+      },
+      {
+        "path": "/styles.css",
+        "resourceType": "Stylesheet",
+        "bytes": 49704,
+        "mimeType": "text/css",
+        "fromDiskCache": false
+      },
+      {
+        "path": "/assets/reception-triage.webp",
+        "resourceType": "Image",
+        "bytes": 425225,
+        "mimeType": "image/webp",
+        "fromDiskCache": false
+      },
+      {
+        "path": "/app.mjs",
+        "resourceType": "Script",
+        "bytes": 57095,
+        "mimeType": "text/javascript",
+        "fromDiskCache": false
+      },
+      {
+        "path": "/assets/ward-corridor.webp",
+        "resourceType": "Image",
+        "bytes": 410183,
+        "mimeType": "image/webp",
+        "fromDiskCache": false
+      },
+      {
+        "path": "image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E",
+        "resourceType": "Image",
+        "bytes": 0,
+        "mimeType": "image/svg+xml",
+        "fromDiskCache": false
+      },
+      {
+        "path": "/assets/fonts/dm-mono-latin-400.woff2",
+        "resourceType": "Font",
+        "bytes": 15551,
+        "mimeType": "font/woff2",
+        "fromDiskCache": false
+      },
+      {
+        "path": "/assets/fonts/space-grotesk-latin-variable.woff2",
+        "resourceType": "Font",
+        "bytes": 23019,
+        "mimeType": "font/woff2",
+        "fromDiskCache": false
+      },
+      {
+        "path": "/assets/fonts/dm-mono-latin-500.woff2",
+        "resourceType": "Font",
+        "bytes": 15719,
+        "mimeType": "font/woff2",
+        "fromDiskCache": false
+      },
+      {
+        "path": "/engine.mjs",
+        "resourceType": "Script",
+        "bytes": 34497,
+        "mimeType": "text/javascript",
+        "fromDiskCache": false
+      },
+      {
+        "path": "/twitch.mjs",
+        "resourceType": "Script",
+        "bytes": 20665,
+        "mimeType": "text/javascript",
+        "fromDiskCache": false
+      },
+      {
+        "path": "/audio.mjs",
+        "resourceType": "Script",
+        "bytes": 17341,
+        "mimeType": "text/javascript",
+        "fromDiskCache": false
+      },
+      {
+        "path": "/runtime-mode.mjs",
+        "resourceType": "Script",
+        "bytes": 2068,
+        "mimeType": "text/javascript",
+        "fromDiskCache": false
+      },
+      {
+        "path": "/public-state.mjs",
+        "resourceType": "Script",
+        "bytes": 3974,
+        "mimeType": "text/javascript",
+        "fromDiskCache": false
+      }
+    ],
+    "hiddenV3Resources": [],
+    "hiddenV3Transferred": {
+      "bytes": 0,
+      "mebibytes": 0
+    }
+  },
+  "warmup": [
+    {
+      "label": "warmup-1",
+      "durationMs": 920,
+      "captionDelta": 19,
+      "roomTrace": [
+        {
+          "room": "Reception / Triage",
+          "cameras": [
+            "lobby-wide",
+            "records-desk",
+            "locker-close"
+          ],
+          "actions": [
+            "search-desk",
+            "open-locker",
+            "reconstruct-file"
+          ],
+          "command": "!noise",
+          "voteCount": "2 VOTES"
+        },
+        {
+          "room": "Ward 06",
+          "cameras": [
+            "corridor-wide",
+            "door-approach",
+            "threshold"
+          ],
+          "actions": [
+            "inspect-gurney",
+            "listen-intercom",
+            "hide-curtain",
+            "force-door"
+          ],
+          "command": "!dark",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Operating Theatre",
+          "cameras": [
+            "theatre-wide",
+            "lamp-array",
+            "restraint-table"
+          ],
+          "actions": [
+            "align-lamps",
+            "play-tape",
+            "counter-warden"
+          ],
+          "command": "!tape",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Generator Room",
+          "cameras": [
+            "generator-wide",
+            "breaker-close",
+            "service-stairs"
+          ],
+          "actions": [
+            "breaker-2",
+            "breaker-1",
+            "breaker-3",
+            "reroute-power"
+          ],
+          "command": "!charge",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Stairwell / Exits",
+          "cameras": [
+            "landing-wide",
+            "roof-exit",
+            "ambulance-tunnel"
+          ],
+          "actions": [
+            "seal-warden"
+          ],
+          "command": "!roof",
+          "voteCount": "1 VOTE"
+        }
+      ],
+      "ending": "MARA WALKS INTO DAWN",
+      "recap": [
+        "ROUTEROOF",
+        "EVIDENCE7",
+        "TRUTHDECODED",
+        "WARDENBOUND",
+        "AUDIENCE5",
+        "FALLBACKS0"
+      ],
+      "latestCaption": {
+        "text": "Confirmation tone.",
+        "at": 1793570168858
+      },
+      "loadedImages": [
+        "/assets/stairwell-exits.webp",
+        "/assets/v3/warden-repelled-v1.webp",
+        "/assets/v3/curtain-foreground-v1.webp",
+        "/assets/v3/gurney-foreground-v1.webp"
+      ],
+      "network": {
+        "phase": "warmup-1",
+        "requests": 73,
+        "transferred": {
+          "bytes": 4046836,
+          "mebibytes": 3.859
+        },
+        "relayPosts": 64,
+        "failed": [],
+        "httpErrors": []
+      }
+    }
+  ],
+  "cycles": [
+    {
+      "label": "cycle-1",
+      "durationMs": 622,
+      "captionDelta": 18,
+      "roomTrace": [
+        {
+          "room": "Reception / Triage",
+          "cameras": [
+            "lobby-wide",
+            "records-desk",
+            "locker-close"
+          ],
+          "actions": [
+            "search-desk",
+            "open-locker",
+            "reconstruct-file"
+          ],
+          "command": "!records",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Ward 06",
+          "cameras": [
+            "corridor-wide",
+            "door-approach",
+            "threshold"
+          ],
+          "actions": [
+            "inspect-gurney",
+            "listen-intercom",
+            "hide-curtain",
+            "force-door"
+          ],
+          "command": "!restore",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Operating Theatre",
+          "cameras": [
+            "theatre-wide",
+            "lamp-array",
+            "restraint-table"
+          ],
+          "actions": [
+            "align-lamps",
+            "play-tape",
+            "counter-warden"
+          ],
+          "command": "!release",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Generator Room",
+          "cameras": [
+            "generator-wide",
+            "breaker-close",
+            "service-stairs"
+          ],
+          "actions": [
+            "breaker-2",
+            "breaker-1",
+            "breaker-3",
+            "reroute-power"
+          ],
+          "command": "!charge",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Stairwell / Exits",
+          "cameras": [
+            "landing-wide",
+            "roof-exit",
+            "ambulance-tunnel"
+          ],
+          "actions": [
+            "seal-warden"
+          ],
+          "command": "!roof",
+          "voteCount": "1 VOTE"
+        }
+      ],
+      "ending": "MARA WALKS INTO DAWN",
+      "recap": [
+        "ROUTEROOF",
+        "EVIDENCE6",
+        "TRUTHDECODED",
+        "WARDENBOUND",
+        "AUDIENCE5",
+        "FALLBACKS0"
+      ],
+      "latestCaption": {
+        "text": "Confirmation tone.",
+        "at": 1793570173789
+      },
+      "loadedImages": [
+        "/assets/stairwell-exits.webp",
+        "/assets/v3/warden-approach-v1.webp",
+        "/assets/v3/curtain-foreground-v1.webp",
+        "/assets/v3/gurney-foreground-v1.webp"
+      ],
+      "network": {
+        "phase": "cycle-1",
+        "requests": 72,
+        "transferred": {
+          "bytes": 455825,
+          "mebibytes": 0.435
+        },
+        "relayPosts": 68,
+        "failed": [],
+        "httpErrors": []
+      },
+      "sampleLabel": "cycle-1-post-gc"
+    },
+    {
+      "label": "cycle-2",
+      "durationMs": 680,
+      "captionDelta": 17,
+      "roomTrace": [
+        {
+          "room": "Reception / Triage",
+          "cameras": [
+            "lobby-wide",
+            "records-desk",
+            "locker-close"
+          ],
+          "actions": [
+            "search-desk",
+            "open-locker",
+            "reconstruct-file"
+          ],
+          "command": "!noise",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Ward 06",
+          "cameras": [
+            "corridor-wide",
+            "door-approach",
+            "threshold"
+          ],
+          "actions": [
+            "inspect-gurney",
+            "listen-intercom",
+            "hide-curtain",
+            "force-door"
+          ],
+          "command": "!restore",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Operating Theatre",
+          "cameras": [
+            "theatre-wide",
+            "lamp-array",
+            "restraint-table"
+          ],
+          "actions": [
+            "align-lamps",
+            "play-tape",
+            "counter-warden"
+          ],
+          "command": "!tape",
+          "voteCount": "2 VOTES"
+        },
+        {
+          "room": "Generator Room",
+          "cameras": [
+            "generator-wide",
+            "breaker-close",
+            "service-stairs"
+          ],
+          "actions": [
+            "breaker-2",
+            "breaker-1",
+            "breaker-3",
+            "reroute-power"
+          ],
+          "command": "!charge",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Stairwell / Exits",
+          "cameras": [
+            "landing-wide",
+            "roof-exit",
+            "ambulance-tunnel"
+          ],
+          "actions": [
+            "seal-warden"
+          ],
+          "command": "!roof",
+          "voteCount": "1 VOTE"
+        }
+      ],
+      "ending": "MARA WALKS INTO DAWN",
+      "recap": [
+        "ROUTEROOF",
+        "EVIDENCE6",
+        "TRUTHDECODED",
+        "WARDENBOUND",
+        "AUDIENCE5",
+        "FALLBACKS0"
+      ],
+      "latestCaption": {
+        "text": "Confirmation tone.",
+        "at": 1793570178645
+      },
+      "loadedImages": [
+        "/assets/stairwell-exits.webp",
+        "/assets/v3/warden-repelled-v1.webp",
+        "/assets/v3/curtain-foreground-v1.webp",
+        "/assets/v3/gurney-foreground-v1.webp"
+      ],
+      "network": {
+        "phase": "cycle-2",
+        "requests": 73,
+        "transferred": {
+          "bytes": 1582917,
+          "mebibytes": 1.51
+        },
+        "relayPosts": 68,
+        "failed": [],
+        "httpErrors": []
+      },
+      "sampleLabel": "cycle-2-post-gc"
+    },
+    {
+      "label": "cycle-3",
+      "durationMs": 724,
+      "captionDelta": 18,
+      "roomTrace": [
+        {
+          "room": "Reception / Triage",
+          "cameras": [
+            "lobby-wide",
+            "records-desk",
+            "locker-close"
+          ],
+          "actions": [
+            "search-desk",
+            "open-locker",
+            "reconstruct-file"
+          ],
+          "command": "!records",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Ward 06",
+          "cameras": [
+            "corridor-wide",
+            "door-approach",
+            "threshold"
+          ],
+          "actions": [
+            "inspect-gurney",
+            "listen-intercom",
+            "hide-curtain",
+            "force-door"
+          ],
+          "command": "!dark",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Operating Theatre",
+          "cameras": [
+            "theatre-wide",
+            "lamp-array",
+            "restraint-table"
+          ],
+          "actions": [
+            "align-lamps",
+            "play-tape",
+            "counter-warden"
+          ],
+          "command": "!tape",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Generator Room",
+          "cameras": [
+            "generator-wide",
+            "breaker-close",
+            "service-stairs"
+          ],
+          "actions": [
+            "breaker-2",
+            "breaker-1",
+            "breaker-3",
+            "reroute-power"
+          ],
+          "command": "!charge",
+          "voteCount": "2 VOTES"
+        },
+        {
+          "room": "Stairwell / Exits",
+          "cameras": [
+            "landing-wide",
+            "roof-exit",
+            "ambulance-tunnel"
+          ],
+          "actions": [
+            "seal-warden"
+          ],
+          "command": "!roof",
+          "voteCount": "1 VOTE"
+        }
+      ],
+      "ending": "MARA WALKS INTO DAWN",
+      "recap": [
+        "ROUTEROOF",
+        "EVIDENCE7",
+        "TRUTHDECODED",
+        "WARDENBOUND",
+        "AUDIENCE5",
+        "FALLBACKS0"
+      ],
+      "latestCaption": {
+        "text": "Confirmation tone.",
+        "at": 1793570183559
+      },
+      "loadedImages": [
+        "/assets/stairwell-exits.webp",
+        "/assets/v3/warden-repelled-v1.webp",
+        "/assets/v3/curtain-foreground-v1.webp",
+        "/assets/v3/gurney-foreground-v1.webp"
+      ],
+      "network": {
+        "phase": "cycle-3",
+        "requests": 75,
+        "transferred": {
+          "bytes": 0,
+          "mebibytes": 0
+        },
+        "relayPosts": 69,
+        "failed": [],
+        "httpErrors": []
+      },
+      "sampleLabel": "cycle-3-post-gc"
+    },
+    {
+      "label": "cycle-4",
+      "durationMs": 664,
+      "captionDelta": 19,
+      "roomTrace": [
+        {
+          "room": "Reception / Triage",
+          "cameras": [
+            "lobby-wide",
+            "records-desk",
+            "locker-close"
+          ],
+          "actions": [
+            "search-desk",
+            "open-locker",
+            "reconstruct-file"
+          ],
+          "command": "!noise",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Ward 06",
+          "cameras": [
+            "corridor-wide",
+            "door-approach",
+            "threshold"
+          ],
+          "actions": [
+            "inspect-gurney",
+            "listen-intercom",
+            "hide-curtain",
+            "force-door"
+          ],
+          "command": "!restore",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Operating Theatre",
+          "cameras": [
+            "theatre-wide",
+            "lamp-array",
+            "restraint-table"
+          ],
+          "actions": [
+            "align-lamps",
+            "play-tape",
+            "counter-warden"
+          ],
+          "command": "!release",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Generator Room",
+          "cameras": [
+            "generator-wide",
+            "breaker-close",
+            "service-stairs"
+          ],
+          "actions": [
+            "breaker-2",
+            "breaker-1",
+            "breaker-3",
+            "reroute-power"
+          ],
+          "command": "!charge",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Stairwell / Exits",
+          "cameras": [
+            "landing-wide",
+            "roof-exit",
+            "ambulance-tunnel"
+          ],
+          "actions": [
+            "seal-warden"
+          ],
+          "command": "!roof",
+          "voteCount": "1 VOTE"
+        }
+      ],
+      "ending": "MARA WALKS INTO DAWN",
+      "recap": [
+        "ROUTEROOF",
+        "EVIDENCE5",
+        "TRUTHDECODED",
+        "WARDENBOUND",
+        "AUDIENCE5",
+        "FALLBACKS0"
+      ],
+      "latestCaption": {
+        "text": "Confirmation tone.",
+        "at": 1793570188413
+      },
+      "loadedImages": [
+        "/assets/stairwell-exits.webp",
+        "/assets/v3/warden-approach-v1.webp",
+        "/assets/v3/curtain-foreground-v1.webp",
+        "/assets/v3/gurney-foreground-v1.webp"
+      ],
+      "network": {
+        "phase": "cycle-4",
+        "requests": 74,
+        "transferred": {
+          "bytes": 0,
+          "mebibytes": 0
+        },
+        "relayPosts": 68,
+        "failed": [],
+        "httpErrors": []
+      },
+      "sampleLabel": "cycle-4-post-gc"
+    },
+    {
+      "label": "cycle-5",
+      "durationMs": 811,
+      "captionDelta": 17,
+      "roomTrace": [
+        {
+          "room": "Reception / Triage",
+          "cameras": [
+            "lobby-wide",
+            "records-desk",
+            "locker-close"
+          ],
+          "actions": [
+            "search-desk",
+            "open-locker",
+            "reconstruct-file"
+          ],
+          "command": "!records",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Ward 06",
+          "cameras": [
+            "corridor-wide",
+            "door-approach",
+            "threshold"
+          ],
+          "actions": [
+            "inspect-gurney",
+            "listen-intercom",
+            "hide-curtain",
+            "force-door"
+          ],
+          "command": "!restore",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Operating Theatre",
+          "cameras": [
+            "theatre-wide",
+            "lamp-array",
+            "restraint-table"
+          ],
+          "actions": [
+            "align-lamps",
+            "play-tape",
+            "counter-warden"
+          ],
+          "command": "!tape",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Generator Room",
+          "cameras": [
+            "generator-wide",
+            "breaker-close",
+            "service-stairs"
+          ],
+          "actions": [
+            "breaker-2",
+            "breaker-1",
+            "breaker-3",
+            "reroute-power"
+          ],
+          "command": "!charge",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Stairwell / Exits",
+          "cameras": [
+            "landing-wide",
+            "roof-exit",
+            "ambulance-tunnel"
+          ],
+          "actions": [
+            "seal-warden"
+          ],
+          "command": "!roof",
+          "voteCount": "1 VOTE"
+        }
+      ],
+      "ending": "MARA WALKS INTO DAWN",
+      "recap": [
+        "ROUTEROOF",
+        "EVIDENCE7",
+        "TRUTHDECODED",
+        "WARDENBOUND",
+        "AUDIENCE5",
+        "FALLBACKS0"
+      ],
+      "latestCaption": {
+        "text": "Confirmation tone.",
+        "at": 1793570193250
+      },
+      "loadedImages": [
+        "/assets/stairwell-exits.webp",
+        "/assets/v3/warden-repelled-v1.webp",
+        "/assets/v3/curtain-foreground-v1.webp",
+        "/assets/v3/gurney-foreground-v1.webp"
+      ],
+      "network": {
+        "phase": "cycle-5",
+        "requests": 72,
+        "transferred": {
+          "bytes": 0,
+          "mebibytes": 0
+        },
+        "relayPosts": 68,
+        "failed": [],
+        "httpErrors": []
+      },
+      "sampleLabel": "cycle-5-post-gc"
+    },
+    {
+      "label": "cycle-6",
+      "durationMs": 784,
+      "captionDelta": 18,
+      "roomTrace": [
+        {
+          "room": "Reception / Triage",
+          "cameras": [
+            "lobby-wide",
+            "records-desk",
+            "locker-close"
+          ],
+          "actions": [
+            "search-desk",
+            "open-locker",
+            "reconstruct-file"
+          ],
+          "command": "!noise",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Ward 06",
+          "cameras": [
+            "corridor-wide",
+            "door-approach",
+            "threshold"
+          ],
+          "actions": [
+            "inspect-gurney",
+            "listen-intercom",
+            "hide-curtain",
+            "force-door"
+          ],
+          "command": "!dark",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Operating Theatre",
+          "cameras": [
+            "theatre-wide",
+            "lamp-array",
+            "restraint-table"
+          ],
+          "actions": [
+            "align-lamps",
+            "play-tape",
+            "counter-warden"
+          ],
+          "command": "!tape",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Generator Room",
+          "cameras": [
+            "generator-wide",
+            "breaker-close",
+            "service-stairs"
+          ],
+          "actions": [
+            "breaker-2",
+            "breaker-1",
+            "breaker-3",
+            "reroute-power"
+          ],
+          "command": "!charge",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Stairwell / Exits",
+          "cameras": [
+            "landing-wide",
+            "roof-exit",
+            "ambulance-tunnel"
+          ],
+          "actions": [
+            "seal-warden"
+          ],
+          "command": "!roof",
+          "voteCount": "1 VOTE"
+        }
+      ],
+      "ending": "MARA WALKS INTO DAWN",
+      "recap": [
+        "ROUTEROOF",
+        "EVIDENCE6",
+        "TRUTHDECODED",
+        "WARDENBOUND",
+        "AUDIENCE5",
+        "FALLBACKS0"
+      ],
+      "latestCaption": {
+        "text": "Confirmation tone.",
+        "at": 1793570198253
+      },
+      "loadedImages": [
+        "/assets/stairwell-exits.webp",
+        "/assets/v3/warden-repelled-v1.webp",
+        "/assets/v3/curtain-foreground-v1.webp",
+        "/assets/v3/gurney-foreground-v1.webp"
+      ],
+      "network": {
+        "phase": "cycle-6",
+        "requests": 73,
+        "transferred": {
+          "bytes": 0,
+          "mebibytes": 0
+        },
+        "relayPosts": 67,
+        "failed": [],
+        "httpErrors": []
+      },
+      "sampleLabel": "cycle-6-post-gc"
+    },
+    {
+      "label": "cycle-7",
+      "durationMs": 631,
+      "captionDelta": 18,
+      "roomTrace": [
+        {
+          "room": "Reception / Triage",
+          "cameras": [
+            "lobby-wide",
+            "records-desk",
+            "locker-close"
+          ],
+          "actions": [
+            "search-desk",
+            "open-locker",
+            "reconstruct-file"
+          ],
+          "command": "!records",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Ward 06",
+          "cameras": [
+            "corridor-wide",
+            "door-approach",
+            "threshold"
+          ],
+          "actions": [
+            "inspect-gurney",
+            "listen-intercom",
+            "hide-curtain",
+            "force-door"
+          ],
+          "command": "!restore",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Operating Theatre",
+          "cameras": [
+            "theatre-wide",
+            "lamp-array",
+            "restraint-table"
+          ],
+          "actions": [
+            "align-lamps",
+            "play-tape",
+            "counter-warden"
+          ],
+          "command": "!release",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Generator Room",
+          "cameras": [
+            "generator-wide",
+            "breaker-close",
+            "service-stairs"
+          ],
+          "actions": [
+            "breaker-2",
+            "breaker-1",
+            "breaker-3",
+            "reroute-power"
+          ],
+          "command": "!charge",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Stairwell / Exits",
+          "cameras": [
+            "landing-wide",
+            "roof-exit",
+            "ambulance-tunnel"
+          ],
+          "actions": [
+            "seal-warden"
+          ],
+          "command": "!roof",
+          "voteCount": "1 VOTE"
+        }
+      ],
+      "ending": "MARA WALKS INTO DAWN",
+      "recap": [
+        "ROUTEROOF",
+        "EVIDENCE6",
+        "TRUTHDECODED",
+        "WARDENBOUND",
+        "AUDIENCE5",
+        "FALLBACKS0"
+      ],
+      "latestCaption": {
+        "text": "Confirmation tone.",
+        "at": 1793570203213
+      },
+      "loadedImages": [
+        "/assets/stairwell-exits.webp",
+        "/assets/v3/warden-approach-v1.webp",
+        "/assets/v3/curtain-foreground-v1.webp",
+        "/assets/v3/gurney-foreground-v1.webp"
+      ],
+      "network": {
+        "phase": "cycle-7",
+        "requests": 74,
+        "transferred": {
+          "bytes": 0,
+          "mebibytes": 0
+        },
+        "relayPosts": 68,
+        "failed": [],
+        "httpErrors": []
+      },
+      "sampleLabel": "cycle-7-post-gc"
+    },
+    {
+      "label": "cycle-8",
+      "durationMs": 637,
+      "captionDelta": 18,
+      "roomTrace": [
+        {
+          "room": "Reception / Triage",
+          "cameras": [
+            "lobby-wide",
+            "records-desk",
+            "locker-close"
+          ],
+          "actions": [
+            "search-desk",
+            "open-locker",
+            "reconstruct-file"
+          ],
+          "command": "!noise",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Ward 06",
+          "cameras": [
+            "corridor-wide",
+            "door-approach",
+            "threshold"
+          ],
+          "actions": [
+            "inspect-gurney",
+            "listen-intercom",
+            "hide-curtain",
+            "force-door"
+          ],
+          "command": "!restore",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Operating Theatre",
+          "cameras": [
+            "theatre-wide",
+            "lamp-array",
+            "restraint-table"
+          ],
+          "actions": [
+            "align-lamps",
+            "play-tape",
+            "counter-warden"
+          ],
+          "command": "!tape",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Generator Room",
+          "cameras": [
+            "generator-wide",
+            "breaker-close",
+            "service-stairs"
+          ],
+          "actions": [
+            "breaker-2",
+            "breaker-1",
+            "breaker-3",
+            "reroute-power"
+          ],
+          "command": "!charge",
+          "voteCount": "1 VOTE"
+        },
+        {
+          "room": "Stairwell / Exits",
+          "cameras": [
+            "landing-wide",
+            "roof-exit",
+            "ambulance-tunnel"
+          ],
+          "actions": [
+            "seal-warden"
+          ],
+          "command": "!roof",
+          "voteCount": "1 VOTE"
+        }
+      ],
+      "ending": "MARA WALKS INTO DAWN",
+      "recap": [
+        "ROUTEROOF",
+        "EVIDENCE6",
+        "TRUTHDECODED",
+        "WARDENBOUND",
+        "AUDIENCE5",
+        "FALLBACKS0"
+      ],
+      "latestCaption": {
+        "text": "Confirmation tone.",
+        "at": 1793570208038
+      },
+      "loadedImages": [
+        "/assets/stairwell-exits.webp",
+        "/assets/v3/warden-repelled-v1.webp",
+        "/assets/v3/curtain-foreground-v1.webp",
+        "/assets/v3/gurney-foreground-v1.webp"
+      ],
+      "network": {
+        "phase": "cycle-8",
+        "requests": 73,
+        "transferred": {
+          "bytes": 0,
+          "mebibytes": 0
+        },
+        "relayPosts": 68,
+        "failed": [],
+        "httpErrors": []
+      },
+      "sampleLabel": "cycle-8-post-gc"
+    }
+  ],
+  "samples": [
+    {
+      "label": "baseline-after-warmup",
+      "atMs": 1793570173355,
+      "heap": {
+        "usedSize": 1165208,
+        "totalSize": 2097152,
+        "embedderHeapUsedSize": 2579440,
+        "backingStorageSize": 139960
+      },
+      "dom": {
+        "documents": 2,
+        "nodes": 686,
+        "jsEventListeners": 45
+      },
+      "performance": {
+        "JSHeapUsedSize": 1165208,
+        "JSHeapTotalSize": 2097152,
+        "Nodes": 686,
+        "LayoutCount": 47,
+        "RecalcStyleCount": 115,
+        "TaskDuration": 0.704215
+      },
+      "page": {
+        "view": "gameplay",
+        "room": "Stairwell / Exits",
+        "status": "ENDED",
+        "endingOpen": true,
+        "attachedNodes": 393,
+        "captionCount": 19,
+        "latestCaption": {
+          "text": "Confirmation tone.",
+          "at": 1793570168858
+        },
+        "loadedImages": [
+          "/assets/stairwell-exits.webp",
+          "/assets/v3/warden-repelled-v1.webp",
+          "/assets/v3/curtain-foreground-v1.webp",
+          "/assets/v3/gurney-foreground-v1.webp"
+        ]
+      },
+      "browserProcesses": [
+        {
+          "type": "browser",
+          "id": 27700,
+          "cpuTime": 2.0552
+        },
+        {
+          "type": "renderer",
+          "id": 19884,
+          "cpuTime": 0.0928
+        },
+        {
+          "type": "renderer",
+          "id": 22868,
+          "cpuTime": 0.0808
+        },
+        {
+          "type": "renderer",
+          "id": 26672,
+          "cpuTime": 0.0931
+        },
+        {
+          "type": "renderer",
+          "id": 24144,
+          "cpuTime": 1.2549
+        },
+        {
+          "type": "renderer",
+          "id": 11996,
+          "cpuTime": 0.301
+        },
+        {
+          "type": "GPU",
+          "id": 19124,
+          "cpuTime": 2.3966
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 18516,
+          "cpuTime": 0.3724
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 16644,
+          "cpuTime": 0.0747
+        },
+        {
+          "type": "audio.mojom.AudioService",
+          "id": 18704,
+          "cpuTime": 0.0872
+        }
+      ],
+      "targets": [
+        {
+          "type": "service_worker",
+          "url": "chrome-extension://fignfifoniblkonapihmkfakmlgkbkcf/service_worker.js",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "about:blank",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "http://127.0.0.1:58928/?relay=local",
+          "attached": true
+        }
+      ]
+    },
+    {
+      "label": "cycle-1-post-gc",
+      "atMs": 1793570178169,
+      "heap": {
+        "usedSize": 1213744,
+        "totalSize": 1835008,
+        "embedderHeapUsedSize": 2987728,
+        "backingStorageSize": 140172
+      },
+      "dom": {
+        "documents": 2,
+        "nodes": 686,
+        "jsEventListeners": 45
+      },
+      "performance": {
+        "JSHeapUsedSize": 1213744,
+        "JSHeapTotalSize": 1835008,
+        "Nodes": 686,
+        "LayoutCount": 84,
+        "RecalcStyleCount": 159,
+        "TaskDuration": 1.015233
+      },
+      "page": {
+        "view": "gameplay",
+        "room": "Stairwell / Exits",
+        "status": "ENDED",
+        "endingOpen": true,
+        "attachedNodes": 393,
+        "captionCount": 37,
+        "latestCaption": {
+          "text": "Confirmation tone.",
+          "at": 1793570173789
+        },
+        "loadedImages": [
+          "/assets/stairwell-exits.webp",
+          "/assets/v3/warden-approach-v1.webp",
+          "/assets/v3/curtain-foreground-v1.webp",
+          "/assets/v3/gurney-foreground-v1.webp"
+        ]
+      },
+      "browserProcesses": [
+        {
+          "type": "browser",
+          "id": 27700,
+          "cpuTime": 2.251
+        },
+        {
+          "type": "renderer",
+          "id": 19884,
+          "cpuTime": 0.0928
+        },
+        {
+          "type": "renderer",
+          "id": 22868,
+          "cpuTime": 0.0808
+        },
+        {
+          "type": "renderer",
+          "id": 26672,
+          "cpuTime": 0.0931
+        },
+        {
+          "type": "renderer",
+          "id": 24144,
+          "cpuTime": 1.9474
+        },
+        {
+          "type": "renderer",
+          "id": 11996,
+          "cpuTime": 0.3017
+        },
+        {
+          "type": "GPU",
+          "id": 19124,
+          "cpuTime": 2.8953
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 18516,
+          "cpuTime": 0.453
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 16644,
+          "cpuTime": 0.0814
+        },
+        {
+          "type": "audio.mojom.AudioService",
+          "id": 18704,
+          "cpuTime": 0.1037
+        }
+      ],
+      "targets": [
+        {
+          "type": "service_worker",
+          "url": "chrome-extension://fignfifoniblkonapihmkfakmlgkbkcf/service_worker.js",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "about:blank",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "http://127.0.0.1:58928/?relay=local",
+          "attached": true
+        }
+      ]
+    },
+    {
+      "label": "cycle-2-post-gc",
+      "atMs": 1793570183037,
+      "heap": {
+        "usedSize": 1255772,
+        "totalSize": 1835008,
+        "embedderHeapUsedSize": 2657896,
+        "backingStorageSize": 140258
+      },
+      "dom": {
+        "documents": 2,
+        "nodes": 686,
+        "jsEventListeners": 45
+      },
+      "performance": {
+        "JSHeapUsedSize": 1255772,
+        "JSHeapTotalSize": 1835008,
+        "Nodes": 686,
+        "LayoutCount": 134,
+        "RecalcStyleCount": 215,
+        "TaskDuration": 1.389374
+      },
+      "page": {
+        "view": "gameplay",
+        "room": "Stairwell / Exits",
+        "status": "ENDED",
+        "endingOpen": true,
+        "attachedNodes": 393,
+        "captionCount": 54,
+        "latestCaption": {
+          "text": "Confirmation tone.",
+          "at": 1793570178645
+        },
+        "loadedImages": [
+          "/assets/stairwell-exits.webp",
+          "/assets/v3/warden-repelled-v1.webp",
+          "/assets/v3/curtain-foreground-v1.webp",
+          "/assets/v3/gurney-foreground-v1.webp"
+        ]
+      },
+      "browserProcesses": [
+        {
+          "type": "browser",
+          "id": 27700,
+          "cpuTime": 3.7186
+        },
+        {
+          "type": "renderer",
+          "id": 16156,
+          "cpuTime": 0.0723
+        },
+        {
+          "type": "renderer",
+          "id": 19884,
+          "cpuTime": 0.0934
+        },
+        {
+          "type": "renderer",
+          "id": 26672,
+          "cpuTime": 0.0942
+        },
+        {
+          "type": "renderer",
+          "id": 24144,
+          "cpuTime": 2.6304
+        },
+        {
+          "type": "renderer",
+          "id": 11996,
+          "cpuTime": 0.3025
+        },
+        {
+          "type": "GPU",
+          "id": 19124,
+          "cpuTime": 3.393
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 18516,
+          "cpuTime": 0.7139
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 16644,
+          "cpuTime": 0.0901
+        },
+        {
+          "type": "audio.mojom.AudioService",
+          "id": 18704,
+          "cpuTime": 0.1254
+        },
+        {
+          "type": "quarantine.mojom.Quarantine",
+          "id": 7084,
+          "cpuTime": 0.0535
+        }
+      ],
+      "targets": [
+        {
+          "type": "service_worker",
+          "url": "chrome-extension://fignfifoniblkonapihmkfakmlgkbkcf/service_worker.js",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "about:blank",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "http://127.0.0.1:58928/?relay=local",
+          "attached": true
+        }
+      ]
+    },
+    {
+      "label": "cycle-3-post-gc",
+      "atMs": 1793570187947,
+      "heap": {
+        "usedSize": 1263916,
+        "totalSize": 1572864,
+        "embedderHeapUsedSize": 3142488,
+        "backingStorageSize": 140262
+      },
+      "dom": {
+        "documents": 2,
+        "nodes": 686,
+        "jsEventListeners": 45
+      },
+      "performance": {
+        "JSHeapUsedSize": 1263916,
+        "JSHeapTotalSize": 1572864,
+        "Nodes": 686,
+        "LayoutCount": 182,
+        "RecalcStyleCount": 271,
+        "TaskDuration": 1.778754
+      },
+      "page": {
+        "view": "gameplay",
+        "room": "Stairwell / Exits",
+        "status": "ENDED",
+        "endingOpen": true,
+        "attachedNodes": 393,
+        "captionCount": 72,
+        "latestCaption": {
+          "text": "Confirmation tone.",
+          "at": 1793570183559
+        },
+        "loadedImages": [
+          "/assets/stairwell-exits.webp",
+          "/assets/v3/warden-repelled-v1.webp",
+          "/assets/v3/curtain-foreground-v1.webp",
+          "/assets/v3/gurney-foreground-v1.webp"
+        ]
+      },
+      "browserProcesses": [
+        {
+          "type": "browser",
+          "id": 27700,
+          "cpuTime": 5.1361
+        },
+        {
+          "type": "renderer",
+          "id": 16156,
+          "cpuTime": 0.0727
+        },
+        {
+          "type": "renderer",
+          "id": 19884,
+          "cpuTime": 0.0937
+        },
+        {
+          "type": "renderer",
+          "id": 26672,
+          "cpuTime": 0.0945
+        },
+        {
+          "type": "renderer",
+          "id": 24144,
+          "cpuTime": 3.4144
+        },
+        {
+          "type": "renderer",
+          "id": 11996,
+          "cpuTime": 0.3065
+        },
+        {
+          "type": "GPU",
+          "id": 19124,
+          "cpuTime": 4.0561
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 18516,
+          "cpuTime": 1.4803
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 16644,
+          "cpuTime": 0.0979
+        },
+        {
+          "type": "audio.mojom.AudioService",
+          "id": 18704,
+          "cpuTime": 0.1539
+        },
+        {
+          "type": "quarantine.mojom.Quarantine",
+          "id": 10112,
+          "cpuTime": 0.1254
+        }
+      ],
+      "targets": [
+        {
+          "type": "service_worker",
+          "url": "chrome-extension://fignfifoniblkonapihmkfakmlgkbkcf/service_worker.js",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "about:blank",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "http://127.0.0.1:58928/?relay=local",
+          "attached": true
+        }
+      ]
+    },
+    {
+      "label": "cycle-4-post-gc",
+      "atMs": 1793570192800,
+      "heap": {
+        "usedSize": 1273528,
+        "totalSize": 1572864,
+        "embedderHeapUsedSize": 3032768,
+        "backingStorageSize": 140326
+      },
+      "dom": {
+        "documents": 2,
+        "nodes": 686,
+        "jsEventListeners": 45
+      },
+      "performance": {
+        "JSHeapUsedSize": 1273528,
+        "JSHeapTotalSize": 1572864,
+        "Nodes": 686,
+        "LayoutCount": 231,
+        "RecalcStyleCount": 326,
+        "TaskDuration": 2.130803
+      },
+      "page": {
+        "view": "gameplay",
+        "room": "Stairwell / Exits",
+        "status": "ENDED",
+        "endingOpen": true,
+        "attachedNodes": 393,
+        "captionCount": 91,
+        "latestCaption": {
+          "text": "Confirmation tone.",
+          "at": 1793570188413
+        },
+        "loadedImages": [
+          "/assets/stairwell-exits.webp",
+          "/assets/v3/warden-approach-v1.webp",
+          "/assets/v3/curtain-foreground-v1.webp",
+          "/assets/v3/gurney-foreground-v1.webp"
+        ]
+      },
+      "browserProcesses": [
+        {
+          "type": "browser",
+          "id": 27700,
+          "cpuTime": 5.3483
+        },
+        {
+          "type": "renderer",
+          "id": 16156,
+          "cpuTime": 0.0732
+        },
+        {
+          "type": "renderer",
+          "id": 19884,
+          "cpuTime": 0.0938
+        },
+        {
+          "type": "renderer",
+          "id": 26672,
+          "cpuTime": 0.0945
+        },
+        {
+          "type": "renderer",
+          "id": 24144,
+          "cpuTime": 4.0711
+        },
+        {
+          "type": "renderer",
+          "id": 11996,
+          "cpuTime": 0.3521
+        },
+        {
+          "type": "GPU",
+          "id": 19124,
+          "cpuTime": 4.4826
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 18516,
+          "cpuTime": 1.5644
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 16644,
+          "cpuTime": 0.1051
+        },
+        {
+          "type": "audio.mojom.AudioService",
+          "id": 18704,
+          "cpuTime": 0.1739
+        }
+      ],
+      "targets": [
+        {
+          "type": "service_worker",
+          "url": "chrome-extension://fignfifoniblkonapihmkfakmlgkbkcf/service_worker.js",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "about:blank",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "http://127.0.0.1:58928/?relay=local",
+          "attached": true
+        }
+      ]
+    },
+    {
+      "label": "cycle-5-post-gc",
+      "atMs": 1793570197794,
+      "heap": {
+        "usedSize": 1275320,
+        "totalSize": 1572864,
+        "embedderHeapUsedSize": 2798032,
+        "backingStorageSize": 140279
+      },
+      "dom": {
+        "documents": 2,
+        "nodes": 686,
+        "jsEventListeners": 45
+      },
+      "performance": {
+        "JSHeapUsedSize": 1275320,
+        "JSHeapTotalSize": 1572864,
+        "Nodes": 686,
+        "LayoutCount": 281,
+        "RecalcStyleCount": 383,
+        "TaskDuration": 2.477821
+      },
+      "page": {
+        "view": "gameplay",
+        "room": "Stairwell / Exits",
+        "status": "ENDED",
+        "endingOpen": true,
+        "attachedNodes": 393,
+        "captionCount": 108,
+        "latestCaption": {
+          "text": "Confirmation tone.",
+          "at": 1793570193250
+        },
+        "loadedImages": [
+          "/assets/stairwell-exits.webp",
+          "/assets/v3/warden-repelled-v1.webp",
+          "/assets/v3/curtain-foreground-v1.webp",
+          "/assets/v3/gurney-foreground-v1.webp"
+        ]
+      },
+      "browserProcesses": [
+        {
+          "type": "browser",
+          "id": 27700,
+          "cpuTime": 5.5587
+        },
+        {
+          "type": "renderer",
+          "id": 16156,
+          "cpuTime": 0.0732
+        },
+        {
+          "type": "renderer",
+          "id": 19884,
+          "cpuTime": 0.0939
+        },
+        {
+          "type": "renderer",
+          "id": 26672,
+          "cpuTime": 0.0945
+        },
+        {
+          "type": "renderer",
+          "id": 24144,
+          "cpuTime": 4.6855
+        },
+        {
+          "type": "renderer",
+          "id": 11996,
+          "cpuTime": 0.3529
+        },
+        {
+          "type": "GPU",
+          "id": 19124,
+          "cpuTime": 4.8707
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 18516,
+          "cpuTime": 1.649
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 16644,
+          "cpuTime": 0.1123
+        },
+        {
+          "type": "audio.mojom.AudioService",
+          "id": 18704,
+          "cpuTime": 0.1934
+        }
+      ],
+      "targets": [
+        {
+          "type": "service_worker",
+          "url": "chrome-extension://fignfifoniblkonapihmkfakmlgkbkcf/service_worker.js",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "about:blank",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "http://127.0.0.1:58928/?relay=local",
+          "attached": true
+        }
+      ]
+    },
+    {
+      "label": "cycle-6-post-gc",
+      "atMs": 1793570202773,
+      "heap": {
+        "usedSize": 1281716,
+        "totalSize": 1572864,
+        "embedderHeapUsedSize": 3292768,
+        "backingStorageSize": 140320
+      },
+      "dom": {
+        "documents": 2,
+        "nodes": 686,
+        "jsEventListeners": 45
+      },
+      "performance": {
+        "JSHeapUsedSize": 1281716,
+        "JSHeapTotalSize": 1572864,
+        "Nodes": 686,
+        "LayoutCount": 330,
+        "RecalcStyleCount": 438,
+        "TaskDuration": 2.818459
+      },
+      "page": {
+        "view": "gameplay",
+        "room": "Stairwell / Exits",
+        "status": "ENDED",
+        "endingOpen": true,
+        "attachedNodes": 393,
+        "captionCount": 126,
+        "latestCaption": {
+          "text": "Confirmation tone.",
+          "at": 1793570198253
+        },
+        "loadedImages": [
+          "/assets/stairwell-exits.webp",
+          "/assets/v3/warden-repelled-v1.webp",
+          "/assets/v3/curtain-foreground-v1.webp",
+          "/assets/v3/gurney-foreground-v1.webp"
+        ]
+      },
+      "browserProcesses": [
+        {
+          "type": "browser",
+          "id": 27700,
+          "cpuTime": 5.7335
+        },
+        {
+          "type": "renderer",
+          "id": 16156,
+          "cpuTime": 0.0732
+        },
+        {
+          "type": "renderer",
+          "id": 26672,
+          "cpuTime": 0.0945
+        },
+        {
+          "type": "renderer",
+          "id": 24144,
+          "cpuTime": 5.3265
+        },
+        {
+          "type": "renderer",
+          "id": 11996,
+          "cpuTime": 0.3536
+        },
+        {
+          "type": "GPU",
+          "id": 19124,
+          "cpuTime": 5.2719
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 18516,
+          "cpuTime": 1.7517
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 16644,
+          "cpuTime": 0.1187
+        },
+        {
+          "type": "audio.mojom.AudioService",
+          "id": 18704,
+          "cpuTime": 0.2103
+        }
+      ],
+      "targets": [
+        {
+          "type": "page",
+          "url": "about:blank",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "http://127.0.0.1:58928/?relay=local",
+          "attached": true
+        }
+      ]
+    },
+    {
+      "label": "cycle-7-post-gc",
+      "atMs": 1793570207592,
+      "heap": {
+        "usedSize": 1348968,
+        "totalSize": 1835008,
+        "embedderHeapUsedSize": 2861416,
+        "backingStorageSize": 140330
+      },
+      "dom": {
+        "documents": 2,
+        "nodes": 686,
+        "jsEventListeners": 45
+      },
+      "performance": {
+        "JSHeapUsedSize": 1348968,
+        "JSHeapTotalSize": 1835008,
+        "Nodes": 686,
+        "LayoutCount": 380,
+        "RecalcStyleCount": 494,
+        "TaskDuration": 3.139238
+      },
+      "page": {
+        "view": "gameplay",
+        "room": "Stairwell / Exits",
+        "status": "ENDED",
+        "endingOpen": true,
+        "attachedNodes": 393,
+        "captionCount": 144,
+        "latestCaption": {
+          "text": "Confirmation tone.",
+          "at": 1793570203213
+        },
+        "loadedImages": [
+          "/assets/stairwell-exits.webp",
+          "/assets/v3/warden-approach-v1.webp",
+          "/assets/v3/curtain-foreground-v1.webp",
+          "/assets/v3/gurney-foreground-v1.webp"
+        ]
+      },
+      "browserProcesses": [
+        {
+          "type": "browser",
+          "id": 27700,
+          "cpuTime": 5.9075
+        },
+        {
+          "type": "renderer",
+          "id": 16156,
+          "cpuTime": 0.0732
+        },
+        {
+          "type": "renderer",
+          "id": 26672,
+          "cpuTime": 0.0946
+        },
+        {
+          "type": "renderer",
+          "id": 24144,
+          "cpuTime": 5.9386
+        },
+        {
+          "type": "renderer",
+          "id": 11996,
+          "cpuTime": 0.3541
+        },
+        {
+          "type": "GPU",
+          "id": 19124,
+          "cpuTime": 5.6706
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 18516,
+          "cpuTime": 1.8303
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 16644,
+          "cpuTime": 0.1253
+        },
+        {
+          "type": "audio.mojom.AudioService",
+          "id": 18704,
+          "cpuTime": 0.2259
+        }
+      ],
+      "targets": [
+        {
+          "type": "page",
+          "url": "about:blank",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "http://127.0.0.1:58928/?relay=local",
+          "attached": true
+        }
+      ]
+    },
+    {
+      "label": "cycle-8-post-gc",
+      "atMs": 1793570212435,
+      "heap": {
+        "usedSize": 1441064,
+        "totalSize": 2097152,
+        "embedderHeapUsedSize": 4018816,
+        "backingStorageSize": 141271
+      },
+      "dom": {
+        "documents": 2,
+        "nodes": 951,
+        "jsEventListeners": 45
+      },
+      "performance": {
+        "JSHeapUsedSize": 1441064,
+        "JSHeapTotalSize": 2097152,
+        "Nodes": 951,
+        "LayoutCount": 430,
+        "RecalcStyleCount": 550,
+        "TaskDuration": 3.481051
+      },
+      "page": {
+        "view": "gameplay",
+        "room": "Stairwell / Exits",
+        "status": "ENDED",
+        "endingOpen": true,
+        "attachedNodes": 393,
+        "captionCount": 162,
+        "latestCaption": {
+          "text": "Confirmation tone.",
+          "at": 1793570208038
+        },
+        "loadedImages": [
+          "/assets/stairwell-exits.webp",
+          "/assets/v3/warden-repelled-v1.webp",
+          "/assets/v3/curtain-foreground-v1.webp",
+          "/assets/v3/gurney-foreground-v1.webp"
+        ]
+      },
+      "browserProcesses": [
+        {
+          "type": "browser",
+          "id": 27700,
+          "cpuTime": 6.0779
+        },
+        {
+          "type": "renderer",
+          "id": 16156,
+          "cpuTime": 0.0732
+        },
+        {
+          "type": "renderer",
+          "id": 26672,
+          "cpuTime": 0.0946
+        },
+        {
+          "type": "renderer",
+          "id": 24144,
+          "cpuTime": 6.5677
+        },
+        {
+          "type": "renderer",
+          "id": 11996,
+          "cpuTime": 0.3546
+        },
+        {
+          "type": "GPU",
+          "id": 19124,
+          "cpuTime": 6.0653
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 18516,
+          "cpuTime": 1.9139
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 16644,
+          "cpuTime": 0.1318
+        },
+        {
+          "type": "audio.mojom.AudioService",
+          "id": 18704,
+          "cpuTime": 0.2414
+        }
+      ],
+      "targets": [
+        {
+          "type": "page",
+          "url": "about:blank",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "http://127.0.0.1:58928/?relay=local",
+          "attached": true
+        }
+      ]
+    },
+    {
+      "label": "final-stabilized-post-gc",
+      "atMs": 1793570216618,
+      "heap": {
+        "usedSize": 1366452,
+        "totalSize": 1835008,
+        "embedderHeapUsedSize": 3236728,
+        "backingStorageSize": 140345
+      },
+      "dom": {
+        "documents": 2,
+        "nodes": 686,
+        "jsEventListeners": 45
+      },
+      "performance": {
+        "JSHeapUsedSize": 1366452,
+        "JSHeapTotalSize": 1835008,
+        "Nodes": 686,
+        "LayoutCount": 434,
+        "RecalcStyleCount": 554,
+        "TaskDuration": 3.507884
+      },
+      "page": {
+        "view": "gameplay",
+        "room": "Stairwell / Exits",
+        "status": "ENDED",
+        "endingOpen": true,
+        "attachedNodes": 393,
+        "captionCount": 162,
+        "latestCaption": {
+          "text": "Confirmation tone.",
+          "at": 1793570208038
+        },
+        "loadedImages": [
+          "/assets/stairwell-exits.webp",
+          "/assets/v3/warden-repelled-v1.webp",
+          "/assets/v3/curtain-foreground-v1.webp",
+          "/assets/v3/gurney-foreground-v1.webp"
+        ]
+      },
+      "browserProcesses": [
+        {
+          "type": "browser",
+          "id": 27700,
+          "cpuTime": 6.0923
+        },
+        {
+          "type": "renderer",
+          "id": 16156,
+          "cpuTime": 0.0732
+        },
+        {
+          "type": "renderer",
+          "id": 26672,
+          "cpuTime": 0.0946
+        },
+        {
+          "type": "renderer",
+          "id": 24144,
+          "cpuTime": 6.6368
+        },
+        {
+          "type": "renderer",
+          "id": 11996,
+          "cpuTime": 0.3546
+        },
+        {
+          "type": "GPU",
+          "id": 19124,
+          "cpuTime": 6.0934
+        },
+        {
+          "type": "network.mojom.NetworkService",
+          "id": 18516,
+          "cpuTime": 1.9189
+        },
+        {
+          "type": "storage.mojom.StorageService",
+          "id": 16644,
+          "cpuTime": 0.1323
+        },
+        {
+          "type": "audio.mojom.AudioService",
+          "id": 18704,
+          "cpuTime": 0.2568
+        }
+      ],
+      "targets": [
+        {
+          "type": "page",
+          "url": "about:blank",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+          "attached": false
+        },
+        {
+          "type": "browser_ui",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "attached": false
+        },
+        {
+          "type": "page",
+          "url": "http://127.0.0.1:58928/?relay=local",
+          "attached": true
+        }
+      ]
+    }
+  ],
+  "trends": {
+    "postGcHeap": {
+      "baseline": {
+        "bytes": 1165208,
+        "mebibytes": 1.111
+      },
+      "final": {
+        "bytes": 1366452,
+        "mebibytes": 1.303
+      },
+      "delta": {
+        "bytes": 201244,
+        "mebibytes": 0.192
+      },
+      "slopeBytesPerCycle": 22416.7,
+      "min": {
+        "bytes": 1213744,
+        "mebibytes": 1.158
+      },
+      "max": {
+        "bytes": 1441064,
+        "mebibytes": 1.374
+      }
+    },
+    "domNodes": {
+      "baseline": 686,
+      "final": 686,
+      "delta": 0,
+      "slopePerCycle": 13.25,
+      "min": 686,
+      "max": 951
+    },
+    "jsEventListeners": {
+      "baseline": 45,
+      "final": 45,
+      "delta": 0,
+      "slopePerCycle": 0,
+      "min": 45,
+      "max": 45
+    },
+    "documents": {
+      "baseline": 2,
+      "final": 2,
+      "delta": 0,
+      "slopePerCycle": 0,
+      "min": 2,
+      "max": 2
+    },
+    "relayPosts": {
+      "perCycle": [
+        68,
+        68,
+        69,
+        68,
+        68,
+        67,
+        68,
+        68
+      ],
+      "slopePerCycle": -0.071,
+      "min": 67,
+      "max": 69
+    }
+  },
+  "network": {
+    "requests": 683,
+    "failed": [],
+    "httpErrors": [],
+    "relayPosts": 617
+  },
+  "console": {
+    "errors": [],
+    "warnings": []
+  },
+  "checks": [
+    {
+      "name": "cold start defers hidden V3 scene art",
+      "pass": true,
+      "details": {
+        "allowedForBaselineCapture": false,
+        "resources": [],
+        "transferred": {
+          "bytes": 0,
+          "mebibytes": 0
+        }
+      }
+    },
+    {
+      "name": "post-GC JavaScript heap remains bounded",
+      "pass": true,
+      "details": {
+        "delta": {
+          "bytes": 201244,
+          "mebibytes": 0.192
+        },
+        "budget": {
+          "bytes": 8388608,
+          "mebibytes": 8
+        },
+        "slopeBytesPerCycle": 22416.7
+      }
+    },
+    {
+      "name": "DOM documents and nodes remain bounded",
+      "pass": true,
+      "details": {
+        "documents": {
+          "baseline": 2,
+          "final": 2,
+          "delta": 0,
+          "slopePerCycle": 0,
+          "min": 2,
+          "max": 2
+        },
+        "nodes": {
+          "baseline": 686,
+          "final": 686,
+          "delta": 0,
+          "slopePerCycle": 13.25,
+          "min": 686,
+          "max": 951
+        }
+      }
+    },
+    {
+      "name": "JavaScript event listeners remain bounded",
+      "pass": true,
+      "details": {
+        "baseline": 45,
+        "final": 45,
+        "delta": 0,
+        "slopePerCycle": 0,
+        "min": 45,
+        "max": 45
+      }
+    },
+    {
+      "name": "relay request rate remains bounded",
+      "pass": true,
+      "details": {
+        "perCycle": [
+          68,
+          68,
+          69,
+          68,
+          68,
+          67,
+          68,
+          68
+        ],
+        "slopePerCycle": -0.071,
+        "min": 67,
+        "max": 69
+      }
+    },
+    {
+      "name": "campaign exercise covered camera, vote, transitions, and captions",
+      "pass": true,
+      "details": {
+        "measuredCampaigns": 8,
+        "rooms": 40,
+        "captions": 143
+      }
+    },
+    {
+      "name": "network completes without failures or HTTP errors",
+      "pass": true,
+      "details": {
+        "failed": [],
+        "httpErrors": []
+      }
+    },
+    {
+      "name": "browser console remains clean",
+      "pass": true,
+      "details": {
+        "errors": [],
+        "warnings": []
+      }
+    },
+    {
+      "name": "Chromium and local server processes exit",
+      "pass": true,
+      "details": {
+        "browserExited": true,
+        "serverExited": true,
+        "profileRemoved": true
+      }
+    },
+    {
+      "name": "temporary Chromium profile is removed",
+      "pass": true,
+      "details": {
+        "profileRoot": "<WORKSPACE>\\work\\performance-soak\\.chrome-profile-21156-1793570156598",
+        "exists": false
+      }
+    }
+  ],
+  "cleanup": {
+    "browserExited": true,
+    "serverExited": true,
+    "profileRemoved": true
+  },
+  "fatalError": null,
+  "summary": {
+    "passed": 10,
+    "failed": 0,
+    "total": 10,
+    "durationMs": 43453
+  }
+}

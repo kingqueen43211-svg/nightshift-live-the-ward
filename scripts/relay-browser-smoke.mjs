@@ -436,6 +436,36 @@ try {
   const syncedScreenshot = await capture(mirror, "mirror-synced-vote-1280x720.png");
 
   await evaluate(controller, `document.querySelector("#advanceRoom").click()`);
+  const consequenceMessage = await waitForCondition(
+    () => controller.controllerMessages.findLast(message => message.state?.sessionId === voteMessage.state.sessionId
+      && message.state?.roomIndex === 0
+      && message.state?.status === "consequence"),
+    "controller consequence publication",
+    12000,
+  );
+  const mirrorConsequenceRaw = await waitForCondition(
+    () => evaluate(mirror, `globalThis.__nightshiftRelayMessages.findLast(raw => {
+      try {
+        const message = JSON.parse(raw);
+        return message.state?.sessionId === ${JSON.stringify(consequenceMessage.state.sessionId)}
+          && message.state?.roomIndex === 0
+          && message.state?.status === "consequence";
+      } catch { return false; }
+    }) || null`),
+    "matching consequence state over SSE",
+    12000,
+  );
+  const mirrorConsequenceMessage = JSON.parse(mirrorConsequenceRaw);
+  record(
+    "audience consequence crosses process boundary before room travel",
+    mirrorConsequenceMessage.state.status === consequenceMessage.state.status,
+    `${consequenceMessage.state.status} in roomIndex ${consequenceMessage.state.roomIndex}`,
+  );
+
+  // RC4 deliberately publishes the audience consequence before an incomplete
+  // room uses the director-recovery advance. The second click verifies that
+  // the later room transition is independently published to the OBS process.
+  await evaluate(controller, `document.querySelector("#advanceRoom").click()`);
   const roomMessage = await waitForCondition(
     () => controller.controllerMessages.findLast(message => message.state?.sessionId === voteMessage.state.sessionId && message.state?.roomIndex === 1),
     "controller room transition publication",

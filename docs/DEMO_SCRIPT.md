@@ -18,19 +18,21 @@ Keep the mode label visible during the handoff.
 
 ## 0:30–0:58 — Two kinds of agency
 
-Show the three camera nodes, then have the streamer search the desk and locker. Cut to the audience vote and let a command change its percentage. Attempt **Reconstruct file** too early once so the visible prerequisite explains why it is locked; then complete it.
+Show the three camera nodes traveling through the same layered room, including a foreground pass and deterministic settle. Then have the streamer search the desk and locker. Cut to the audience vote and let a command change its percentage. Attempt **Reconstruct file** too early once so the visible prerequisite explains why it is locked; then complete it. Hold long enough to show the persistent next-step panel change from the missing action to the audience/consequence phase.
 
 “Streamer actions are not chat buttons. I choose where to look, combine evidence, solve sequences, and commit to an exit. Viewers vote on a parallel layer of the same persistent world.”
 
 ## 0:58–1:28 — Physical consequence
 
-Move through the Ward 06 wide, gurney, and threshold nodes. Show a vote restoring power, the linked bolts moving, and the original isolation door opening into the operating theatre. Then show one successful Warden counter or a clearly staged rehearsal fixture.
+Move through the Ward 06 wide, gurney, and threshold nodes. Show the persistent audience outcome, then a vote restoring power. Capture the isolation-door sequence in order: anticipation, linked bolts, panel swing, light/reflection change, and threshold settle. Show the in-world breaker levers later in the montage, then hold on a successful Warden repel long enough to read the countered reaction before retreat.
 
 “A winning vote changes doors, power, danger, inventory, lighting, and the Warden itself. The entity has warning, approach, strike, passing, and repel phases—not one overlay animation.”
 
 ## 1:28–1:52 — Campaign depth and ending truth
 
 Montage the theatre lamps, confession, 2 · 1 · 3 generator sequence, final route choice, and ending recap.
+
+Include one item use with the persistent exact effect visible—for example fear and threat falling—and, if time permits, one rejected full-health kit that remains in inventory. This proves that inventory is consequential rather than decorative.
 
 “Five rooms carry health, danger, evidence, inventory, story, checkpoints, and audience decisions forward. Failed actions do not count as progress, and the ending recap distinguishes audience choices from disclosed director fallbacks.”
 
@@ -52,16 +54,12 @@ Never present a rehearsal trigger as a real Twitch event.
 
 ## 2:34–2:44 — Build evidence
 
-Show the terminal summaries briefly:
+Show the final RC4 `npm run verify` summaries briefly. Use only the counts in that recorded report; do not reuse the prior baseline numbers after the candidate changes:
 
-- 64/64 tests;
-- 28/28 visual and responsive states, including all 15 camera compositions;
-- 8/8 browser campaign gates, including an earned humane-ending UI path;
-- 5/5 browser truth/privacy/integrity gates;
-- 16/16 separate-process Chrome-to-OBS-relay gates;
-- 11/11 keyboard, contrast, accessibility-tree, and 200%-reflow gates;
-- 10/10 cold-load and eight-cycle performance-soak gates;
-- 11.6 MiB public payload.
+- engine/contract tests, including exact item deltas, no-op retention, final-route ownership, and the blackout-breach counter;
+- visual and responsive states, including all fifteen camera compositions and active-world-target collision checks;
+- browser campaign gates, including dynamic camera motion and three clean visible-guidance earned-ending runs;
+- truth/privacy, independent-process relay, keyboard/contrast/reflow, performance-soak, and release-payload gates.
 
 “Codex helped build the campaign, original art pipeline, Twitch lifecycle, interfaces, audio, accessibility, tests, and release package—and the gates caught real bugs before this recording.”
 
@@ -87,10 +85,16 @@ Return to the strongest Warden or ending shot, then cut to the logo.
 - [ ] Title-to-game handoff.
 - [ ] One streamer-only investigation or deduction.
 - [ ] Three visibly different camera nodes.
+- [ ] One continuous spatial camera move with foreground/background parallax and no room-image swap.
 - [ ] One audience vote changing the physical world.
+- [ ] Persistent audience result and next required action.
 - [ ] Isolation door closed, bolts releasing, and door open.
 - [ ] Warden warning plus successful or failed counterplay.
+- [ ] Exact persistent item effect or visible no-op retention.
+- [ ] In-world 2 · 1 · 3 breaker levers.
 - [ ] Control room and transparent overlay.
 - [ ] Captioned audio with sound muted for one beat.
 - [ ] Ending recap with route and fallback provenance.
 - [ ] Real Twitch two-account proof, or an explicit on-screen statement that it remains pending.
+- [ ] Logged-out public repository and public YouTube playback.
+- [ ] Codex session ID and final Devpost fields checked before submit.

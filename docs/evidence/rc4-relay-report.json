@@ -1,0 +1,137 @@
+{
+  "generatedAt": "2026-11-01T21:55:15.639Z",
+  "browser": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "artifactRoot": "<WORKSPACE>\\work\\relay-browser-smoke",
+  "assertions": [
+    {
+      "name": "separate browser processes",
+      "pass": true,
+      "detail": "controller PID 21220; mirror PID 19996"
+    },
+    {
+      "name": "separate browser profiles",
+      "pass": true,
+      "detail": "<WORKSPACE>\\work\\relay-browser-smoke\\.chrome-profile-controller-4152-1793570115828 != <WORKSPACE>\\work\\relay-browser-smoke\\.chrome-profile-mirror-4152-1793570116571"
+    },
+    {
+      "name": "mirror is explicitly passive",
+      "pass": true,
+      "detail": "{\"passiveClass\":true,\"inert\":true}"
+    },
+    {
+      "name": "SSE endpoint connected",
+      "pass": true,
+      "detail": "[{\"requestId\":\"26372.18\",\"url\":\"http://127.0.0.1:61597/__nightshift/events\",\"status\":200,\"mimeType\":\"text/event-stream\"}]"
+    },
+    {
+      "name": "controller publishes accepted state",
+      "pass": true,
+      "detail": "[{\"requestId\":\"12600.18\",\"url\":\"http://127.0.0.1:61597/__nightshift/state\",\"status\":204,\"mimeType\":\"text/plain\"},{\"requestId\":\"12600.19\",\"url\":\"http://127.0.0.1:61597/__nightshift/state\",\"status\":204,\"mimeType\":\"text/plain\"},{\"requestId\":\"12600.20\",\"url\":\"http://127.0.0.1:61597/__nightshift/state\",\"status\":204,\"mimeType\":\"text/plain\"}]"
+    },
+    {
+      "name": "session crosses process boundary",
+      "pass": true,
+      "detail": "ward-1793570129539"
+    },
+    {
+      "name": "vote state crosses process boundary",
+      "pass": true,
+      "detail": "{\"records\":1,\"medkit\":0,\"noise\":0}"
+    },
+    {
+      "name": "mirror renders relayed vote",
+      "pass": true,
+      "detail": "{\"session\":\"70129539\",\"room\":\"Reception / Triage\",\"status\":\"VOTING\",\"mode\":\"MODE: SIMULATED\",\"voteCount\":\"1 VOTE\",\"source\":\"REHEARSAL VOTE · SIMULATED INPUT\",\"recent\":\"PIXELPALADIN · SEARCH PATIENT RECORDS\",\"options\":[{\"label\":\"Search patient records\",\"command\":\"!records\",\"percent\":\"100%\"},{\"label\":\"Raid the medicine locker\",\"command\":\"!medkit\",\"percent\":\"0%\"},{\"label\":\"Ring the night bell\",\"command\":\"!noise\",\"percent\":\"0%\"}],\"passiveClass\":true,\"inert\":true,\"relayMessages\":4}"
+    },
+    {
+      "name": "audience consequence crosses process boundary before room travel",
+      "pass": true,
+      "detail": "consequence in roomIndex 0"
+    },
+    {
+      "name": "room state crosses process boundary",
+      "pass": true,
+      "detail": "roomIndex 1"
+    },
+    {
+      "name": "mirror does not publish",
+      "pass": true,
+      "detail": "[{\"requestId\":\"26372.18\",\"url\":\"http://127.0.0.1:61597/__nightshift/events\",\"method\":\"GET\",\"postData\":null}]"
+    },
+    {
+      "name": "mirror does not resolve an expired vote",
+      "pass": true,
+      "detail": "status stayed VOTING; source REHEARSAL VOTE · SIMULATED INPUT"
+    },
+    {
+      "name": "mirror state stays immutable without controller input",
+      "pass": true,
+      "detail": "{\"before\":{\"session\":\"70129539\",\"room\":\"Ward 06\",\"status\":\"VOTING\",\"mode\":\"MODE: SIMULATED\",\"voteCount\":\"0 VOTES\",\"source\":\"REHEARSAL VOTE · SIMULATED INPUT\",\"recent\":\"NIGHTSHIFT · WARD 06 ENTERED\",\"options\":[{\"label\":\"Restore corridor power\",\"command\":\"!restore\",\"percent\":\"0%\"},{\"label\":\"Open isolation\",\"command\":\"!open\",\"percent\":\"0%\"},{\"label\":\"Kill the lights\",\"command\":\"!dark\",\"percent\":\"0%\"}],\"passiveClass\":true,\"inert\":true,\"relayMessages\":10},\"after\":{\"session\":\"70129539\",\"room\":\"Ward 06\",\"status\":\"VOTING\",\"mode\":\"MODE: SIMULATED\",\"voteCount\":\"0 VOTES\",\"source\":\"REHEARSAL VOTE · SIMULATED INPUT\",\"recent\":\"NIGHTSHIFT · WARD 06 ENTERED\",\"options\":[{\"label\":\"Restore corridor power\",\"command\":\"!restore\",\"percent\":\"0%\"},{\"label\":\"Open isolation\",\"command\":\"!open\",\"percent\":\"0%\"},{\"label\":\"Kill the lights\",\"command\":\"!dark\",\"percent\":\"0%\"}],\"passiveClass\":true,\"inert\":true,\"relayMessages\":12}}"
+    },
+    {
+      "name": "no phantom relay messages after controller transport drains",
+      "pass": true,
+      "detail": "12 -> 12"
+    },
+    {
+      "name": "no browser console errors",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no browser console warnings",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "relay server stayed healthy",
+      "pass": true,
+      "detail": "server running without stderr"
+    }
+  ],
+  "failures": [],
+  "evidence": {
+    "appOrigin": "http://127.0.0.1:61597",
+    "controller": {
+      "pid": null,
+      "profileRoot": "<WORKSPACE>\\work\\relay-browser-smoke\\.chrome-profile-controller-4152-1793570115828",
+      "browserVersion": "Chrome/156.0.8078.79",
+      "relayPosts": 10,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "ignoredConsoleEntries": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found) (http://127.0.0.1:61597/favicon.ico)"
+      ]
+    },
+    "mirror": {
+      "pid": 19996,
+      "profileRoot": "<WORKSPACE>\\work\\relay-browser-smoke\\.chrome-profile-mirror-4152-1793570116571",
+      "browserVersion": "Chrome/156.0.8078.79",
+      "relayPosts": 0,
+      "relayMessages": 12,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "ignoredConsoleEntries": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found) (http://127.0.0.1:61597/favicon.ico)"
+      ]
+    },
+    "synchronizedState": {
+      "sessionId": "ward-1793570129539",
+      "roomIndex": 1,
+      "votes": {
+        "restore": 0,
+        "open": 0,
+        "dark": 0
+      }
+    },
+    "screenshots": [
+      "<WORKSPACE>\\work\\relay-browser-smoke\\mirror-synced-vote-1280x720.png",
+      "<WORKSPACE>\\work\\relay-browser-smoke\\mirror-passive-expired-vote-1280x720.png"
+    ],
+    "serverStdout": "NightShift Live ready at http://localhost:61597 (local OBS relay available)"
+  },
+  "summary": {
+    "passed": 17,
+    "failed": 0
+  }
+}
