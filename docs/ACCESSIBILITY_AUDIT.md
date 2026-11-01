@@ -153,3 +153,9 @@ Before release, complete all of the following:
 7. If audio is introduced, a caption/transcript review with sound muted.
 
 Do not describe the build as WCAG conformant until these items have objective evidence and no unresolved blocker.
+
+## Automated smoke gate
+
+`tests/accessibility.test.mjs` adds dependency-free source checks to `npm test`. It verifies the two modal overlays are named dialogs, four game-state indicators expose progress semantics, the chat input uses a non-wrapping associated label, a guarded pause shortcut exists, principal buttons and toggle rows have 44px targets, reduced motion covers OS/in-app preferences and pseudo-elements, and low-effects mode explicitly suppresses the impact, alarm, and wipe layers.
+
+These checks are deliberately narrower than the manual verification gate. Passing them does not prove focus containment, screen-reader output quality, effective composited contrast, reflow, or caption timing.
