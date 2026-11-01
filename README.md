@@ -24,11 +24,17 @@ npm start
 
 Open `http://localhost:4173`, choose **Control room**, then **Start episode**. No Twitch account is required for the clearly labeled simulation path.
 
+The preview server uses only Node.js built-ins, so startup does not download a package. Use `npm start -- --port 5000` when port 4173 is unavailable.
+
 Run verification:
 
 ```bash
 npm run check
+npm run qa:visual
+npm run release:audit
 ```
+
+Before sharing the entry, follow the logged-out hosting, OAuth callback, OBS alpha, and rollback steps in [`docs/PUBLIC_DEPLOYMENT.md`](docs/PUBLIC_DEPLOYMENT.md).
 
 ## Connect a real Twitch channel
 

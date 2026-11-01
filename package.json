@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "npx --yes serve dist -l 4173",
+    "start": "node scripts/serve.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check dist/app.mjs && node --check dist/engine.mjs && node --check dist/twitch.mjs && node --check scripts/visual-qa.mjs && npm test",
-    "qa:visual": "node scripts/visual-qa.mjs"
+    "check": "node --check dist/app.mjs && node --check dist/engine.mjs && node --check dist/twitch.mjs && node --check scripts/serve.mjs && node --check scripts/release-audit.mjs && node --check scripts/visual-qa.mjs && npm test",
+    "qa:visual": "node scripts/visual-qa.mjs",
+    "release:audit": "node scripts/release-audit.mjs"
   }
 }
