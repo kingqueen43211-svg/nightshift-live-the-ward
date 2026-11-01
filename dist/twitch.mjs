@@ -5,6 +5,16 @@ const TOKEN_KEY = "nightshift.token";
 const CLIENT_KEY = "nightshift.clientId";
 const OAUTH_STATE_KEY = "nightshift.oauthState";
 
+function cancelledConnectionError() {
+  const error = new Error("Twitch connection attempt was cancelled.");
+  error.name = "AbortError";
+  return error;
+}
+
+function isCancellation(error) {
+  return error?.name === "AbortError";
+}
+
 export const TWITCH_PHASE = Object.freeze({
   DISCONNECTED: "DISCONNECTED",
   AUTHORIZING: "AUTHORIZING",
@@ -52,13 +62,20 @@ export class TwitchBridge extends EventTarget {
     this.seenMessageIds = new Set();
     this.seenMessageOrder = [];
     this.activeSubscriptions = [];
+    this.unavailableSubscriptions = new Set();
     this.connectPromise = null;
+    this.pendingConnection = null;
+    this.connectionGeneration = 0;
   }
 
   status(phase, message, extra = {}) {
     this.phase = phase;
     const connected = phase === TWITCH_PHASE.LIVE;
     this.emit("status", { phase, connected, message, identity: this.identity, at: this.now(), ...extra });
+  }
+
+  isCurrentConnection(generation) {
+    return generation === this.connectionGeneration && !this.manualDisconnect;
   }
 
   scrubHash() {
@@ -110,7 +127,7 @@ export class TwitchBridge extends EventTarget {
     this.location.assign(`${AUTH}/authorize?${query}`);
   }
 
-  async request(path, init = {}) {
+  async request(path, init = {}, { optionalForbidden = false, generation = null } = {}) {
     if (!this.fetch) throw new Error("Network requests are unavailable.");
     const response = await this.fetch(`${API}${path}`, {
       ...init,
@@ -121,9 +138,14 @@ export class TwitchBridge extends EventTarget {
         ...(init.headers || {})
       }
     });
+    if (generation !== null && !this.isCurrentConnection(generation)) throw cancelledConnectionError();
     if (!response.ok) {
       const body = await response.text();
-      if (response.status === 401 || response.status === 403) {
+      if (generation !== null && !this.isCurrentConnection(generation)) throw cancelledConnectionError();
+      if (response.status === 401 || (response.status === 403 && !optionalForbidden)) {
+        this.storage.removeItem(TOKEN_KEY);
+        this.token = "";
+        this.identity = null;
         this.status(TWITCH_PHASE.AUTH_EXPIRED, "Twitch authorization expired or lacks a required scope. Reconnect Twitch.", { status: response.status });
       }
       throw new Error(`Twitch ${response.status}: ${body}`);
@@ -131,28 +153,37 @@ export class TwitchBridge extends EventTarget {
     return response.status === 204 ? null : response.json();
   }
 
-  async validate() {
+  async validate(generation = null) {
     if (!this.token || !this.clientId) return null;
     const response = await this.fetch(`${AUTH}/validate`, { headers: { Authorization: `OAuth ${this.token}` } });
+    if (generation !== null && !this.isCurrentConnection(generation)) throw cancelledConnectionError();
     if (!response.ok) {
       this.storage.removeItem(TOKEN_KEY);
       this.token = "";
+      this.identity = null;
       this.status(TWITCH_PHASE.AUTH_EXPIRED, "Your Twitch session expired. Connect again.", { status: response.status });
       throw new Error("Your Twitch session expired. Connect again.");
     }
     const validation = await response.json();
-    const users = await this.request(`/users?id=${encodeURIComponent(validation.user_id)}`);
+    if (generation !== null && !this.isCurrentConnection(generation)) throw cancelledConnectionError();
+    const users = await this.request(`/users?id=${encodeURIComponent(validation.user_id)}`, {}, { generation });
+    if (generation !== null && !this.isCurrentConnection(generation)) throw cancelledConnectionError();
     this.identity = users.data?.[0] || null;
     if (!this.identity) throw new Error("Twitch identity could not be loaded.");
     return this.identity;
   }
 
-  async subscribe(sessionId, type, version, condition) {
+  async subscribe(sessionId, type, version, condition, optional = false, generation = this.connectionGeneration) {
     const result = await this.request("/eventsub/subscriptions", {
       method: "POST",
       body: JSON.stringify({ type, version, condition, transport: { method: "websocket", session_id: sessionId } })
-    });
-    this.activeSubscriptions.push({ type, status: "enabled" });
+    }, { optionalForbidden: optional, generation });
+    if (!this.isCurrentConnection(generation)) throw cancelledConnectionError();
+    const subscription = { type, status: "enabled" };
+    const existing = this.activeSubscriptions.findIndex(item => item.type === type);
+    if (existing >= 0) this.activeSubscriptions[existing] = subscription;
+    else this.activeSubscriptions.push(subscription);
+    this.unavailableSubscriptions.delete(type);
     return result;
   }
 
@@ -178,42 +209,85 @@ export class TwitchBridge extends EventTarget {
     }, (this.keepaliveSeconds + 8) * 1000);
   }
 
-  async createSubscriptions(sessionId) {
+  async createSubscriptions(sessionId, generation = this.connectionGeneration) {
+    if (!this.isCurrentConnection(generation)) throw cancelledConnectionError();
     const common = { broadcaster_user_id: this.identity.id };
-    await this.subscribe(sessionId, "channel.chat.message", "1", { ...common, user_id: this.identity.id });
+    await this.subscribe(sessionId, "channel.chat.message", "1", { ...common, user_id: this.identity.id }, false, generation);
     const optional = [
       ["channel.follow", "2", { ...common, moderator_user_id: this.identity.id }],
       ["channel.subscribe", "1", common],
       ["channel.cheer", "1", common],
       ["channel.raid", "1", { to_broadcaster_user_id: this.identity.id }]
     ];
-    const results = await Promise.allSettled(optional.map(args => this.subscribe(sessionId, ...args)));
+    const results = await Promise.allSettled(optional.map(args => this.subscribe(sessionId, ...args, true, generation)));
+    if (!this.isCurrentConnection(generation)) throw cancelledConnectionError();
+    if (this.phase === TWITCH_PHASE.AUTH_EXPIRED || !this.token || !this.identity) {
+      throw new Error("Twitch authorization expired while subscriptions were being created.");
+    }
     const unavailable = results.flatMap((result, index) => result.status === "rejected" ? [optional[index][0]] : []);
+    for (const type of unavailable) this.unavailableSubscriptions.add(type);
     return unavailable;
   }
 
   connect() {
     if (this.connectPromise) return this.connectPromise;
+    if (this.phase === TWITCH_PHASE.LIVE && this.socket) return Promise.resolve(this.identity);
     this.manualDisconnect = false;
-    this.connectPromise = this.validate().then(identity => {
-      if (!identity) throw new Error("Connect Twitch first.");
-      if (!this.WebSocket) throw new Error("Twitch WebSocket is unavailable.");
-      this.status(TWITCH_PHASE.CONNECTING, "Connecting to Twitch EventSub…");
-      return new Promise((resolve, reject) => this.openSocket(EVENTSUB, { initial: true, resolve, reject }));
-    }).finally(() => { this.connectPromise = null; });
-    return this.connectPromise;
+    const generation = ++this.connectionGeneration;
+    const attempt = (async () => {
+      try {
+        const identity = await this.validate(generation);
+        if (!this.isCurrentConnection(generation)) return null;
+        if (!identity) throw new Error("Connect Twitch first.");
+        if (!this.WebSocket) throw new Error("Twitch WebSocket is unavailable.");
+        this.status(TWITCH_PHASE.CONNECTING, "Connecting to Twitch EventSub…");
+        return await new Promise((resolve, reject) => {
+          if (!this.isCurrentConnection(generation)) {
+            resolve(null);
+            return;
+          }
+          const settle = (method, value) => {
+            if (this.pendingConnection?.generation === generation) this.pendingConnection = null;
+            method(value);
+          };
+          const context = {
+            initial: true,
+            generation,
+            resolve: value => settle(resolve, value),
+            reject: error => settle(reject, error)
+          };
+          this.pendingConnection = context;
+          this.openSocket(EVENTSUB, context);
+        });
+      } catch (error) {
+        if (isCancellation(error) || !this.isCurrentConnection(generation)) return null;
+        throw error;
+      }
+    })();
+    const tracked = attempt.finally(() => {
+      if (this.connectPromise === tracked) this.connectPromise = null;
+      if (this.pendingConnection?.generation === generation) this.pendingConnection = null;
+    });
+    this.connectPromise = tracked;
+    return tracked;
   }
 
   openSocket(url, context = {}) {
+    const generation = context.generation ?? this.connectionGeneration;
     const socket = new this.WebSocket(url);
     const previous = context.previous || null;
     let welcomed = false;
     if (!previous) this.socket = socket;
     socket.onerror = () => {
+      if (!this.isCurrentConnection(generation)) return;
       if (!welcomed && context.reject) context.reject(new Error("Twitch WebSocket could not connect."));
       this.status(TWITCH_PHASE.ERROR, "Twitch EventSub connection failed.");
     };
     socket.onmessage = async ({ data }) => {
+      if (!this.isCurrentConnection(generation)) {
+        socket.close();
+        return;
+      }
       let packet;
       try { packet = JSON.parse(data); }
       catch { this.status(TWITCH_PHASE.ERROR, "Twitch sent an unreadable EventSub message."); return; }
@@ -224,7 +298,16 @@ export class TwitchBridge extends EventTarget {
         const sessionId = packet.payload.session.id;
         try {
           let unavailable = [];
-          if (!context.resuming) unavailable = await this.createSubscriptions(sessionId);
+          if (!context.resuming) {
+            this.activeSubscriptions = [];
+            this.unavailableSubscriptions.clear();
+            unavailable = await this.createSubscriptions(sessionId, generation);
+          }
+          if (!this.isCurrentConnection(generation)) {
+            socket.close();
+            context.resolve?.(null);
+            return;
+          }
           this.previousSocket = null;
           this.socket = socket;
           previous?.close();
@@ -232,7 +315,19 @@ export class TwitchBridge extends EventTarget {
           this.status(TWITCH_PHASE.LIVE, unavailable.length ? `Live chat connected. Optional events unavailable: ${unavailable.join(", ")}.` : "Connected: LIVE TWITCH", { subscriptions: [...this.activeSubscriptions], unavailable });
           context.resolve?.(this.identity);
         } catch (error) {
-          this.status(TWITCH_PHASE.ERROR, error.message);
+          if (isCancellation(error) || !this.isCurrentConnection(generation)) {
+            if (this.socket === socket) this.socket = null;
+            socket.close();
+            context.resolve?.(null);
+            return;
+          }
+          if (this.keepaliveTimer) this.clearTimeout(this.keepaliveTimer);
+          this.keepaliveTimer = null;
+          this.activeSubscriptions = [];
+          this.unavailableSubscriptions.clear();
+          if (this.socket === socket) this.socket = null;
+          socket.close();
+          if (this.phase !== TWITCH_PHASE.AUTH_EXPIRED) this.status(TWITCH_PHASE.ERROR, error.message);
           context.reject?.(error);
         }
         return;
@@ -247,42 +342,62 @@ export class TwitchBridge extends EventTarget {
         return;
       }
       if (kind === "revocation") {
+        const type = packet.payload?.subscription?.type || "unknown";
         const status = packet.payload?.subscription?.status || "revoked";
-        this.status(TWITCH_PHASE.ERROR, `Twitch subscription revoked: ${status}`, { subscriptionStatus: status });
+        this.activeSubscriptions = this.activeSubscriptions.filter(subscription => subscription.type !== type);
+        this.unavailableSubscriptions.add(type);
+        if (type === "channel.chat.message") {
+          this.disconnect({ emitStatus: false });
+          this.status(TWITCH_PHASE.ERROR, `Critical Twitch chat subscription revoked: ${status}. Reconnect Twitch.`, { subscriptionType: type, subscriptionStatus: status });
+        } else {
+          const unavailable = [...this.unavailableSubscriptions];
+          this.status(TWITCH_PHASE.LIVE, `Live chat connected. Optional event unavailable: ${type} (${status}).`, {
+            subscriptions: [...this.activeSubscriptions],
+            unavailable,
+            degraded: true,
+            subscriptionType: type,
+            subscriptionStatus: status
+          });
+        }
       }
     };
     socket.onclose = () => {
-      if (socket !== this.socket || this.manualDisconnect) return;
+      if (socket !== this.socket || !this.isCurrentConnection(generation)) return;
       if (this.keepaliveTimer) this.clearTimeout(this.keepaliveTimer);
+      this.keepaliveTimer = null;
+      this.socket = null;
       this.status(TWITCH_PHASE.RECONNECTING, "Twitch disconnected. Reconnecting…");
-      this.scheduleReconnect();
+      this.scheduleReconnect(generation);
     };
     return socket;
   }
 
-  scheduleReconnect() {
-    if (this.manualDisconnect || this.reconnectTimer) return;
+  scheduleReconnect(generation = this.connectionGeneration) {
+    if (!this.isCurrentConnection(generation) || this.reconnectTimer) return;
     const delay = Math.min(30000, 1000 * 2 ** Math.min(this.reconnectAttempts++, 5));
     this.reconnectTimer = this.setTimeout(async () => {
       this.reconnectTimer = null;
+      if (!this.isCurrentConnection(generation)) return;
       try {
-        await this.validate();
-        this.openSocket(EVENTSUB, {});
+        await this.validate(generation);
+        if (!this.isCurrentConnection(generation)) return;
+        this.openSocket(EVENTSUB, { generation });
       } catch (error) {
-        if (this.phase !== TWITCH_PHASE.AUTH_EXPIRED) {
+        if (!isCancellation(error) && this.isCurrentConnection(generation) && this.phase !== TWITCH_PHASE.AUTH_EXPIRED) {
           this.status(TWITCH_PHASE.ERROR, `Reconnect failed: ${error.message}`);
-          this.scheduleReconnect();
+          this.scheduleReconnect(generation);
         }
       }
     }, delay);
   }
 
   reconnect(url) {
-    if (!url || !this.WebSocket) return false;
+    if (!url || !this.WebSocket || this.manualDisconnect) return false;
+    const generation = this.connectionGeneration;
     this.status(TWITCH_PHASE.RECONNECTING, "Twitch requested a seamless reconnect…");
     const old = this.socket;
     this.previousSocket = old;
-    this.openSocket(url, { resuming: true, previous: old });
+    this.openSocket(url, { resuming: true, previous: old, generation });
     return true;
   }
 
@@ -302,8 +417,13 @@ export class TwitchBridge extends EventTarget {
     this.dispatchEvent(new EventCtor(name, { detail }));
   }
 
-  disconnect() {
+  disconnect({ emitStatus = true } = {}) {
     this.manualDisconnect = true;
+    this.connectionGeneration++;
+    const pending = this.pendingConnection;
+    this.pendingConnection = null;
+    this.connectPromise = null;
+    pending?.resolve?.(null);
     if (this.keepaliveTimer) this.clearTimeout(this.keepaliveTimer);
     if (this.reconnectTimer) this.clearTimeout(this.reconnectTimer);
     this.keepaliveTimer = null;
@@ -313,7 +433,9 @@ export class TwitchBridge extends EventTarget {
     current?.close();
     this.previousSocket?.close();
     this.previousSocket = null;
-    this.status(TWITCH_PHASE.DISCONNECTED, "Disconnected from Twitch.");
+    this.activeSubscriptions = [];
+    this.unavailableSubscriptions.clear();
+    if (emitStatus) this.status(TWITCH_PHASE.DISCONNECTED, "Disconnected from Twitch.");
   }
 
   clear() {
@@ -323,6 +445,7 @@ export class TwitchBridge extends EventTarget {
     this.token = "";
     this.identity = null;
     this.activeSubscriptions = [];
+    this.unavailableSubscriptions.clear();
     this.seenMessageIds.clear();
     this.seenMessageOrder = [];
   }

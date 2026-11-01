@@ -29,6 +29,15 @@ class FakeSocket {
 }
 
 const waitTurn = () => new Promise(resolve => setImmediate(resolve));
+const deferred = () => {
+  let resolve;
+  let reject;
+  const promise = new Promise((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+};
 
 function welcome(id = "session-1", keepalive = 30) {
   return { metadata: { message_type: "session_welcome" }, payload: { session: { id, keepalive_timeout_seconds: keepalive } } };
@@ -64,6 +73,16 @@ test("expired validation clears the token and reports AUTH_EXPIRED", async () =>
   assert.equal(statuses.at(-1).phase, TWITCH_PHASE.AUTH_EXPIRED);
 });
 
+test("authenticated Helix failures clear persisted bearer credentials", async () => {
+  const store = storage({ "nightshift.clientId": "client", "nightshift.token": "stale" });
+  const bridge = new TwitchBridge(store, { fetch: async () => response(401, "invalid bearer"), now: () => 2.5 });
+  await assert.rejects(() => bridge.request("/users"), /401/);
+  assert.equal(bridge.token, "");
+  assert.equal(bridge.identity, null);
+  assert.equal(store.getItem("nightshift.token"), null);
+  assert.equal(bridge.phase, TWITCH_PHASE.AUTH_EXPIRED);
+});
+
 test("EventSub welcome connects critical chat and reports optional subscription failures", async () => {
   FakeSocket.instances = [];
   const store = storage({ "nightshift.clientId": "client", "nightshift.token": "token" });
@@ -91,6 +110,153 @@ test("EventSub welcome connects critical chat and reports optional subscription 
   assert.equal(subscriptionTypes[0], "channel.chat.message");
   assert.equal(statuses.at(-1).unavailable.includes("channel.cheer"), true);
   bridge.disconnect();
+});
+
+test("critical EventSub subscription failure closes the failed socket and watchdog", async () => {
+  FakeSocket.instances = [];
+  const store = storage({ "nightshift.clientId": "client", "nightshift.token": "token" });
+  const cleared = [];
+  const fakeFetch = async (url) => {
+    if (url.endsWith("/validate")) return response(200, { user_id: "broadcaster" });
+    if (url.includes("/users?")) return response(200, { data: [{ id: "broadcaster" }] });
+    if (url.endsWith("/eventsub/subscriptions")) return response(403, "critical scope missing");
+    throw new Error(`Unexpected request ${url}`);
+  };
+  const bridge = new TwitchBridge(store, { fetch: fakeFetch, WebSocket: FakeSocket, setTimeout: () => 19, clearTimeout: id => cleared.push(id), now: () => 3.5 });
+  const connected = bridge.connect();
+  await waitTurn();
+  const failed = FakeSocket.instances[0];
+  await failed.receive(welcome("critical-failure"));
+  await assert.rejects(() => connected, /403/);
+  assert.equal(failed.closed, true);
+  assert.equal(bridge.socket, null);
+  assert.equal(bridge.keepaliveTimer, null);
+  assert.deepEqual(bridge.activeSubscriptions, []);
+  assert.equal(cleared.includes(19), true);
+});
+
+test("fresh EventSub sessions replace subscription metadata instead of accumulating", async () => {
+  FakeSocket.instances = [];
+  const fakeFetch = async url => url.endsWith("/eventsub/subscriptions") ? response(202, { data: [{ status: "enabled" }] }) : response(200, {});
+  const bridge = new TwitchBridge(storage({ "nightshift.clientId": "client", "nightshift.token": "token" }), { fetch: fakeFetch, WebSocket: FakeSocket, setTimeout: () => 1, clearTimeout: () => {}, now: () => 3.75 });
+  bridge.identity = { id: "host" };
+  const first = bridge.openSocket("wss://first.example/ws");
+  await first.receive(welcome("first"));
+  assert.equal(bridge.activeSubscriptions.length, 5);
+  const second = bridge.openSocket("wss://second.example/ws");
+  await second.receive(welcome("second"));
+  assert.equal(bridge.activeSubscriptions.length, 5);
+  assert.equal(new Set(bridge.activeSubscriptions.map(item => item.type)).size, 5);
+  bridge.disconnect();
+});
+
+test("clear during validation cancels stale work before it can open a socket", async () => {
+  FakeSocket.instances = [];
+  const validation = deferred();
+  const store = storage({ "nightshift.clientId": "client", "nightshift.token": "token" });
+  const bridge = new TwitchBridge(store, {
+    fetch: async url => {
+      if (url.endsWith("/validate")) return validation.promise;
+      throw new Error(`Stale validation unexpectedly continued to ${url}`);
+    },
+    WebSocket: FakeSocket,
+    now: () => 3.8
+  });
+  const statuses = [];
+  bridge.addEventListener("status", event => statuses.push(event.detail));
+  const connecting = bridge.connect();
+  await waitTurn();
+  bridge.clear();
+  validation.resolve(response(200, { user_id: "broadcaster" }));
+  assert.equal(await connecting, null);
+  assert.equal(FakeSocket.instances.length, 0);
+  assert.equal(bridge.phase, TWITCH_PHASE.DISCONNECTED);
+  assert.equal(bridge.token, "");
+  assert.equal(statuses.some(status => status.phase === TWITCH_PHASE.LIVE), false);
+});
+
+test("disconnect during subscription creation cannot be reversed by a stale welcome", async () => {
+  FakeSocket.instances = [];
+  const criticalSubscription = deferred();
+  const store = storage({ "nightshift.clientId": "client", "nightshift.token": "token" });
+  const fakeFetch = async url => {
+    if (url.endsWith("/validate")) return response(200, { user_id: "broadcaster" });
+    if (url.includes("/users?")) return response(200, { data: [{ id: "broadcaster" }] });
+    if (url.endsWith("/eventsub/subscriptions")) return criticalSubscription.promise;
+    throw new Error(`Unexpected request ${url}`);
+  };
+  const bridge = new TwitchBridge(store, { fetch: fakeFetch, WebSocket: FakeSocket, setTimeout: () => 1, clearTimeout: () => {}, now: () => 3.9 });
+  const statuses = [];
+  bridge.addEventListener("status", event => statuses.push(event.detail));
+  const connecting = bridge.connect();
+  await waitTurn();
+  const socket = FakeSocket.instances[0];
+  const receivingWelcome = socket.receive(welcome("slow-subscription"));
+  await waitTurn();
+  bridge.disconnect();
+  criticalSubscription.resolve(response(202, { data: [{ status: "enabled" }] }));
+  await receivingWelcome;
+  assert.equal(await connecting, null);
+  assert.equal(socket.closed, true);
+  assert.equal(bridge.socket, null);
+  assert.equal(bridge.phase, TWITCH_PHASE.DISCONNECTED);
+  assert.deepEqual(bridge.activeSubscriptions, []);
+  assert.equal(statuses.some(status => status.phase === TWITCH_PHASE.LIVE), false);
+});
+
+test("optional EventSub revocation stays live and reports degraded capability", async () => {
+  FakeSocket.instances = [];
+  const bridge = new TwitchBridge(storage({ "nightshift.clientId": "client", "nightshift.token": "token" }), {
+    fetch: async url => url.endsWith("/eventsub/subscriptions") ? response(202, { data: [{ status: "enabled" }] }) : response(200, {}),
+    WebSocket: FakeSocket,
+    setTimeout: () => 1,
+    clearTimeout: () => {},
+    now: () => 3.95
+  });
+  bridge.identity = { id: "host" };
+  const statuses = [];
+  bridge.addEventListener("status", event => statuses.push(event.detail));
+  const socket = bridge.openSocket("wss://events.example/ws");
+  await socket.receive(welcome("optional-revocation"));
+  await socket.receive({
+    metadata: { message_type: "revocation" },
+    payload: { subscription: { type: "channel.follow", status: "authorization_revoked" } }
+  });
+  const latest = statuses.at(-1);
+  assert.equal(bridge.phase, TWITCH_PHASE.LIVE);
+  assert.equal(socket.closed, false);
+  assert.equal(latest.connected, true);
+  assert.equal(latest.degraded, true);
+  assert.equal(latest.unavailable.includes("channel.follow"), true);
+  assert.equal(bridge.activeSubscriptions.some(subscription => subscription.type === "channel.follow"), false);
+  bridge.disconnect();
+});
+
+test("critical chat revocation is fatal and closes the EventSub session", async () => {
+  FakeSocket.instances = [];
+  const bridge = new TwitchBridge(storage({ "nightshift.clientId": "client", "nightshift.token": "token" }), {
+    fetch: async url => url.endsWith("/eventsub/subscriptions") ? response(202, { data: [{ status: "enabled" }] }) : response(200, {}),
+    WebSocket: FakeSocket,
+    setTimeout: () => 1,
+    clearTimeout: () => {},
+    now: () => 3.97
+  });
+  bridge.identity = { id: "host" };
+  const statuses = [];
+  bridge.addEventListener("status", event => statuses.push(event.detail));
+  const socket = bridge.openSocket("wss://events.example/ws");
+  await socket.receive(welcome("critical-revocation"));
+  await socket.receive({
+    metadata: { message_type: "revocation" },
+    payload: { subscription: { type: "channel.chat.message", status: "authorization_revoked" } }
+  });
+  const latest = statuses.at(-1);
+  assert.equal(socket.closed, true);
+  assert.equal(bridge.socket, null);
+  assert.equal(bridge.phase, TWITCH_PHASE.ERROR);
+  assert.equal(latest.connected, false);
+  assert.equal(latest.subscriptionType, "channel.chat.message");
+  assert.deepEqual(bridge.activeSubscriptions, []);
 });
 
 test("duplicate EventSub notification IDs emit a single chat event", () => {
