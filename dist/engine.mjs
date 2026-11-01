@@ -1,10 +1,29 @@
 export const ROOMS = [
-  { id:"intake", name:"Reception / Triage", code:"B1", plate:"reception-triage.png", objective:"Identify Subject 06", hint:"Search, compare, then reconstruct the torn intake record.", actions:["search-desk","open-locker","reconstruct-file"] },
-  { id:"surgery", name:"Ward 06", code:"B2", plate:"ward-corridor.png", objective:"Cross the isolation corridor", hint:"Read the room, control your noise, then breach the physical door.", actions:["inspect-gurney","listen-intercom","hide-curtain","force-door"] },
-  { id:"theatre", name:"Operating Theatre", code:"B3", plate:"operating-theatre.png", objective:"Expose the Surgeon’s history", hint:"Use light, evidence, and timing to survive the operating table.", actions:["align-lamps","play-tape","counter-warden"] },
-  { id:"generator", name:"Generator Room", code:"B4", plate:"generator-room.png", objective:"Restore emergency power", hint:"Deduce and throw the breakers in sequence 2 · 1 · 3.", actions:["breaker-1","breaker-2","breaker-3","reroute-power"] },
-  { id:"stairwell", name:"Stairwell / Exits", code:"B5", plate:"stairwell-exits.png", objective:"Decide what the truth costs", hint:"Your evidence, resources, and final route determine who escapes.", actions:["seal-warden","open-roof","open-ambulance"] }
+  { id:"intake", act:1, name:"Reception / Triage", code:"B1", plate:"reception-triage.png", objective:"Identify Subject 06", hint:"Search, compare, then reconstruct the torn intake record.", actions:["search-desk","open-locker","reconstruct-file"], cameraNodes:["lobby-wide","records-desk","locker-close"], signatureMechanic:"investigation", requiredActions:["search-desk","open-locker","reconstruct-file"], safeFallback:"records" },
+  { id:"surgery", act:2, name:"Ward 06", code:"B2", plate:"ward-corridor.png", objective:"Cross the isolation corridor", hint:"Read the room, control your noise, then breach the physical door.", actions:["inspect-gurney","listen-intercom","hide-curtain","force-door"], cameraNodes:["corridor-wide","door-approach","threshold"], signatureMechanic:"stealth", requiredActions:["inspect-gurney","listen-intercom","force-door"], safeFallback:"restore" },
+  { id:"theatre", act:3, name:"Operating Theatre", code:"B3", plate:"operating-theatre.png", objective:"Expose the Surgeon’s history", hint:"Use light, evidence, and timing to survive the operating table.", actions:["align-lamps","play-tape","counter-warden"], cameraNodes:["theatre-wide","lamp-array","restraint-table"], signatureMechanic:"threat-counterplay", requiredActions:["align-lamps","play-tape","counter-warden"], safeFallback:"lights" },
+  { id:"generator", act:4, name:"Generator Room", code:"B4", plate:"generator-room.png", objective:"Restore emergency power", hint:"Deduce and throw the breakers in sequence 2 · 1 · 3.", actions:["breaker-1","breaker-2","breaker-3","reroute-power"], cameraNodes:["generator-wide","breaker-close","service-stairs"], signatureMechanic:"sequence-puzzle", requiredActions:["breaker-2","breaker-1","breaker-3","reroute-power"], safeFallback:"charge" },
+  { id:"stairwell", act:5, name:"Stairwell / Exits", code:"B5", plate:"stairwell-exits.png", objective:"Decide what the truth costs", hint:"Your evidence, resources, and final route determine who escapes.", actions:["seal-warden","open-roof","open-ambulance"], cameraNodes:["landing-wide","roof-exit","ambulance-tunnel"], signatureMechanic:"earned-final-choice", requiredActions:[], safeFallback:"roof" }
 ];
+
+export const PACING_TARGETS = Object.freeze({
+  openingObjectiveMs:15000,
+  firstInteractionMs:30000,
+  firstConsequenceMs:75000,
+  rehearsalSectionMinMs:10*60*1000,
+  rehearsalSectionMaxMs:15*60*1000,
+  fullCampaignMinMs:20*60*1000,
+  fullCampaignMaxMs:35*60*1000,
+  maxUnintentionalIdleMs:25000
+});
+
+export const MECHANIC_KINDS = Object.freeze({
+  "search-desk":"investigation","open-locker":"resource","reconstruct-file":"deduction",
+  "inspect-gurney":"investigation","listen-intercom":"deduction","hide-curtain":"stealth","force-door":"environment",
+  "align-lamps":"environment","play-tape":"narrative","counter-warden":"threat-counterplay",
+  "breaker-1":"sequence-puzzle","breaker-2":"sequence-puzzle","breaker-3":"sequence-puzzle","reroute-power":"resource-management",
+  "seal-warden":"narrative-choice","open-roof":"route-choice","open-ambulance":"route-choice"
+});
 
 const VOTES = {
   intake:[
@@ -36,6 +55,7 @@ const VOTES = {
 
 export function roomFor(state){ return ROOMS[state.roomIndex] || ROOMS[0]; }
 export function optionsFor(state){ return VOTES[roomFor(state).id]; }
+function initialRoomStates(){ return Object.fromEntries(ROOMS.map((room,index)=>[room.id,{visited:index===0,completed:false,enteredAt:null,exitedAt:null,actions:[],cameraNode:room.cameraNodes[0],visitedNodes:[room.cameraNodes[0]],world:{}}])); }
 export function createState(now=Date.now()){
   return {
     sessionId:`ward-${now}`,version:1,status:"briefing",mode:"SIMULATED",roomIndex:0,
@@ -47,14 +67,45 @@ export function createState(now=Date.now()){
     warden:{level:0,visible:false,contained:false,phase:"dormant"},guardians:50,chaos:50,
     energy:{guardian:45,chaos:45},cooldowns:{guardian:0,chaos:0},members:{},
     votes:{},voters:{},winner:null,ending:null,shield:false,recent:[],seenEventIds:[],
+    act:1,camera:{nodeId:ROOMS[0].cameraNodes[0],moving:false,history:[ROOMS[0].cameraNodes[0]]},rooms:initialRoomStates(),
+    campaign:{meaningfulActions:0,mechanics:[],decisions:[],voteResolutions:0,zeroChatFallbacks:0,lastMeaningfulAt:now,elapsedMs:0,checkpoint:null},
+    endingRecap:null,voteResolutionSource:null,
     settings:{reducedMotion:false,lowEffects:false,highContrast:false,hideNames:false,jumpscares:true}
   };
 }
 
+function ensureCampaignState(state){
+  state.rooms ||= initialRoomStates(); state.campaign ||= {meaningfulActions:0,mechanics:[],decisions:[],voteResolutions:0,zeroChatFallbacks:0,lastMeaningfulAt:Date.now(),elapsedMs:0,checkpoint:null};
+  state.camera ||= {nodeId:roomFor(state).cameraNodes[0],moving:false,history:[roomFor(state).cameraNodes[0]]}; state.act ||= roomFor(state).act; return state;
+}
+
+export function enterCameraNode(state,nodeId){
+  ensureCampaignState(state); const room=roomFor(state); if(!room.cameraNodes.includes(nodeId)) return {state,accepted:false,reason:"Camera node is not connected to this room"};
+  const roomState=state.rooms[room.id]; roomState.cameraNode=nodeId; if(!roomState.visitedNodes.includes(nodeId))roomState.visitedNodes.push(nodeId); state.camera.nodeId=nodeId; state.camera.history.push(nodeId); state.camera.history=state.camera.history.slice(-24); state.version++;
+  log(state,"camera","STREAMER",`${room.name}: ${nodeId}`); return {state,accepted:true,nodeId};
+}
+
+export function campaignProgress(state,now=Date.now()){
+  ensureCampaignState(state); const completed=ROOMS.filter(room=>state.rooms[room.id]?.completed).length; const mechanics=[...new Set(state.campaign.mechanics)];
+  return {act:state.act,roomId:roomFor(state).id,completedRooms:completed,totalRooms:ROOMS.length,meaningfulActions:state.campaign.meaningfulActions,mechanics,elapsedMs:state.startedAt!==null?Math.max(0,now-state.startedAt):0,measured:false};
+}
+
+export function checkpointState(state,now=Date.now()){
+  ensureCampaignState(state); const snapshot=structuredClone(state); snapshot.campaign.checkpoint=null; state.campaign.checkpoint={at:now,roomId:roomFor(state).id,state:snapshot}; return state.campaign.checkpoint;
+}
+
+export function restoreCheckpoint(state){
+  ensureCampaignState(state); const checkpoint=state.campaign.checkpoint; if(!checkpoint?.state)return {state,restored:false,reason:"No checkpoint"}; const restored=structuredClone(checkpoint.state); restored.campaign.checkpoint=checkpoint; restored.version=(state.version||0)+1; return {state:restored,restored:true};
+}
+
 function log(state,type,actor,text){ state.recent.unshift({type,actor,text,at:Date.now()}); state.recent=state.recent.slice(0,18); }
 function clamp(n,min=0,max=100){ return Math.max(min,Math.min(max,n)); }
-function resetVote(state,now=Date.now(),duration=30000){ state.votes=Object.fromEntries(optionsFor(state).map(o=>[o.id,0])); state.voters={}; state.winner=null; state.roundEndsAt=now+duration; state.status="voting"; }
-export function startEpisode(state,now=Date.now(),duration=30000){ state.version++; state.startedAt=now; state.roomIndex=0; state.round=1; state.ending=null; resetVote(state,now,duration); log(state,"system","NIGHTSHIFT","Episode armed: Reception signal acquired"); return state; }
+function resetVote(state,now=Date.now(),duration=30000){ state.votes=Object.fromEntries(optionsFor(state).map(o=>[o.id,0])); state.voters={}; state.winner=null; state.voteResolutionSource=null; state.roundEndsAt=now+duration; state.status="voting"; }
+export function startEpisode(state,now=Date.now(),duration=30000){
+  ensureCampaignState(state); state.version++; state.startedAt=now; state.roomIndex=0; state.round=1; state.act=1; state.ending=null; state.endingRecap=null; state.rooms=initialRoomStates(); state.rooms.intake.enteredAt=now;
+  state.camera={nodeId:ROOMS[0].cameraNodes[0],moving:false,history:[ROOMS[0].cameraNodes[0]]}; state.campaign={meaningfulActions:0,mechanics:[],decisions:[],voteResolutions:0,zeroChatFallbacks:0,lastMeaningfulAt:now,elapsedMs:0,checkpoint:null};
+  resetVote(state,now,duration); log(state,"system","NIGHTSHIFT","Episode armed: Reception signal acquired"); return state;
+}
 export function pauseEpisode(state){ if(state.status!=="ended") state.status="paused"; return state; }
 export function resumeEpisode(state,now=Date.now()){ if(state.status==="paused") resetVote(state,now,30000); return state; }
 export function stopEpisode(state){ state.version++; state.status="briefing"; state.roundEndsAt=0; return state; }
@@ -86,15 +137,47 @@ export function applyEffect(state,id){
   if(id==="overload"){ state.power-=25; state.health-=state.shield?0:18; state.shield=false; state.danger+=18; }
   state.health=clamp(state.health); state.danger=clamp(state.danger); state.power=clamp(state.power);
 }
-export function resolveVote(state){
+export function resolveVote(state,now=Date.now()){
   if(state.status!=="voting") return {state,resolved:false};
-  const result=tally(state); state.winner=result.option; state.status="consequence"; applyEffect(state,result.option.id);
-  log(state,"result","CHAT",`${result.option.label} wins with ${result.count} vote${result.count===1?"":"s"}`); return {state,resolved:true,winner:result.option};
+  ensureCampaignState(state); const total=Object.values(state.votes).reduce((sum,count)=>sum+count,0); let result=tally(state);
+  if(total===0){const safeId=roomFor(state).safeFallback;const safeOption=optionsFor(state).find(option=>option.id===safeId)||result.option;result={option:safeOption,count:0,i:0};state.voteResolutionSource="ZERO_CHAT_FALLBACK";state.campaign.zeroChatFallbacks++;}
+  else state.voteResolutionSource="AUDIENCE";
+  state.winner=result.option; state.status="consequence"; applyEffect(state,result.option.id); state.campaign.voteResolutions++; state.campaign.lastMeaningfulAt=now;
+  log(state,"result",state.voteResolutionSource==="AUDIENCE"?"CHAT":"DIRECTOR",total===0?`${result.option.label} selected as the announced zero-chat fallback`:`${result.option.label} wins with ${result.count} vote${result.count===1?"":"s"}`); return {state,resolved:true,winner:result.option,source:state.voteResolutionSource};
+}
+export function roomReadiness(state){
+  ensureCampaignState(state); const room=roomFor(state),actions=state.rooms[room.id]?.actions||[]; const missing=room.requiredActions.filter(action=>!actions.includes(action));
+  const criticalMissing=room.id==="surgery"&&!state.doors.theatre?["open-theatre-route"]:room.id==="generator"&&!state.doors.exit?["restore-exit-power"]:[];
+  return {ready:missing.length===0&&criticalMissing.length===0,missing:[...new Set([...missing,...criticalMissing])]};
 }
 export function advanceRoom(state,now=Date.now(),duration=30000){
-  if(state.roomIndex>=ROOMS.length-1) return finishEpisode(state,state.winner?.id||"roof");
-  state.roomIndex++; state.round++; state.version++; resetVote(state,now,duration); log(state,"system","NIGHTSHIFT",`${roomFor(state).name} entered`); return state;
+  ensureCampaignState(state); if(state.roomIndex>=ROOMS.length-1) return finishEpisode(state,state.winner?.id||"roof");
+  const current=roomFor(state),readiness=roomReadiness(state),currentState=state.rooms[current.id]; currentState.completed=readiness.ready; currentState.exitedAt=now;
+  if(!readiness.ready)log(state,"progress-warning","DIRECTOR",`Continuing with fallback support; missed: ${readiness.missing.join(", ")}`);
+  state.roomIndex++; state.round++; state.version++; const next=roomFor(state),nextState=state.rooms[next.id]; nextState.visited=true; nextState.enteredAt=now; state.act=next.act; state.camera.nodeId=next.cameraNodes[0]; state.camera.history.push(next.cameraNodes[0]);
+  resetVote(state,now,duration); checkpointState(state,now); log(state,"system","NIGHTSHIFT",`${next.name} entered`); return state;
 }
+function recordPlayerProgress(state,action){
+  ensureCampaignState(state); const room=roomFor(state),roomState=state.rooms[room.id],first=!roomState.actions.includes(action); if(first)roomState.actions.push(action);
+  const mechanic=MECHANIC_KINDS[action]||"interaction"; if(!state.campaign.mechanics.includes(mechanic))state.campaign.mechanics.push(mechanic); if(first)state.campaign.meaningfulActions++;
+  if(["reconstruct-file","force-door","counter-warden","reroute-power","seal-warden","open-roof","open-ambulance"].includes(action))state.campaign.decisions.push({act:state.act,roomId:room.id,action,outcome:state.lastOutcome});
+  roomState.world={doors:structuredClone(state.doors),power:state.power,danger:state.danger,wardenPhase:state.warden.phase}; state.campaign.lastMeaningfulAt=Date.now(); state.version++;
+}
+
+export function combineInventoryItems(state,itemA,itemB){
+  ensureCampaignState(state); const pair=[itemA,itemB].sort(); const sedativePair=["Sedative ampoule","Trauma kit"].sort();
+  if(pair[0]===sedativePair[0]&&pair[1]===sedativePair[1]&&state.inventory.includes(itemA)&&state.inventory.includes(itemB)){
+    state.inventory=state.inventory.filter(item=>item!==itemA&&item!==itemB); addUnique(state.inventory,"Stabilized trauma kit"); state.campaign.mechanics.includes("inventory-combination")||state.campaign.mechanics.push("inventory-combination"); state.campaign.meaningfulActions++; state.campaign.lastMeaningfulAt=Date.now(); state.version++; state.lastOutcome="You combine the sedative and trauma kit into one emergency treatment."; log(state,"craft","STREAMER",state.lastOutcome); return {state,accepted:true,item:"Stabilized trauma kit"};
+  }
+  return {state,accepted:false,reason:"Those items cannot be combined"};
+}
+
+export function useInventoryItem(state,item){
+  ensureCampaignState(state); if(!state.inventory.includes(item))return {state,accepted:false,reason:"Item is not in inventory"}; let consumed=true;
+  if(item==="Trauma kit")state.health=clamp(state.health+25); else if(item==="Sedative ampoule"){state.player.fear=clamp(state.player.fear-25);state.danger=clamp(state.danger-5);} else if(item==="Stabilized trauma kit"){state.health=clamp(state.health+40);state.player.fear=clamp(state.player.fear-20);} else if(item==="Subscriber flare"){state.danger=clamp(state.danger-18);state.warden.visible=false;state.warden.phase="repelled";} else if(item==="Audience shield"){state.shield=true;} else consumed=false;
+  if(!consumed)return {state,accepted:false,reason:"Item must be used at a matching world object"}; state.inventory.splice(state.inventory.indexOf(item),1); state.campaign.mechanics.includes("inventory-use")||state.campaign.mechanics.push("inventory-use"); state.campaign.meaningfulActions++; state.campaign.lastMeaningfulAt=Date.now(); state.version++; state.lastOutcome=`${item} used`; log(state,"item","STREAMER",state.lastOutcome); return {state,accepted:true,item};
+}
+
 export function playerAction(state,action){
   state.player ||= {fear:12,noise:0,hidden:false,focus:100,lastAction:null,combo:0}; state.story ||= {subjectIdentified:false,confessionDecoded:false,wardenBound:false};
   let outcome=""; state.player.hidden=false;
@@ -115,9 +198,8 @@ export function playerAction(state,action){
   }
   if(action==="reroute-power"){if(state.props.breakerProgress.length===3){state.power=100;state.danger=clamp(state.danger-8);outcome="Power rerouted from containment to the escape network.";}else{state.danger=clamp(state.danger+10);outcome="The dead grid backfeeds. Complete the breaker sequence first.";}}
   if(action==="seal-warden"){if(state.inventory.includes("Binding sigil")&&state.evidence.length>=4){state.story.wardenBound=true;state.warden.contained=true;state.danger=10;outcome="The evidence names the victim. The sigil seals the Warden without sacrificing Mara.";}else{state.danger=clamp(state.danger+18);outcome="You cannot complete the seal without the truth and the sigil.";}}
-  if(action==="open-roof"||action==="open-ambulance") finishEpisode(state,action==="open-roof"?"roof":"ambulance");
   state.player.lastAction=action; state.player.fear=clamp(state.player.fear+(state.danger>70?3:-1)); state.player.noise=clamp(state.player.noise-2); state.lastOutcome=outcome||action.replaceAll("-"," ");
-  log(state,"action","STREAMER",state.lastOutcome); return state;
+  recordPlayerProgress(state,action); log(state,"action","STREAMER",state.lastOutcome); if(action==="open-roof"||action==="open-ambulance")finishEpisode(state,action==="open-roof"?"roof":"ambulance"); return state;
 }
 export function joinFaction(state,user,faction){ if(!["guardian","chaos"].includes(faction)) return false; state.members[String(user).toLowerCase()]=faction; log(state,"faction",user,`joined ${faction}`); return true; }
 export function usePower(state,user,power){
@@ -141,10 +223,16 @@ export function applyChannelEvent(state,event){
   if(event.type==="raid"){state.energy.guardian=100;state.energy.chaos=100;state.warden.visible=true;}
   log(state,"event",event.user||"TWITCH",event.type); return {state,accepted:true};
 }
-export function tick(state,now=Date.now()){ if(state.status==="voting"&&now>=state.roundEndsAt) resolveVote(state); return state; }
+export function tick(state,now=Date.now()){
+  ensureCampaignState(state); state.campaign.elapsedMs=state.startedAt!==null?Math.max(0,now-state.startedAt):0; state.campaign.needsPacingBeat=state.status!=="paused"&&state.status!=="ended"&&now-state.campaign.lastMeaningfulAt>PACING_TARGETS.maxUnintentionalIdleMs;
+  if(state.status==="voting"&&now>=state.roundEndsAt) resolveVote(state,now); return state;
+}
 export function finishEpisode(state,choice="roof"){
-  const strong=state.evidence.length>=3&&state.power>=50; const doomed=state.health<=0||state.danger>=95;
-  state.ending=doomed?"THE WARD CLAIMS ANOTHER":choice==="contain"||state.winner?.id==="contain"?"THE LAST NIGHTSHIFT":strong?"DAWN BREAKS OVER WARD 06":choice==="ambulance"?"THE TUNNEL REMEMBERS":"ESCAPE, WITHOUT ANSWERS";
-  state.status="ended"; state.warden.contained=strong&&!doomed; log(state,"ending","NIGHTSHIFT",state.ending); return state;
+  ensureCampaignState(state); const strong=state.evidence.length>=3&&state.power>=50,truth=state.story.confessionDecoded&&state.evidence.length>=4,doomed=state.health<=0||state.danger>=95;
+  const route=choice==="contain"||state.winner?.id==="contain"?"contain":choice;
+  state.ending=doomed?"THE WARD CLAIMS ANOTHER":state.story.wardenBound?"MARA WALKS INTO DAWN":truth&&route==="roof"?"THE TRUTH LEAVES WARD 06":route==="contain"?"THE LAST NIGHTSHIFT":route==="ambulance"?"THE TUNNEL REMEMBERS":strong?"DAWN BREAKS OVER WARD 06":"ESCAPE, WITHOUT ANSWERS";
+  state.status="ended"; state.warden.contained=(state.story.wardenBound||strong)&&!doomed; state.campaign.elapsedMs=state.startedAt!==null?Math.max(0,Date.now()-state.startedAt):state.campaign.elapsedMs;
+  state.endingRecap={ending:state.ending,route,evidence:state.evidence.length,subjectIdentified:state.story.subjectIdentified,confessionDecoded:state.story.confessionDecoded,wardenBound:state.story.wardenBound,streamerDecisions:state.campaign.decisions.slice(-6),audienceResolutions:state.campaign.voteResolutions,zeroChatFallbacks:state.campaign.zeroChatFallbacks,mechanics:[...state.campaign.mechanics],elapsedMs:state.campaign.elapsedMs,durationMeasured:false};
+  const currentState=state.rooms[roomFor(state).id]; if(currentState){currentState.completed=true;currentState.exitedAt=Date.now();} log(state,"ending","NIGHTSHIFT",state.ending); return state;
 }
 export function publicState(state){ const copy=structuredClone(state); if(copy.settings.hideNames) copy.recent=copy.recent.map(e=>({...e,actor:e.actor==="NIGHTSHIFT"||e.actor==="CHAT"?e.actor:"VIEWER"})); return copy; }
