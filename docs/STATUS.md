@@ -26,12 +26,12 @@ Status terms:
 | Responsive broadcast UI | VERIFIED LOCAL | The visual matrix covers gameplay from 1920×1080 through 390×844, desktop/phone dashboard, Warden/door fixtures, overlay, and OS reduced motion with no current geometry or console failures. |
 | Accessibility and safety hooks | VERIFIED LOCAL / UNVERIFIED NVDA | Eleven browser gates cover keyboard-only intro/gameplay/control-room operation, modal containment, 3px dual-contrast focus, the Chromium accessibility tree, computed normal/high-contrast color pairs, and 200% zoom-equivalent gameplay/control-room reflow. NVDA remains manual and no WCAG-conformance claim is made. |
 | Procedural audio and captions | IMPLEMENTED | Gesture-gated five-room ambience, transition/Warden/UI cues, master volume/mute, reduced-effects variants, cleanup, and caption events pass eight unit tests. A manual audible Chrome/OBS recording check remains. |
-| Twitch OAuth and EventSub | IMPLEMENTED / UNVERIFIED EXTERNAL | OAuth state validation, Helix identity, chat and optional event subscriptions, dedupe, keepalive watchdog, reconnect handoff, backoff, and re-subscription pass lifecycle tests. Broadcaster authorization and a second-viewer command on the final public callback remain. |
+| Twitch OAuth and EventSub | IMPLEMENTED / UNVERIFIED EXTERNAL | OAuth state validation, automatic callback resume, Helix identity, chat and optional event subscriptions, dedupe, keepalive watchdog, reconnect handoff, backoff, and re-subscription pass lifecycle tests. The public callback now exists; broadcaster authorization and a second-viewer command still remain. |
 | Clearly labeled rehearsal | VERIFIED LOCAL | Fixtures say **MODE: REHEARSAL** and disconnected normal play says **MODE: SIMULATED**. The local harness rejects an unverified live label. |
 | Original asset provenance | DOCUMENTED | V3 source PNGs, purpose, prompt constraints, alpha verification, and public derivatives are recorded in the asset manifest. |
 | Optimized public payload | VERIFIED LOCAL | The app references verified WebP derivatives and locally bundled open-licensed fonts; release audit passes at 11.6 MiB. Lossless art sources remain outside the deployable directory. |
 | Browser cold load and soak | VERIFIED LOCAL / NATIVE OBS PENDING | Hidden V3 scene art is deferred on Reception; cold transfer is 1.006 MiB. The latest eight measured full-campaign cycles pass with a 0.23 MiB post-GC heap delta, zero final DOM/listener growth, bounded relay posts, and clean teardown. A 30-minute native Chrome+OBS soak remains. |
-| Public logged-out deployment | UNVERIFIED EXTERNAL | Static hosting configuration, security headers, server, and release audit exist. No final public HTTPS URL has been verified logged out. |
+| Public logged-out deployment | VERIFIED EXTERNAL | The [production demo](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/) returned HTTP 200 without cookies or login copy. All 23 deployable files plus dashboard, overlay, and mirror entry URLs passed a 26-request public matrix; core deployed module hashes matched the pushed source. Host-specific CSP remains documented separately. |
 | Human campaign duration | NOT MEASURED | Engine timing is rehearsal telemetry only. No 20–35 minute or other duration claim is valid until complete newcomer runs are observed and recorded. |
 | Multi-streamer hosted authority | NOT IMPLEMENTED | The entry is intentionally browser-authoritative. A production service would require server-side authorization-code OAuth, encrypted refresh storage, signed sessions, and centralized state. |
 
@@ -63,14 +63,13 @@ Status terms:
 - a newcomer understands the game or completes it within a target duration;
 - the experience is screen-reader conformant (NVDA is still untested);
 - native 30-minute Chrome+OBS memory, frame pacing, audio, GPU, and network behavior are production-ready;
-- a public URL, repository, and video are available logged out.
+- a public repository and video are available logged out.
 
 ## Release proof still required
 
-1. Deploy the current dist directory to public HTTPS and verify it logged out.
-2. Register the exact OAuth callback and run the two-account Twitch matrix in the Twitch verification guide.
-3. Capture real OBS alpha at both target resolutions and confirm BroadcastChannel state propagation.
-4. Listen to each room/cue in Chrome and OBS; repeat with mute and reduced effects to verify captions.
-5. Complete NVDA, audible-mix, and a 30-minute native Chrome+OBS check; the automated keyboard, zoom/reflow, computed-contrast, and eight-cycle headless-soak gates now pass.
-6. Run independent newcomer playtests and publish observed timing and comprehension notes.
-7. Record and publish the final demo video without presenting rehearsal as live proof.
+1. Register the exact OAuth callback and run the two-account Twitch matrix in the Twitch verification guide.
+2. Capture real OBS alpha at both target resolutions and confirm BroadcastChannel state propagation.
+3. Listen to each room/cue in Chrome and OBS; repeat with mute and reduced effects to verify captions.
+4. Complete NVDA, audible-mix, and a 30-minute native Chrome+OBS check; the automated keyboard, zoom/reflow, computed-contrast, and eight-cycle headless-soak gates now pass.
+5. Run independent newcomer playtests and publish observed timing and comprehension notes.
+6. Record and publish the final demo video without presenting rehearsal as live proof.

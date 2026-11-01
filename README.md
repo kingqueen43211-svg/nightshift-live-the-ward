@@ -2,6 +2,8 @@
 
 NightShift Live turns a Twitch horror stream into a live game show. Viewers vote in chat, split into Guardians and Chaos Crew, and change a cinematic hospital survival sequence in real time.
 
+**Public demo:** [Launch NightShift Live: The Ward](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/)
+
 ## What is working
 
 - A complete 3-screen web experience: playable broadcast view, streamer control room, and transparent OBS overlay preview.
@@ -50,7 +52,7 @@ npm run qa:performance
 npm run release:audit
 ```
 
-Current local release-candidate evidence: 64/64 automated tests, 28/28 visual states (including all 15 camera compositions), 8/8 browser campaign gates, 5/5 browser integrity gates, 16/16 two-process relay gates, 11/11 keyboard/contrast/200%-reflow gates, and 10/10 cold-load/performance-soak gates. The latest eight-cycle forced-GC run finished with no final DOM/listener growth, a 0.23 MiB heap delta, and zero captured browser-console errors; the public `dist/` payload remains 11.6 MiB. These checks do not replace the still-pending real Twitch, native OBS, NVDA, audible-mix, public-HTTPS, and human-playtest gates.
+Current local release-candidate evidence: 64/64 automated tests, 28/28 visual states (including all 15 camera compositions), 8/8 browser campaign gates, 5/5 browser integrity gates, 16/16 two-process relay gates, 11/11 keyboard/contrast/200%-reflow gates, and 10/10 cold-load/performance-soak gates. The latest eight-cycle forced-GC run finished with no final DOM/listener growth, a 0.23 MiB heap delta, and zero captured browser-console errors; the public `dist/` payload remains 11.6 MiB. A stateless public probe also returned 200 for every deployable file plus gameplay, dashboard, overlay, and mirror entry URLs. These checks do not replace the still-pending real Twitch, native OBS, NVDA, audible-mix, and human-playtest gates.
 
 Before sharing the entry, follow the logged-out hosting, OAuth callback, OBS alpha, and rollback steps in [`docs/PUBLIC_DEPLOYMENT.md`](docs/PUBLIC_DEPLOYMENT.md).
 
