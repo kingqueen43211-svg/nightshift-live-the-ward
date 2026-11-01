@@ -55,7 +55,7 @@ const VOTES = {
 
 export function roomFor(state){ return ROOMS[state.roomIndex] || ROOMS[0]; }
 export function optionsFor(state){ return VOTES[roomFor(state).id]; }
-function initialRoomStates(){ return Object.fromEntries(ROOMS.map((room,index)=>[room.id,{visited:index===0,completed:false,enteredAt:null,exitedAt:null,actions:[],cameraNode:room.cameraNodes[0],visitedNodes:[room.cameraNodes[0]],world:{}}])); }
+function initialRoomStates(){ return Object.fromEntries(ROOMS.map((room,index)=>[room.id,{visited:index===0,completed:false,enteredAt:null,exitedAt:null,actions:[],attempts:[],cameraNode:room.cameraNodes[0],visitedNodes:[room.cameraNodes[0]],world:{}}])); }
 export function createState(now=Date.now()){
   return {
     sessionId:`ward-${now}`,version:1,status:"briefing",mode:"SIMULATED",roomIndex:0,
@@ -63,19 +63,19 @@ export function createState(now=Date.now()){
     inventory:[],evidence:[],doors:{isolation:false,theatre:false,exit:false},
     props:{desk:false,locker:false,lamps:false,tape:false,breakers:[false,false,false],breakerProgress:[]},
     player:{fear:12,noise:0,hidden:false,focus:100,lastAction:null,combo:0},
-    story:{subjectIdentified:false,confessionDecoded:false,wardenBound:false},lastOutcome:"",
+    story:{subjectIdentified:false,confessionDecoded:false,wardenBound:false},lastOutcome:"",lastActionAccepted:null,lastAdvanceAccepted:null,
     warden:{level:0,visible:false,contained:false,phase:"dormant"},guardians:50,chaos:50,
     energy:{guardian:45,chaos:45},cooldowns:{guardian:0,chaos:0},members:{},
     votes:{},voters:{},winner:null,ending:null,shield:false,recent:[],seenEventIds:[],
     act:1,camera:{nodeId:ROOMS[0].cameraNodes[0],moving:false,history:[ROOMS[0].cameraNodes[0]]},rooms:initialRoomStates(),
-    campaign:{meaningfulActions:0,mechanics:[],decisions:[],voteResolutions:0,zeroChatFallbacks:0,lastMeaningfulAt:now,elapsedMs:0,checkpoint:null},
+    campaign:{meaningfulActions:0,mechanics:[],decisions:[],voteResolutions:0,zeroChatFallbacks:0,fallbackRecoveries:0,lastMeaningfulAt:now,elapsedMs:0,checkpoint:null},
     endingRecap:null,voteResolutionSource:null,
     settings:{reducedMotion:false,lowEffects:false,highContrast:false,hideNames:false,jumpscares:true}
   };
 }
 
 function ensureCampaignState(state){
-  state.rooms ||= initialRoomStates(); state.campaign ||= {meaningfulActions:0,mechanics:[],decisions:[],voteResolutions:0,zeroChatFallbacks:0,lastMeaningfulAt:Date.now(),elapsedMs:0,checkpoint:null};
+  state.rooms ||= initialRoomStates(); state.campaign ||= {meaningfulActions:0,mechanics:[],decisions:[],voteResolutions:0,zeroChatFallbacks:0,fallbackRecoveries:0,lastMeaningfulAt:Date.now(),elapsedMs:0,checkpoint:null}; state.campaign.fallbackRecoveries??=0;
   state.camera ||= {nodeId:roomFor(state).cameraNodes[0],moving:false,history:[roomFor(state).cameraNodes[0]]}; state.act ||= roomFor(state).act; return state;
 }
 
@@ -102,8 +102,8 @@ function log(state,type,actor,text){ state.recent.unshift({type,actor,text,at:Da
 function clamp(n,min=0,max=100){ return Math.max(min,Math.min(max,n)); }
 function resetVote(state,now=Date.now(),duration=30000){ state.votes=Object.fromEntries(optionsFor(state).map(o=>[o.id,0])); state.voters={}; state.winner=null; state.voteResolutionSource=null; state.roundEndsAt=now+duration; state.status="voting"; }
 export function startEpisode(state,now=Date.now(),duration=30000){
-  ensureCampaignState(state); state.version++; state.startedAt=now; state.roomIndex=0; state.round=1; state.act=1; state.ending=null; state.endingRecap=null; state.rooms=initialRoomStates(); state.rooms.intake.enteredAt=now;
-  state.camera={nodeId:ROOMS[0].cameraNodes[0],moving:false,history:[ROOMS[0].cameraNodes[0]]}; state.campaign={meaningfulActions:0,mechanics:[],decisions:[],voteResolutions:0,zeroChatFallbacks:0,lastMeaningfulAt:now,elapsedMs:0,checkpoint:null};
+  const previousVersion=Number.isFinite(state.version)?state.version:0, preservedMode=state.mode||"SIMULATED", preservedSettings=structuredClone(state.settings||{}), fresh=createState(now);
+  for(const key of Object.keys(state))delete state[key]; Object.assign(state,fresh); state.version=previousVersion+1; state.mode=preservedMode; state.settings={...fresh.settings,...preservedSettings}; state.startedAt=now; state.rooms.intake.enteredAt=now;
   resetVote(state,now,duration); log(state,"system","NIGHTSHIFT","Episode armed: Reception signal acquired"); return state;
 }
 export function pauseEpisode(state){ if(state.status!=="ended") state.status="paused"; return state; }
@@ -147,21 +147,29 @@ export function resolveVote(state,now=Date.now()){
 }
 export function roomReadiness(state){
   ensureCampaignState(state); const room=roomFor(state),actions=state.rooms[room.id]?.actions||[]; const missing=room.requiredActions.filter(action=>!actions.includes(action));
-  const criticalMissing=room.id==="surgery"&&!state.doors.theatre?["open-theatre-route"]:room.id==="generator"&&!state.doors.exit?["restore-exit-power"]:[];
+  const criticalMissing=[];
+  if(room.id==="intake"&&!state.story.subjectIdentified)criticalMissing.push("identify-subject-06");
+  if(room.id==="surgery"&&!state.doors.theatre)criticalMissing.push("open-theatre-route");
+  if(room.id==="theatre"&&!state.story.confessionDecoded)criticalMissing.push("decode-confession");
+  if(room.id==="theatre"&&!state.inventory.includes("Binding sigil"))criticalMissing.push("survive-warden-counter");
+  if(room.id==="generator"&&state.props.breakerProgress.join("-")!=="2-1-3")criticalMissing.push("complete-breaker-sequence");
+  if(room.id==="generator"&&!state.doors.exit)criticalMissing.push("restore-exit-power");
   return {ready:missing.length===0&&criticalMissing.length===0,missing:[...new Set([...missing,...criticalMissing])]};
 }
 export function advanceRoom(state,now=Date.now(),duration=30000){
-  ensureCampaignState(state); if(state.roomIndex>=ROOMS.length-1) return finishEpisode(state,state.winner?.id||"roof");
+  ensureCampaignState(state); state.lastAdvanceAccepted=false;
+  if(state.status!=="consequence"){state.lastOutcome=state.status==="ended"?"This episode has already ended.":"Resolve the current audience vote before advancing.";return state;}
+  if(state.roomIndex>=ROOMS.length-1){if(!state.doors.exit){state.lastOutcome="The ending cannot resolve until the emergency exit network is powered.";return state;}state.lastAdvanceAccepted=true;return finishEpisode(state,state.winner?.id||"roof");}
   const current=roomFor(state),readiness=roomReadiness(state),currentState=state.rooms[current.id]; currentState.completed=readiness.ready; currentState.exitedAt=now;
   if(!readiness.ready)log(state,"progress-warning","DIRECTOR",`Continuing with fallback support; missed: ${readiness.missing.join(", ")}`);
+  if(current.id==="generator"&&!state.doors.exit){state.doors.exit=true;state.power=Math.max(35,state.power);state.danger=clamp(state.danger+12);addUnique(state.inventory,"Emergency exit bypass");state.campaign.fallbackRecoveries++;log(state,"director-recovery","DIRECTOR","Emergency bypass engaged so the campaign cannot softlock; danger increased.");}
   state.roomIndex++; state.round++; state.version++; const next=roomFor(state),nextState=state.rooms[next.id]; nextState.visited=true; nextState.enteredAt=now; state.act=next.act; state.camera.nodeId=next.cameraNodes[0]; state.camera.history.push(next.cameraNodes[0]);
-  resetVote(state,now,duration); checkpointState(state,now); log(state,"system","NIGHTSHIFT",`${next.name} entered`); return state;
+  state.lastAdvanceAccepted=true; resetVote(state,now,duration); checkpointState(state,now); log(state,"system","NIGHTSHIFT",`${next.name} entered`); return state;
 }
-function recordPlayerProgress(state,action){
-  ensureCampaignState(state); const room=roomFor(state),roomState=state.rooms[room.id],first=!roomState.actions.includes(action); if(first)roomState.actions.push(action);
-  const mechanic=MECHANIC_KINDS[action]||"interaction"; if(!state.campaign.mechanics.includes(mechanic))state.campaign.mechanics.push(mechanic); if(first)state.campaign.meaningfulActions++;
-  if(["reconstruct-file","force-door","counter-warden","reroute-power","seal-warden","open-roof","open-ambulance"].includes(action))state.campaign.decisions.push({act:state.act,roomId:room.id,action,outcome:state.lastOutcome});
-  roomState.world={doors:structuredClone(state.doors),power:state.power,danger:state.danger,wardenPhase:state.warden.phase}; state.campaign.lastMeaningfulAt=Date.now(); state.version++;
+function recordPlayerProgress(state,action,accepted){
+  ensureCampaignState(state); const room=roomFor(state),roomState=state.rooms[room.id]; roomState.attempts||=[]; roomState.attempts.push({action,accepted,outcome:state.lastOutcome}); roomState.attempts=roomState.attempts.slice(-32);
+  if(accepted){const first=!roomState.actions.includes(action);if(first)roomState.actions.push(action);const mechanic=MECHANIC_KINDS[action]||"interaction";if(!state.campaign.mechanics.includes(mechanic))state.campaign.mechanics.push(mechanic);if(first)state.campaign.meaningfulActions++;if(["reconstruct-file","force-door","counter-warden","reroute-power","seal-warden","open-roof","open-ambulance"].includes(action))state.campaign.decisions.push({act:state.act,roomId:room.id,action,outcome:state.lastOutcome});state.campaign.lastMeaningfulAt=Date.now();}
+  roomState.world={doors:structuredClone(state.doors),power:state.power,danger:state.danger,wardenPhase:state.warden.phase}; state.version++;
 }
 
 export function combineInventoryItems(state,itemA,itemB){
@@ -180,26 +188,32 @@ export function useInventoryItem(state,item){
 
 export function playerAction(state,action){
   state.player ||= {fear:12,noise:0,hidden:false,focus:100,lastAction:null,combo:0}; state.story ||= {subjectIdentified:false,confessionDecoded:false,wardenBound:false};
-  let outcome=""; state.player.hidden=false;
-  if(action==="search-desk"){state.props.desk=true;addUnique(state.evidence,"Triage transfer slip");state.player.focus=clamp(state.player.focus-4);outcome="A transfer slip names Ward 06—but the patient line is torn away.";}
-  if(action==="open-locker"){state.props.locker=true;addUnique(state.inventory,"Sedative ampoule");state.health=clamp(state.health+10);state.player.noise=clamp(state.player.noise+8);outcome="You recover a sedative. The locker clang echoes down the hall.";}
-  if(action==="reconstruct-file"){if(state.props.desk&&state.props.locker){state.story.subjectIdentified=true;addUnique(state.evidence,"Subject 06: Mara Vale");state.player.combo++;outcome="The fragments match: Subject 06 was Dr. Vale’s daughter.";}else{state.player.fear=clamp(state.player.fear+6);outcome="Two fragments are missing. Search the entire reception first.";}}
-  if(action==="inspect-gurney"){addUnique(state.evidence,"Restraint tag 06");state.danger=clamp(state.danger+5);state.player.focus=clamp(state.player.focus-5);outcome="Fresh restraint marks point toward the isolation door.";}
-  if(action==="listen-intercom"){state.player.noise=clamp(state.player.noise-10);addUnique(state.evidence,"Intercom cadence: short-short-long");outcome="Behind the static: a warning timed to the door’s magnetic cycle.";}
-  if(action==="hide-curtain"){state.player.hidden=true;state.player.noise=0;state.danger=clamp(state.danger-10);state.player.fear=clamp(state.player.fear+4);state.warden.phase="passing";outcome="You hold your breath as the Warden passes the curtain.";}
-  if(action==="force-door"){if(state.power>=20&&state.evidence.length>=2){state.doors.isolation=true;state.doors.theatre=true;state.player.noise=clamp(state.player.noise+18);outcome="The bolts retract. The isolation door opens into real darkness.";}else{state.health=clamp(state.health-8);state.player.fear=clamp(state.player.fear+12);outcome="The maglock rejects you. Find evidence and restore enough power.";}}
-  if(action==="align-lamps"){state.props.lamps=true;state.warden.visible=false;state.warden.phase="repelled";state.danger=clamp(state.danger-12);state.power=clamp(state.power-8);outcome="Three surgical beams pin the Warden’s shadow to the wall.";}
-  if(action==="play-tape"){state.props.tape=true;addUnique(state.evidence,"Theatre audio log");state.story.confessionDecoded=state.story.subjectIdentified;outcome=state.story.confessionDecoded?"Vale confesses: the Warden was built to contain Mara, not kill her.":"The confession references a patient you have not identified.";}
-  if(action==="counter-warden"){if(state.props.lamps&&state.story.confessionDecoded){state.warden.visible=false;state.warden.phase="repelled";state.danger=clamp(state.danger-25);state.player.combo+=2;addUnique(state.inventory,"Binding sigil");outcome="Light and confession synchronize. You tear a binding sigil free.";}else{state.warden.visible=true;state.warden.phase="striking";state.health=clamp(state.health-14);state.danger=clamp(state.danger+14);outcome="Your counter fails. The Warden closes the distance.";}}
+  let outcome="",accepted=false; state.player.hidden=false;
+  if(action==="search-desk"){accepted=true;state.props.desk=true;addUnique(state.evidence,"Triage transfer slip");state.player.focus=clamp(state.player.focus-4);outcome="A transfer slip names Ward 06—but the patient line is torn away.";}
+  if(action==="open-locker"){accepted=true;state.props.locker=true;addUnique(state.inventory,"Sedative ampoule");state.health=clamp(state.health+10);state.player.noise=clamp(state.player.noise+8);outcome="You recover a sedative. The locker clang echoes down the hall.";}
+  if(action==="reconstruct-file"){if(state.props.desk&&state.props.locker){accepted=true;state.story.subjectIdentified=true;addUnique(state.evidence,"Subject 06: Mara Vale");state.player.combo++;outcome="The fragments match: Subject 06 was Dr. Vale’s daughter.";}else{state.player.fear=clamp(state.player.fear+6);outcome="Two fragments are missing. Search the entire reception first.";}}
+  if(action==="inspect-gurney"){accepted=true;addUnique(state.evidence,"Restraint tag 06");state.danger=clamp(state.danger+5);state.player.focus=clamp(state.player.focus-5);outcome="Fresh restraint marks point toward the isolation door.";}
+  if(action==="listen-intercom"){accepted=true;state.player.noise=clamp(state.player.noise-10);addUnique(state.evidence,"Intercom cadence: short-short-long");outcome="Behind the static: a warning timed to the door’s magnetic cycle.";}
+  if(action==="hide-curtain"){accepted=true;state.player.hidden=true;state.player.noise=0;state.danger=clamp(state.danger-10);state.player.fear=clamp(state.player.fear+4);state.warden.phase="passing";outcome="You hold your breath as the Warden passes the curtain.";}
+  if(action==="force-door"){if(state.power>=20&&state.evidence.length>=2){accepted=true;state.doors.isolation=true;state.doors.theatre=true;state.player.noise=clamp(state.player.noise+18);outcome="The bolts retract. The isolation door opens into real darkness.";}else{state.health=clamp(state.health-8);state.player.fear=clamp(state.player.fear+12);outcome="The maglock rejects you. Find evidence and restore enough power.";}}
+  if(action==="align-lamps"){accepted=true;state.props.lamps=true;state.warden.visible=false;state.warden.phase="repelled";state.danger=clamp(state.danger-12);state.power=clamp(state.power-8);outcome="Three surgical beams pin the Warden’s shadow to the wall.";}
+  if(action==="play-tape"){accepted=true;state.props.tape=true;addUnique(state.evidence,"Theatre audio log");state.story.confessionDecoded=state.story.subjectIdentified;outcome=state.story.confessionDecoded?"Vale confesses: the Warden was built to contain Mara, not kill her.":"The confession references a patient you have not identified.";}
+  if(action==="counter-warden"){if(state.props.lamps&&state.story.confessionDecoded){accepted=true;state.warden.visible=false;state.warden.phase="repelled";state.danger=clamp(state.danger-25);state.player.combo+=2;addUnique(state.inventory,"Binding sigil");outcome="Light and confession synchronize. You tear a binding sigil free.";}else{state.warden.visible=true;state.warden.phase="striking";state.health=clamp(state.health-14);state.danger=clamp(state.danger+14);outcome="Your counter fails. The Warden closes the distance.";}}
   if(action.startsWith("breaker-")){
     const n=Number(action.at(-1)); const expected=[2,1,3][state.props.breakerProgress.length];
-    if(n===expected){state.props.breakerProgress.push(n);state.props.breakers[n-1]=true;} else {state.props.breakerProgress=[];state.props.breakers=[false,false,false];state.danger=clamp(state.danger+8);}
+    if(n===expected){accepted=true;state.props.breakerProgress.push(n);state.props.breakers[n-1]=true;} else {state.props.breakerProgress=[];state.props.breakers=[false,false,false];state.danger=clamp(state.danger+8);}
     if(state.props.breakerProgress.length===3){state.power=100;state.doors.exit=true;addUnique(state.inventory,"Exit power");outcome="2 · 1 · 3. The emergency grid detonates into life.";} else outcome=n===expected?`Breaker ${n} locks. The pattern is holding.`:"Wrong sequence. The generator screams and resets.";
   }
-  if(action==="reroute-power"){if(state.props.breakerProgress.length===3){state.power=100;state.danger=clamp(state.danger-8);outcome="Power rerouted from containment to the escape network.";}else{state.danger=clamp(state.danger+10);outcome="The dead grid backfeeds. Complete the breaker sequence first.";}}
-  if(action==="seal-warden"){if(state.inventory.includes("Binding sigil")&&state.evidence.length>=4){state.story.wardenBound=true;state.warden.contained=true;state.danger=10;outcome="The evidence names the victim. The sigil seals the Warden without sacrificing Mara.";}else{state.danger=clamp(state.danger+18);outcome="You cannot complete the seal without the truth and the sigil.";}}
-  state.player.lastAction=action; state.player.fear=clamp(state.player.fear+(state.danger>70?3:-1)); state.player.noise=clamp(state.player.noise-2); state.lastOutcome=outcome||action.replaceAll("-"," ");
-  recordPlayerProgress(state,action); log(state,"action","STREAMER",state.lastOutcome); if(action==="open-roof"||action==="open-ambulance")finishEpisode(state,action==="open-roof"?"roof":"ambulance"); return state;
+  if(action==="reroute-power"){if(state.props.breakerProgress.join("-")==="2-1-3"){accepted=true;state.power=100;state.danger=clamp(state.danger-8);outcome="Power rerouted from containment to the escape network.";}else{state.danger=clamp(state.danger+10);outcome="The dead grid backfeeds. Complete the breaker sequence first.";}}
+  if(action==="seal-warden"){if(state.inventory.includes("Binding sigil")&&state.evidence.length>=4){accepted=true;state.story.wardenBound=true;state.warden.contained=true;state.danger=10;outcome="The evidence names the victim. The sigil seals the Warden without sacrificing Mara.";}else{state.danger=clamp(state.danger+18);outcome="You cannot complete the seal without the truth and the sigil.";}}
+  if(action==="open-roof"||action==="open-ambulance"){
+    if(roomFor(state).id!=="stairwell")outcome="The final route can only be opened from the exit stairwell.";
+    else if(!state.doors.exit)outcome="The exit network is dead. Restore and reroute generator power first.";
+    else if(state.status!=="consequence")outcome="The exit is powered, but the final audience vote must resolve before you commit.";
+    else{accepted=true;outcome=action==="open-roof"?"You commit to the roof route and fire the rescue beacon.":"You commit to the ambulance tunnel beneath the Ward.";}
+  }
+  state.player.lastAction=action; state.lastActionAccepted=accepted; state.player.fear=clamp(state.player.fear+(state.danger>70?3:-1)); state.player.noise=clamp(state.player.noise-2); state.lastOutcome=outcome||`Unknown action: ${action}`;
+  recordPlayerProgress(state,action,accepted); log(state,accepted?"action":"action-rejected","STREAMER",state.lastOutcome); if(accepted&&(action==="open-roof"||action==="open-ambulance"))finishEpisode(state,action==="open-roof"?"roof":"ambulance"); return state;
 }
 export function joinFaction(state,user,faction){ if(!["guardian","chaos"].includes(faction)) return false; state.members[String(user).toLowerCase()]=faction; log(state,"faction",user,`joined ${faction}`); return true; }
 export function usePower(state,user,power){
@@ -232,7 +246,7 @@ export function finishEpisode(state,choice="roof"){
   const route=choice==="contain"||state.winner?.id==="contain"?"contain":choice;
   state.ending=doomed?"THE WARD CLAIMS ANOTHER":state.story.wardenBound?"MARA WALKS INTO DAWN":truth&&route==="roof"?"THE TRUTH LEAVES WARD 06":route==="contain"?"THE LAST NIGHTSHIFT":route==="ambulance"?"THE TUNNEL REMEMBERS":strong?"DAWN BREAKS OVER WARD 06":"ESCAPE, WITHOUT ANSWERS";
   state.status="ended"; state.warden.contained=(state.story.wardenBound||strong)&&!doomed; state.campaign.elapsedMs=state.startedAt!==null?Math.max(0,Date.now()-state.startedAt):state.campaign.elapsedMs;
-  state.endingRecap={ending:state.ending,route,evidence:state.evidence.length,subjectIdentified:state.story.subjectIdentified,confessionDecoded:state.story.confessionDecoded,wardenBound:state.story.wardenBound,streamerDecisions:state.campaign.decisions.slice(-6),audienceResolutions:state.campaign.voteResolutions,zeroChatFallbacks:state.campaign.zeroChatFallbacks,mechanics:[...state.campaign.mechanics],elapsedMs:state.campaign.elapsedMs,durationMeasured:false};
+  state.endingRecap={ending:state.ending,route,evidence:state.evidence.length,subjectIdentified:state.story.subjectIdentified,confessionDecoded:state.story.confessionDecoded,wardenBound:state.story.wardenBound,streamerDecisions:state.campaign.decisions.slice(-6),audienceResolutions:state.campaign.voteResolutions,zeroChatFallbacks:state.campaign.zeroChatFallbacks,fallbackRecoveries:state.campaign.fallbackRecoveries,mechanics:[...state.campaign.mechanics],elapsedMs:state.campaign.elapsedMs,durationMeasured:false};
   const currentState=state.rooms[roomFor(state).id]; if(currentState){currentState.completed=true;currentState.exitedAt=Date.now();} log(state,"ending","NIGHTSHIFT",state.ending); return state;
 }
 export function publicState(state){ const copy=structuredClone(state); if(copy.settings.hideNames) copy.recent=copy.recent.map(e=>({...e,actor:e.actor==="NIGHTSHIFT"||e.actor==="CHAT"?e.actor:"VIEWER"})); return copy; }
