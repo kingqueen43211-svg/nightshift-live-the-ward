@@ -39,7 +39,10 @@ export class TwitchBridge extends EventTarget {
   constructor(storage = defaultStorage(), deps = {}) {
     super();
     this.storage = storage;
-    this.fetch = deps.fetch || globalThis.fetch;
+    // Window.fetch is a receiver-sensitive Web API in some browsers. Calling an
+    // unbound copy as `this.fetch(...)` makes the TwitchBridge instance its
+    // receiver and can throw "Illegal invocation" before the request is sent.
+    this.fetch = deps.fetch || globalThis.fetch?.bind(globalThis);
     this.WebSocket = deps.WebSocket || globalThis.WebSocket;
     this.location = deps.location || globalThis.location;
     this.history = deps.history || globalThis.history;

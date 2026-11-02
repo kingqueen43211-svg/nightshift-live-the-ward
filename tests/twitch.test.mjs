@@ -84,6 +84,21 @@ test("expired validation clears the token and reports AUTH_EXPIRED", async () =>
   assert.equal(statuses.at(-1).phase, TWITCH_PHASE.AUTH_EXPIRED);
 });
 
+test("the default browser fetch is bound to its global receiver", async t => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = function (url) {
+    assert.equal(this, globalThis);
+    if (url.endsWith("/validate")) return Promise.resolve(response(200, { user_id: "broadcaster" }));
+    if (url.includes("/users?")) return Promise.resolve(response(200, { data: [{ id: "broadcaster", display_name: "Host" }] }));
+    throw new Error(`Unexpected request ${url}`);
+  };
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  const bridge = new TwitchBridge(storage({ "nightshift.clientId": "client", "nightshift.token": "token" }));
+  const identity = await bridge.validate();
+  assert.equal(identity.id, "broadcaster");
+});
+
 test("authenticated Helix failures clear persisted bearer credentials", async () => {
   const store = storage({ "nightshift.clientId": "client", "nightshift.token": "stale" });
   const bridge = new TwitchBridge(store, { fetch: async () => response(401, "invalid bearer"), now: () => 2.5 });
