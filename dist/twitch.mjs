@@ -48,8 +48,8 @@ export class TwitchBridge extends EventTarget {
     this.history = deps.history || globalThis.history;
     this.document = deps.document || globalThis.document;
     this.crypto = deps.crypto || globalThis.crypto;
-    this.setTimeout = deps.setTimeout || globalThis.setTimeout;
-    this.clearTimeout = deps.clearTimeout || globalThis.clearTimeout;
+    this.setTimeout = deps.setTimeout || globalThis.setTimeout?.bind(globalThis);
+    this.clearTimeout = deps.clearTimeout || globalThis.clearTimeout?.bind(globalThis);
     this.now = deps.now || Date.now;
     this.socket = null;
     this.previousSocket = null;

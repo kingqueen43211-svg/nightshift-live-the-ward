@@ -99,6 +99,34 @@ test("the default browser fetch is bound to its global receiver", async t => {
   assert.equal(identity.id, "broadcaster");
 });
 
+test("the default browser timers are bound to their global receiver", t => {
+  const originalSetTimeout = globalThis.setTimeout;
+  const originalClearTimeout = globalThis.clearTimeout;
+  const scheduled = [];
+  const cleared = [];
+  globalThis.setTimeout = function (fn, ms) {
+    assert.equal(this, globalThis);
+    scheduled.push({ fn, ms });
+    return scheduled.length;
+  };
+  globalThis.clearTimeout = function (id) {
+    assert.equal(this, globalThis);
+    cleared.push(id);
+  };
+  t.after(() => {
+    globalThis.setTimeout = originalSetTimeout;
+    globalThis.clearTimeout = originalClearTimeout;
+  });
+
+  const bridge = new TwitchBridge(storage());
+  bridge.resetKeepalive(10);
+  bridge.resetKeepalive(20);
+  bridge.scheduleReconnect();
+
+  assert.deepEqual(scheduled.map(timer => timer.ms), [18000, 28000, 1000]);
+  assert.deepEqual(cleared, [1]);
+});
+
 test("authenticated Helix failures clear persisted bearer credentials", async () => {
   const store = storage({ "nightshift.clientId": "client", "nightshift.token": "stale" });
   const bridge = new TwitchBridge(store, { fetch: async () => response(401, "invalid bearer"), now: () => 2.5 });
