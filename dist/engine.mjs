@@ -114,6 +114,7 @@ export function resumeEpisode(state,now=Date.now()){ if(state.status==="paused")
 export function stopEpisode(state){ state.version++; state.status="briefing"; state.roundEndsAt=0; return state; }
 export function normalizeCommand(message=""){ return message.trim().toLowerCase().split(/\s+/)[0]; }
 export function castVote(state,viewer,message,actor=viewer){
+  if(state.status==="paused") return {state,accepted:false,reason:"Voting is paused — commands will not count"};
   if(state.status!=="voting") return {state,accepted:false,reason:"Voting is closed"};
   const option=optionsFor(state).find(o=>o.command===normalizeCommand(message));
   if(!option) return {state,accepted:false,reason:"Unknown vote"};
@@ -277,7 +278,9 @@ export function usePower(state,user,power,actor=user){
 }
 export function ingestCommand(state,user,message,actor=user){
   const [cmd,arg]=String(message).trim().toLowerCase().split(/\s+/);
-  if(cmd==="!join") return {state,accepted:joinFaction(state,user,arg,actor),kind:"faction"}; if(cmd==="!power") return {state,...usePower(state,user,arg,actor),kind:"power"};
+  const kind=cmd==="!join"?"faction":cmd==="!power"?"power":"vote";
+  if(state.status==="paused") return {state,accepted:false,reason:"Voting is paused — commands will not count",kind};
+  if(cmd==="!join"){const accepted=joinFaction(state,user,arg,actor);return {state,accepted,reason:accepted?undefined:"Use !join guardian or !join chaos",kind};} if(cmd==="!power") return {state,...usePower(state,user,arg,actor),kind};
   return {...castVote(state,user,message,actor),kind:"vote"};
 }
 export function applyChannelEvent(state,event){

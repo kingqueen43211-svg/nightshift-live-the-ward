@@ -25,6 +25,7 @@ import { TwitchBridge } from "./twitch.mjs";
 import { createNightShiftAudio } from "./audio.mjs";
 import { modeForTwitchStatus, simulatedAudienceEnabled, twitchInputPaused, voteSourceText } from "./runtime-mode.mjs";
 import { isValidPublicState } from "./public-state.mjs";
+import { appendLiveChatFeedback, isNightShiftCommand, liveChatFeedback, viewerVotePrompt } from "./vote-ui.mjs";
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -324,12 +325,26 @@ function renderOptions(target, overlay = false) {
   ).join("");
 }
 
+function renderViewerVoteGuide(target) {
+  if (!target) return;
+  const prompt = viewerVotePrompt({
+    mode: state.mode,
+    status: state.status,
+    options: optionsFor(state),
+    recommendedId: roomFor(state).safeFallback
+  });
+  target.dataset.state = prompt.state;
+  target.querySelector("b").textContent = prompt.headline;
+  target.querySelector("span").textContent = prompt.detail;
+}
+
 function renderFeed() {
   const events = state.recent.length ? state.recent : [{ type: "system", actor: "NIGHTSHIFT", text: "Episode ready" }];
   $("#activityFeed").innerHTML = events.slice(0, 7).map(event =>
     `<div class="feed-item"><span>${escape(event.type.toUpperCase())}</span><b>${escape(state.settings.hideNames && !["NIGHTSHIFT", "CHAT"].includes(event.actor) ? "VIEWER" : event.actor)}</b><em>${escape(event.text)}</em></div>`
   ).join("");
-  $("#overlayRecent").textContent = `${events[0].actor} · ${events[0].text}`.toUpperCase();
+  const overlayActor = state.settings.hideNames && !["NIGHTSHIFT", "CHAT"].includes(events[0].actor) ? "VIEWER" : events[0].actor;
+  $("#overlayRecent").textContent = `${overlayActor} · ${events[0].text}`.toUpperCase();
 }
 
 function actionLabel(action) {
@@ -797,7 +812,7 @@ function audienceStatusText() {
   const votes = totalVotes();
   if (state.status === "voting") return `OPEN · ${votes} verified ${votes === 1 ? "vote" : "votes"} · one vote per immutable viewer ID · winner changes the Ward`;
   if (state.status === "consequence" && state.winner) return `LOCKED · ${state.winner.label} · ${state.winner.effect}`;
-  if (state.status === "paused") return "PAUSED · Audience clock and input are held";
+  if (state.status === "paused") return "VOTING PAUSED — COMMANDS WILL NOT COUNT";
   if (state.status === "ended") return `COMPLETE · ${state.ending || "ending recorded"}`;
   return "STANDBY · Start the episode to open audience voting";
 }
@@ -946,6 +961,8 @@ function render() {
   const sourceLabel = voteSourceLabel();
   $("#voteSource").textContent = sourceLabel;
   $("#overlaySource").textContent = sourceLabel;
+  renderViewerVoteGuide($("#viewerVoteGuide"));
+  renderViewerVoteGuide($("#overlayViewerVoteGuide"));
   renderOptions($("#voteOptions"));
   renderOptions($("#overlayOptions"), true);
   const audienceStatus = audienceStatusText();
@@ -1198,7 +1215,15 @@ twitch.addEventListener("chat", ({ detail }) => {
   state.mode = "LIVE TWITCH";
   // Fairness is keyed to Twitch's immutable chatter ID. The display name is
   // kept only as the human-readable actor in the activity feed.
-  ingestCommand(state, detail.viewerId || detail.viewer, detail.message, detail.viewer);
+  const result = ingestCommand(state, detail.viewerId || detail.viewer, detail.message, detail.viewer);
+  if (isNightShiftCommand(detail.message)) {
+    const actor = detail.viewer || "VIEWER";
+    const visibleActor = state.settings.hideNames ? "VIEWER" : actor;
+    const feedback = liveChatFeedback({ viewer: visibleActor, message: detail.message, result });
+    appendLiveChatFeedback(state, { ...feedback, event: { ...feedback.event, actor } });
+    audio.playUI(result.accepted ? "vote" : "error");
+    showToast(feedback.title, feedback.detail, !result.accepted);
+  }
   render();
 });
 twitch.addEventListener("event", ({ detail }) => {

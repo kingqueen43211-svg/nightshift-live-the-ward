@@ -312,3 +312,18 @@ body.compact-hud .next-step{box-shadow:inset 3px 0 var(--cyan),0 0 24px rgba(114
   .event-toast{left:14px;right:auto;width:calc(50vw - 21px)}
   .audio-caption,body:has(.event-toast.show) .audio-caption{left:auto;right:14px;top:240px;bottom:auto;transform:none;width:calc(50vw - 21px)}
 }
+
+/* Viewer-first Twitch voting instructions and explicit paused-state warning. */
+.viewer-vote-guide{margin:10px 0 9px;padding:10px 12px;border:2px solid var(--cyan);background:rgba(4,22,22,.92);box-shadow:inset 4px 0 0 var(--cyan),0 0 24px rgba(114,229,213,.12);text-transform:uppercase}
+.viewer-vote-guide b,.viewer-vote-guide span{display:block;overflow-wrap:anywhere}
+.viewer-vote-guide b{color:#fff;font:700 18px/1.22 "DM Mono";letter-spacing:.025em;text-wrap:balance}
+.viewer-vote-guide span{margin-top:6px;color:var(--cyan);font:500 14px/1.3 "DM Mono";letter-spacing:.025em}
+.viewer-vote-guide[data-state="paused"]{border-color:var(--red);background:rgba(53,7,12,.94);box-shadow:inset 4px 0 0 var(--red),0 0 28px rgba(240,91,99,.2)}
+.viewer-vote-guide[data-state="paused"] b{color:#fff}
+.viewer-vote-guide[data-state="paused"] span{color:#ffd6d8}
+.viewer-vote-guide[data-state="closed"]{border-color:var(--amber);background:rgba(32,23,7,.92);box-shadow:inset 4px 0 0 var(--amber)}
+.viewer-vote-guide[data-state="closed"] span{color:#ffe1ad}
+.overlay-viewer-vote-guide{margin:12px 0}
+body.high-contrast .viewer-vote-guide{border-width:3px;background:#020707}
+body.high-contrast .viewer-vote-guide[data-state="paused"]{background:#260005}
+@media(max-width:850px){.viewer-vote-guide{margin:6px 0;padding:7px 8px}.viewer-vote-guide b{font-size:12px;line-height:1.2}.viewer-vote-guide span{margin-top:3px;font-size:9px;line-height:1.2}}

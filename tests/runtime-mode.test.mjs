@@ -29,6 +29,7 @@ test("vote source labels disclose rehearsal input", () => {
   assert.equal(voteSourceText({ mode: "SIMULATED", status: "voting", resolutionSource: null }), "REHEARSAL VOTE · SIMULATED INPUT");
   assert.equal(voteSourceText({ mode: "SIMULATED", status: "consequence", resolutionSource: "AUDIENCE" }), "REHEARSAL RESULT · SIMULATED INPUT");
   assert.equal(voteSourceText({ mode: "LIVE TWITCH", status: "voting", resolutionSource: null }), "LIVE TWITCH CHAT VOTE OPEN");
+  assert.equal(voteSourceText({ mode: "LIVE TWITCH", status: "paused", resolutionSource: "AUDIENCE" }), "VOTING PAUSED — COMMANDS WILL NOT COUNT");
 });
 
 test("the browser loop freezes and preserves the vote window while Twitch input is paused", () => {

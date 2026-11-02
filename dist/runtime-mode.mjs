@@ -22,6 +22,7 @@ export function twitchInputPaused(mode) {
 
 export function voteSourceText({ mode, status, resolutionSource }) {
   const rehearsal = mode === "SIMULATED" || mode === "REHEARSAL";
+  if (status === "paused") return "VOTING PAUSED — COMMANDS WILL NOT COUNT";
   if (resolutionSource === "ZERO_CHAT_FALLBACK") return "DIRECTOR FALLBACK · NO CHAT VOTES";
   if (resolutionSource === "AUDIENCE") return rehearsal ? "REHEARSAL RESULT · SIMULATED INPUT" : "AUDIENCE RESULT APPLIED";
   if (twitchInputPaused(mode)) return "TWITCH INPUT PAUSED · WAITING FOR SIGNAL";
