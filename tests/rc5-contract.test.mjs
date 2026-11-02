@@ -64,4 +64,9 @@ test("continuous proof recorder requires a real five-minute audio-video rehearsa
   assert.match(capture, /audioPresent/);
   assert.match(capture, /COMPLETE_REHEARSAL_PROOF/);
   assert.match(capture, /!worktree\.dirty/);
+  assert.match(capture, /#proofRecorderPrompt\[hidden\]\{display:none\}/,
+    "the recorder prompt must not cover the captured playthrough after sharing starts");
+  assert.match(capture, /const finalVoteStillOpen/);
+  assert.match(capture, /act5:final-vote-already-resolved/,
+    "long cinematic holds must not break capture when the final vote resolves on its timer");
 });

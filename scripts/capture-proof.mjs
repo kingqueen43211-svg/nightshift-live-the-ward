@@ -211,6 +211,7 @@ function recorderInjection() {
     const style = document.createElement("style");
     style.textContent = \`
       #proofRecorderPrompt{position:fixed;z-index:2147483647;inset:0;display:grid;place-items:center;background:rgba(1,4,5,.94);font-family:system-ui,sans-serif;color:#eef8f4}
+      #proofRecorderPrompt[hidden]{display:none}
       #proofRecorderPrompt .proof-card{width:min(680px,90vw);padding:30px;border:1px solid #f4c477;background:#071012;box-shadow:0 24px 90px #000}
       #proofRecorderPrompt h1{margin:0 0 12px;font-size:26px;color:#f4c477}
       #proofRecorderPrompt p{line-height:1.55;color:#c5d5d1}
@@ -633,7 +634,12 @@ try {
   await selectCamera("ambulance-tunnel");
   await selectCamera("roof-exit");
   await pacedClick('[data-action="seal-warden"]', "act5:seal-warden", 1800);
-  await pacedClick("#gameplayAdvance", "act5:resolve-final-vote", 900);
+  const finalVoteStillOpen = await evaluate(`document.querySelector('#dashStatus')?.textContent === 'VOTING'`);
+  if (finalVoteStillOpen) {
+    await pacedClick("#gameplayAdvance", "act5:resolve-final-vote", 900);
+  } else {
+    mark("act5:final-vote-already-resolved");
+  }
   await waitFor(`!document.querySelector('[data-action="open-roof"]')?.classList.contains('locked')`);
   await pacedClick('[data-action="open-roof"]', "act5:open-roof", 1800);
   await waitFor(`document.querySelector('#ending')?.classList.contains('show')`);
