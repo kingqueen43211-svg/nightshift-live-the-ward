@@ -60,9 +60,9 @@ npm run qa:performance
 npm run release:audit
 ```
 
-The final RC6 all-in-one composite passed end to end: 90/90 unit and contract tests, 29/29 visual states including compact HUD, 9/9 browser gameplay gates, 5/5 integrity gates, 17/17 independent-process relay gates, 11/11 accessibility/reflow gates, 10/10 performance gates, and the release-audit stage. The final performance run finished with a −223 DOM-node delta, zero listener growth, and a 0.203 MiB post-GC heap delta. The audited deployable payload is 12.0 MiB across 24 files.
+The final RC7 local release gate passed end to end: 109/109 unit and contract tests, 30/30 visual states including a real 640×360 half-scale render and all reduced-motion route finales, 9/9 browser gameplay gates, 5/5 integrity gates, 17/17 independent-process relay gates, 11/11 accessibility/reflow gates, 10/10 performance gates, and the release-audit stage. The final performance run held the live DOM at 521 nodes with zero listener growth and a 0.303 MiB post-GC heap delta. The audited deployable payload is 12.0 MiB across 25 files.
 
-RC6 is deployed at the [public production Site](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/) and has passed fresh anonymous HTTP plus production-browser probes. The live `app.mjs`, `engine.mjs`, `public-state.mjs`, `styles.css`, and humane-ending WebP byte-match the reviewed RC6 payload; the browser smoke entered gameplay, resolved Reception, and reached the Ward 06 prerequisite checklist with no console warnings or errors. The Chrome share-tab/audio capture workflow is implemented and contract-validated, but no completed five-minute audiovisual proof is claimed until an operator performs the real picker run and its manifest passes. Real Twitch, native OBS, five unfamiliar humans, NVDA, audible listening, public repository/video, and Devpost remain external gates.
+The [public production Site](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/) is the canonical hosted build. RC7's recorder now attaches diagnostics before navigation and rejects a supposedly complete rehearsal unless the captured browser-tab stream contains measured, non-silent audio across the final 25-second humane-ending window. The previously audited RC6 rehearsal is historical evidence only and must not be reused as final proof. Real Twitch, native OBS, unfamiliar-human readability, NVDA, audible mix/stereo review, public repository/video, and Devpost remain external gates until performed on the release build.
 
 Before sharing the entry, follow the logged-out hosting, OAuth callback, OBS alpha, and rollback steps in [`docs/PUBLIC_DEPLOYMENT.md`](docs/PUBLIC_DEPLOYMENT.md).
 
@@ -108,10 +108,13 @@ tests/
   *.test.mjs        Engine, campaign, Twitch, relay, audio, and accessibility tests
 docs/
   ARCHITECTURE.md   Technical design and event flow
-  QUALITY_TRACKER.md Evidence-backed RC6 gate status
+  QUALITY_TRACKER.md Evidence-backed release gate status
   RC4_JUDGE_FIX_CONTRACT.md Judge finding → behavior → proof mapping
   RC5_JUDGE_FIX_CONTRACT.md Finalist-quality audiovisual/visual/capture contract
   RC6_VISUAL_REFERENCE_MATRIX.md Ten exact concept frames → implementation and acceptance
+  RC7_JUDGE_RESPONSE.md Independent audit finding → evidence/external gate mapping
+  RC7_SUBMISSION_PACK.md Truthful final submission copy and checklist
+  demo-video/      Truth-gated 2:52 edit plan and build script
   evidence/RC4_EVIDENCE.md Final screenshots and browser reports
   evidence/RC5_EVIDENCE.md RC5 suite artifacts and pending capture boundary
   SUBMISSION.md     Devpost-ready copy and checklist

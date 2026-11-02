@@ -717,7 +717,7 @@ function wardChecklistModel() {
   const raw = [
     { id: "inspect", label: "Inspect restraint marks", detail: "Move to GURNEY and read tag 06.", done: inspectDone, unlocked: true, camera: "door-approach" },
     { id: "intercom", label: "Decode the intercom", detail: "Listen for the short · short · long magnetic cycle.", done: intercomDone, unlocked: true, camera: "corridor-wide" },
-    { id: "audience", label: "Resolve audience consequence", detail: "Use a displayed command; if chat is quiet, the disclosed safe fallback is announced.", done: audienceDone, unlocked: cluesDone, camera: null },
+    { id: "audience", label: "Lock audience world change", detail: "Press RESOLVE after chat votes. The audience changes power or lights; you still open the door afterward.", done: audienceDone, unlocked: cluesDone, camera: null },
     { id: "hide", label: hideRequired ? "Hide behind the curtain" : "Curtain countermeasure", detail: hideRequired ? "Lights failed. Hide first to prepare the manual breach." : "Only required if the audience kills the lights.", done: !hideRequired || hideDone, unlocked: audienceDone && hideRequired, optional: !hideRequired, camera: "corridor-wide" },
     { id: "breach", label: state.winner?.id === "open" ? "Cross isolation threshold" : "Breach isolation door", detail: "Return to THRESHOLD and make the physical move into theatre.", done: breachDone, unlocked: actionRequirement("force-door").ready, camera: "threshold" }
   ];
@@ -745,7 +745,7 @@ function nextStepModel(room = roomFor(state), readiness = roomReadiness(state)) 
     }
     if (!breachDone && current?.id === "audience") {
       const votes = totalVotes();
-      return { phase: "audience-gate", title: "Resolve the corridor audience consequence", detail: votes ? `${votes} verified ${votes === 1 ? "vote is" : "votes are"} ready. Lock the result; the streamer still makes the door move.` : "No votes yet. Resolving uses the disclosed safe fallback—never a fabricated viewer.", label: "Resolve corridor vote", disabled: advancing, steps };
+      return { phase: "audience-gate", title: "Step 3 of 5 · Lock audience world change", detail: votes ? `${votes} verified ${votes === 1 ? "vote is" : "votes are"} ready. Press RESOLVE; the audience changes power or lights, then you return to THRESHOLD and open the door.` : "No votes yet. RESOLVE uses the labeled rehearsal fallback; then you return to THRESHOLD and open the door yourself.", label: votes ? "Resolve verified vote" : "Resolve labeled fallback", disabled: advancing, steps };
     }
     if (!breachDone) {
       return { phase: "ward-checklist", title: "Return to the isolation threshold", detail: actionRequirement("force-door").cue, label: "Use the highlighted door action", disabled: true, steps };
@@ -754,7 +754,7 @@ function nextStepModel(room = roomFor(state), readiness = roomReadiness(state)) 
   const audienceUnlockReady = room.id === "surgery" && state.status === "voting" && ["inspect-gurney", "listen-intercom"].every(action => successful.includes(action));
   if (audienceUnlockReady) {
     const votes = totalVotes();
-    return { phase: "audience-gate", title: "The isolation door needs the audience power result", detail: votes ? `${votes} verified ${votes === 1 ? "vote is" : "votes are"} ready. Resolve the corridor consequence, then breach the physical door.` : "Resolve the disclosed safe fallback to restore corridor power, then breach the physical door.", label: "Resolve corridor vote", disabled: advancing };
+    return { phase: "audience-gate", title: "Lock chat's condition before the door", detail: votes ? `${votes} verified ${votes === 1 ? "vote is" : "votes are"} ready. Press RESOLVE; chat changes the Ward, but you still breach the physical door.` : "No votes: use the labeled rehearsal fallback. It changes the Ward; you still breach the physical door.", label: votes ? "Resolve verified vote" : "Resolve labeled fallback", disabled: advancing };
   }
   if (!readiness.ready && !isFinal) {
     const missing = missingStepText(readiness.missing);

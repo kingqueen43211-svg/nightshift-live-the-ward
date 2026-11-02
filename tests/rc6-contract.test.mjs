@@ -8,6 +8,8 @@ const engine = read("dist/engine.mjs");
 const html = read("dist/index.html");
 const publicState = read("dist/public-state.mjs");
 const styles = read("dist/styles.css");
+const capture = read("scripts/capture-proof.mjs");
+const captureDiagnostics = read("scripts/capture-proof-diagnostics.mjs");
 const combined = `${html}\n${app}`;
 
 test("Ward 06 exposes a concrete, stateful prerequisite checklist", () => {
@@ -76,4 +78,19 @@ test("caption direction metadata is sanitized before passive transport", () => {
   assert.match(app, /direction/);
   assert.match(publicState, /direction/);
   assert.match(publicState, /lastAudioCue/, "caption metadata must travel only through the validated public state surface");
+});
+
+test("capture proof records exact failed URLs and blocks unclassified browser failures", () => {
+  assert.match(capture, /Network\.enable/);
+  assert.match(capture, /Network\.responseReceived/);
+  assert.match(capture, /Network\.loadingFailed/);
+  assert.match(capture, /networkRequestId/);
+  assert.match(captureDiagnostics, /RESOURCE_OR_NETWORK_FAILURE/);
+  assert.match(captureDiagnostics, /EXPECTED_MEDIA_PERMISSION_DENIAL/);
+  assert.match(capture, /browserDiagnosticsAccountedFor/);
+  assert.match(capture, /unresolvedBrowserIssues\.length === 0/);
+});
+
+test("the app declares a real favicon instead of producing browser-chrome 404 noise", () => {
+  assert.match(html, /rel="icon"[^>]*href="\.\/favicon\.svg"/);
 });

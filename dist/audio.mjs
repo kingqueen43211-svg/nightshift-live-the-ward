@@ -21,6 +21,55 @@ const SCORE_TONES = Object.freeze({
   stairwell: { root: 52, minor: 62, air: 590, label: "Stairwell" }
 });
 
+// Final tableaux remain on screen much longer than an ordinary action cue. Keep an
+// authored bed alive beneath that hold so a proof recording cannot fall into
+// unintended digital silence after the short arrival motif ends.
+const ENDING_SOUNDSCAPES = Object.freeze({
+  humane: {
+    duration: 36,
+    fade: 6,
+    gain: .082,
+    lowpass: 1180,
+    tones: [
+      { frequency: 73.42, type: "sine", gain: 1 },
+      { frequency: 110, type: "triangle", gain: .34, detune: -5 },
+      { frequency: 146.83, type: "sine", gain: .22, detune: 4 },
+      { frequency: 220, type: "sine", gain: .08, detune: -9 }
+    ]
+  },
+  roof: {
+    duration: 34,
+    fade: 5,
+    gain: .072,
+    lowpass: 1320,
+    tones: [
+      { frequency: 65.41, type: "sine", gain: 1 },
+      { frequency: 98, type: "triangle", gain: .3, detune: -7 },
+      { frequency: 196, type: "sine", gain: .1, detune: 5 }
+    ]
+  },
+  tunnel: {
+    duration: 32,
+    fade: 5,
+    gain: .066,
+    lowpass: 620,
+    tones: [
+      { frequency: 55, type: "sine", gain: 1 },
+      { frequency: 82.41, type: "triangle", gain: .27, detune: -8 }
+    ]
+  },
+  failure: {
+    duration: 30,
+    fade: 7,
+    gain: .062,
+    lowpass: 420,
+    tones: [
+      { frequency: 43.65, type: "sine", gain: 1 },
+      { frequency: 65.41, type: "sawtooth", gain: .13, detune: -11 }
+    ]
+  }
+});
+
 const ACTION_CUES = Object.freeze({
   "search-desk": {
     caption: "Paper scrapes across the records desk as the intake file is uncovered.",
@@ -274,6 +323,7 @@ export class NightShiftAudio extends EventTarget {
     this.activeSources = new Set();
     this.ambience = null;
     this.score = null;
+    this.endingSoundscape = null;
     this.scoreRequest = null;
     this.tension = 0;
     this.captionLog = [];
@@ -410,6 +460,7 @@ export class NightShiftAudio extends EventTarget {
       state: this.state,
       reducedEffects: this.reducedEffects,
       tension: this.tension,
+      endingSoundscape: this.endingSoundscape?.ending || null,
       compressor: Boolean(this.compressor),
       volumes: { ...this.volumes },
       muted: { ...this.muted }
@@ -682,6 +733,7 @@ export class NightShiftAudio extends EventTarget {
     const caption = this._caption("ambience", room.caption, { roomId, loop: true });
     if (!this.unlocked || !this.context) return { played: false, caption };
     if (this.ambience?.roomId === roomId) return { played: true, reused: true, caption };
+    this.stopEnding({ caption: false, fadeSeconds: .8 });
     this.stopAmbience({ caption: false });
 
     const at = this.context.currentTime;
@@ -905,11 +957,82 @@ export class NightShiftAudio extends EventTarget {
     return { played: sources.length > 0, softened: this.reducedEffects, caption, sources, phase: normalizedPhase, intensity: level, direction: pan };
   }
 
+  _startEndingSoundscape(ending, startAt) {
+    this.stopEnding({ caption: false, fadeSeconds: .12 });
+    if (!this.unlocked || !this.context || this.muted.master || this.muted.music) return null;
+    const descriptor = ENDING_SOUNDSCAPES[ending] || ENDING_SOUNDSCAPES.humane;
+    const context = this.context;
+    const at = startAt ?? context.currentTime;
+    const output = context.createGain();
+    const lowpass = context.createBiquadFilter();
+    const targetGain = descriptor.gain * (this.reducedEffects ? .62 : 1);
+    setParam(output.gain, 0, at);
+    rampParam(output.gain, targetGain, at + 1.2);
+    rampParam(output.gain, targetGain * .82, at + descriptor.duration - descriptor.fade);
+    rampParam(output.gain, 0, at + descriptor.duration);
+    lowpass.type = "lowpass";
+    setParam(lowpass.frequency, descriptor.lowpass, at);
+    output.connect(lowpass);
+    lowpass.connect(this.buses.music);
+
+    const oscillators = descriptor.tones.map(spec => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = spec.type;
+      setParam(oscillator.frequency, spec.frequency, at);
+      setParam(oscillator.detune, spec.detune || 0, at);
+      setParam(gain.gain, spec.gain, at);
+      oscillator.connect(gain);
+      gain.connect(output);
+      oscillator.start(at);
+      oscillator.stop(at + descriptor.duration + .02);
+      return { oscillator, gain };
+    });
+
+    const record = {
+      ending,
+      output,
+      lowpass,
+      oscillators,
+      duration: descriptor.duration,
+      fade: descriptor.fade,
+      cleanup: null
+    };
+    record.cleanup = () => {
+      for (const { oscillator, gain } of record.oscillators) {
+        safeDisconnect(oscillator);
+        safeDisconnect(gain);
+      }
+      safeDisconnect(record.output);
+      safeDisconnect(record.lowpass);
+      if (this.endingSoundscape === record) this.endingSoundscape = null;
+    };
+    if (oscillators.length) oscillators.at(-1).oscillator.onended = record.cleanup;
+    this.endingSoundscape = record;
+    return record;
+  }
+
+  stopEnding({ caption = false, fadeSeconds = .7 } = {}) {
+    if (caption) this._caption("ending-stop", "The final soundscape fades away.", { loop: false });
+    const ending = this.endingSoundscape;
+    if (!ending) return false;
+    this.endingSoundscape = null;
+    const at = this.context?.currentTime || 0;
+    const fade = Math.max(0, Math.min(3, Number(fadeSeconds) || 0));
+    ending.output.gain?.cancelScheduledValues?.(at);
+    setParam(ending.output.gain, ending.output.gain?.value ?? 0, at);
+    rampParam(ending.output.gain, 0, at + fade);
+    for (const { oscillator } of ending.oscillators) safeStop(oscillator, at + fade + .03);
+    const timer = setTimeout(ending.cleanup, Math.ceil((fade + .08) * 1000));
+    timer?.unref?.();
+    return true;
+  }
+
   playEnding({ ending = "humane", title = "", startAt } = {}) {
     const normalized = ["humane", "roof", "tunnel", "failure"].includes(ending) ? ending : "humane";
     const endings = {
       humane: {
-        caption: "The Warden's motif releases into a fragile dawn.",
+        caption: "The Warden's motif releases into a fragile dawn and sustains beneath the final rooftop hold.",
         sequence: [
           { kind: "oscillator", offset: 0, frequency: 146.83, type: "triangle", gain: .04, duration: 1.3, release: .72 },
           { kind: "oscillator", offset: .22, frequency: 220, gain: .035, duration: 1.15, release: .65 },
@@ -941,15 +1064,29 @@ export class NightShiftAudio extends EventTarget {
       }
     };
     const descriptor = endings[normalized];
+    const soundscapeDescriptor = ENDING_SOUNDSCAPES[normalized];
     const caption = this._caption(`ending-${normalized}`, `${descriptor.caption}${title ? ` ${title}` : ""}`, {
       ending: normalized,
-      title
+      title,
+      durationMs: soundscapeDescriptor.duration * 1000,
+      loop: false
     });
-    const sources = this._playSequence(this._adaptSequence(descriptor.sequence, { fallbackFrequency: normalized === "failure" ? 43.65 : 220 }), {
+    const soundscape = this._startEndingSoundscape(normalized, startAt);
+    const motifSources = this._playSequence(this._adaptSequence(descriptor.sequence, { fallbackFrequency: normalized === "failure" ? 43.65 : 220 }), {
       bus: "music",
       startAt
     });
-    return { played: sources.length > 0, softened: this.reducedEffects, caption, sources, ending: normalized };
+    const sources = [...motifSources, ...(soundscape?.oscillators.map(({ oscillator }) => oscillator) || [])];
+    return {
+      played: sources.length > 0,
+      softened: this.reducedEffects,
+      caption,
+      sources,
+      motifSources,
+      ending: normalized,
+      sustained: Boolean(soundscape),
+      sustainMs: soundscape ? soundscape.duration * 1000 : 0
+    };
   }
 
   playTransition({ from = "unknown", to = "unknown" } = {}) {
@@ -993,6 +1130,7 @@ export class NightShiftAudio extends EventTarget {
 
   async destroy({ closeContext = true } = {}) {
     if (this.closed) return false;
+    this.stopEnding({ caption: false, fadeSeconds: 0 });
     this.stopAmbience({ caption: false });
     this.stopScore({ caption: false });
     for (const record of [...this.activeSources]) {
@@ -1014,4 +1152,4 @@ export function createNightShiftAudio(options) {
   return new NightShiftAudio(options);
 }
 
-export { ACTION_CUES, ITEM_CUES, ROOM_TONES, SCORE_TONES, UI_CAPTIONS, WARDEN_PHASES };
+export { ACTION_CUES, ENDING_SOUNDSCAPES, ITEM_CUES, ROOM_TONES, SCORE_TONES, UI_CAPTIONS, WARDEN_PHASES };

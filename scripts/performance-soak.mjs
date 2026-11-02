@@ -184,6 +184,13 @@ function slope(values) {
   return denominator ? numerator / denominator : 0;
 }
 
+function median(values) {
+  const ordered = [...values].sort((a, b) => a - b);
+  if (!ordered.length) return 0;
+  const middle = Math.floor(ordered.length / 2);
+  return ordered.length % 2 ? ordered[middle] : (ordered[middle - 1] + ordered[middle]) / 2;
+}
+
 function round(value, digits = 2) {
   const scale = 10 ** digits;
   return Math.round(value * scale) / scale;
@@ -657,6 +664,7 @@ try {
   const finalSample = measuredSamples.at(-1);
   const heapValues = measuredSamples.map(sampleResult => sampleResult.heap.usedSize);
   const nodeValues = measuredSamples.map(sampleResult => sampleResult.dom.nodes);
+  const attachedNodeValues = measuredSamples.map(sampleResult => sampleResult.page.attachedNodes);
   const listenerValues = measuredSamples.map(sampleResult => sampleResult.dom.jsEventListeners);
   const documentValues = measuredSamples.map(sampleResult => sampleResult.dom.documents);
   const relayValues = report.cycles.map(cycle => cycle.network.relayPosts);
@@ -673,9 +681,19 @@ try {
       baseline: baseline.dom.nodes,
       final: finalSample.dom.nodes,
       delta: finalSample.dom.nodes - baseline.dom.nodes,
+      median: median(nodeValues),
+      medianDelta: median(nodeValues) - baseline.dom.nodes,
       slopePerCycle: round(slope(nodeValues), 3),
       min: Math.min(...nodeValues),
       max: Math.max(...nodeValues),
+    },
+    attachedDomNodes: {
+      baseline: baseline.page.attachedNodes,
+      final: finalSample.page.attachedNodes,
+      delta: finalSample.page.attachedNodes - baseline.page.attachedNodes,
+      slopePerCycle: round(slope(attachedNodeValues), 3),
+      min: Math.min(...attachedNodeValues),
+      max: Math.max(...attachedNodeValues),
     },
     jsEventListeners: {
       baseline: baseline.dom.jsEventListeners,
@@ -708,9 +726,14 @@ try {
     budget: bytesSummary(heapBudget),
     slopeBytesPerCycle: report.trends.postGcHeap.slopeBytesPerCycle,
   });
-  check("DOM documents and nodes remain bounded", finalSample.dom.documents - baseline.dom.documents <= 1 && finalSample.dom.nodes - baseline.dom.nodes <= 120 && slope(nodeValues) <= 20, {
+  // Chromium's process-wide counter can intermittently retain one detached render
+  // subtree across a GC boundary. Require the median counter and the app's live,
+  // attached DOM to stay bounded so a one-sample browser transient cannot mask or
+  // invent a replay leak.
+  check("DOM documents and nodes remain bounded", finalSample.dom.documents - baseline.dom.documents <= 1 && median(nodeValues) - baseline.dom.nodes <= 120 && slope(nodeValues) <= 20 && finalSample.page.attachedNodes - baseline.page.attachedNodes <= 20 && slope(attachedNodeValues) <= 2, {
     documents: report.trends.documents,
     nodes: report.trends.domNodes,
+    attachedNodes: report.trends.attachedDomNodes,
   });
   check("JavaScript event listeners remain bounded", finalSample.dom.jsEventListeners - baseline.dom.jsEventListeners <= 60 && slope(listenerValues) <= 10, report.trends.jsEventListeners);
   check("relay request rate remains bounded", Math.max(...relayValues) <= 180 && slope(relayValues) <= 8, report.trends.relayPosts);

@@ -364,6 +364,11 @@ test("action, item, audience, Warden, and ending APIs emit exact ordered caption
   assert.match(warden.caption.text, /howls, recoils/i);
   const ending = audio.playEnding({ ending: "humane", title: "MARA WALKS INTO DAWN" });
   assert.match(ending.caption.text, /fragile dawn.*MARA WALKS INTO DAWN/i);
+  assert.equal(ending.sustained, true);
+  assert.equal(ending.sustainMs, 36000);
+  assert.equal(ending.caption.durationMs, 36000);
+  assert.equal(audio.getSettings().endingSoundscape, "humane");
+  assert.ok(ending.sources.some(source => source.stopped.some(at => at >= context.currentTime + 36)));
 
   const ordered = audio.getCaptionLog()
     .map(entry => entry.cue)
@@ -377,6 +382,29 @@ test("action, item, audience, Warden, and ending APIs emit exact ordered caption
   assert.equal(context.nodes.length, nodeCount);
   assert.match(muted.caption.text, /Vitals rise from 40 to 65/);
   assert.equal(callbacks.at(-1).cue, "item-used");
+});
+
+test("humane ending soundscape spans the full proof hold, fades gently, and clears for a new episode", async () => {
+  const context = new FakeAudioContext();
+  const audio = new NightShiftAudio({ contextFactory: () => context, seed: 17 });
+  await audio.unlock({ userGesture: true });
+
+  const ending = audio.playEnding({ ending: "humane", title: "MARA WALKS INTO DAWN", startAt: 5 });
+  assert.equal(ending.sustained, true);
+  assert.equal(ending.sustainMs, 36000);
+  assert.equal(audio.endingSoundscape.duration, 36);
+  assert.equal(audio.endingSoundscape.fade, 6);
+  assert.equal(audio.endingSoundscape.oscillators.length, 4);
+  assert.ok(audio.endingSoundscape.oscillators.every(({ oscillator }) => oscillator.started[0] === 5));
+  assert.ok(audio.endingSoundscape.oscillators.every(({ oscillator }) => oscillator.stopped[0] >= 41));
+  assert.ok(audio.endingSoundscape.output.gain.events.some(event => event[0] === "ramp" && event[1] > 0 && event[2] === 6.2));
+  assert.ok(audio.endingSoundscape.output.gain.events.some(event => event[0] === "ramp" && event[1] === 0 && event[2] === 41));
+
+  const oldEnding = audio.endingSoundscape;
+  const ambience = audio.startAmbience("intake");
+  assert.equal(ambience.played, true);
+  assert.equal(audio.endingSoundscape, null);
+  assert.ok(oldEnding.oscillators.every(({ oscillator }) => oscillator.stopped.length >= 2));
 });
 
 test("blocked and reduced-effects cues remain descriptive without noisy transients", async () => {

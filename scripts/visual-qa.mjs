@@ -213,6 +213,65 @@ const geometryExpression = `(() => {
   };
 })()`;
 
+const readabilityExpression = `(() => {
+  const outputScale = 0.5;
+  const targets = [
+    { name: 'objective', selector: '#objective', minimumCssPx: 18, minimumScaledPx: 9 },
+    { name: 'next-step title', selector: '#nextStepTitle', minimumCssPx: 13, minimumScaledPx: 6.5 },
+    { name: 'next-step detail', selector: '#nextStepDetail', minimumCssPx: 12, minimumScaledPx: 6 },
+    { name: 'resource values', selector: '#healthValue,#dangerValue,#powerValue', minimumCssPx: 18, minimumScaledPx: 9 },
+    { name: 'condition values', selector: '#conditionStrip b', minimumCssPx: 12, minimumScaledPx: 6 },
+    { name: 'streamer actions', selector: '#actionTray button b', minimumCssPx: 12, minimumScaledPx: 6 },
+    { name: 'vote labels', selector: '#voteOptions .vote-option b', minimumCssPx: 12, minimumScaledPx: 6 },
+    { name: 'vote percentages', selector: '#voteOptions .vote-option > strong', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'consequence detail', selector: '#eventToast span', minimumCssPx: 11, minimumScaledPx: 5.5 },
+    { name: 'sound caption', selector: '#audioCaption span', minimumCssPx: 14, minimumScaledPx: 7, allowHidden: true },
+  ];
+  const visible = (element) => {
+    const rect = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0.01;
+  };
+  const entries = [];
+  const missing = [];
+  for (const target of targets) {
+    const elements = [...document.querySelectorAll(target.selector)];
+    if (!elements.length) missing.push({ name: target.name, selector: target.selector });
+    for (const [index, element] of elements.entries()) {
+      const isVisible = visible(element);
+      if (!isVisible && !target.allowHidden) continue;
+      const style = getComputedStyle(element);
+      const cssFontPx = Number.parseFloat(style.fontSize);
+      const rect = element.getBoundingClientRect();
+      const clipsX = /(hidden|clip|auto|scroll)/.test(style.overflowX) && element.scrollWidth > element.clientWidth + 1;
+      const clipsY = /(hidden|clip|auto|scroll)/.test(style.overflowY) && element.scrollHeight > element.clientHeight + 1;
+      const clipped = isVisible && (clipsX || clipsY);
+      entries.push({
+        name: target.name,
+        index,
+        selector: target.selector,
+        text: (element.textContent || '').trim().slice(0, 100),
+        visible: isVisible,
+        cssFontPx,
+        scaledFontPx: cssFontPx * outputScale,
+        minimumCssPx: target.minimumCssPx,
+        minimumScaledPx: target.minimumScaledPx,
+        rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+        overflow: { x: style.overflowX, y: style.overflowY },
+        client: { width: element.clientWidth, height: element.clientHeight },
+        scroll: { width: element.scrollWidth, height: element.scrollHeight },
+        clipped,
+      });
+    }
+  }
+  const failures = [
+    ...missing.map(item => ({ ...item, reason: 'missing' })),
+    ...entries.filter(entry => entry.cssFontPx < entry.minimumCssPx || entry.scaledFontPx < entry.minimumScaledPx || entry.clipped)
+      .map(entry => ({ ...entry, reason: entry.clipped ? 'clipped' : 'too-small' })),
+  ];
+  return { outputScale, expectedOutput: [640, 360], entries, failures };
+})()`;
+
 const reducedMotionExpression = `(() => {
   const selectors = ['.rain','.far-fog','.mid-fog','.warden','.room-wipe'];
   const timings = selectors.map((selector) => {
@@ -223,6 +282,12 @@ const reducedMotionExpression = `(() => {
   });
   return { mediaMatches: matchMedia('(prefers-reduced-motion: reduce)').matches, timings };
 })()`;
+
+const reducedMotionCompleteProbes = [
+  { beat: "seal-warden:complete", selector: ".containment-sigil", signature: "sealed-sigil" },
+  { beat: "open-roof:complete", selector: ".roof-beacon", signature: "roof-dawn" },
+  { beat: "open-ambulance:complete", selector: ".tunnel-gate", signature: "open-tunnel" },
+];
 
 const overlayExpression = `(() => {
   const alpha = (color) => {
@@ -331,6 +396,7 @@ const scenarios = [
   { name: "gameplay-1600x900", width: 1600, height: 900, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
   { name: "gameplay-1366x768", width: 1366, height: 768, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
   { name: "gameplay-1280x720", width: 1280, height: 720, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
+  { name: "gameplay-twitch-player-50pct-640x360", width: 1280, height: 720, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED", captureScale: 0.5, readabilityProbe: true },
   { name: "gameplay-compact-1280x720", width: 1280, height: 720, path: "/?autostart=rehearsal&hud=compact", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
   { name: "gameplay-768x1024", width: 768, height: 1024, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
   { name: "gameplay-390x844", width: 390, height: 844, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
@@ -406,13 +472,28 @@ try {
       await waitForExpression(`document.querySelector("#cinematicIntro")?.classList.contains("dismissed") && getComputedStyle(document.querySelector("#cinematicIntro")).display === "none"`);
     }
     await new Promise((resolveWait) => setTimeout(resolveWait, scenario.waitMs));
+    if (scenario.readabilityProbe) {
+      await cdp.send("Runtime.evaluate", {
+        expression: `(() => { const caption = document.querySelector('#audioCaption'); const text = caption?.querySelector('span'); if (caption && text) { document.body.dataset.captionSize = 'medium'; text.textContent = '[RIGHT] Warden breathing behind you'; caption.hidden = false; } return true; })()`,
+        returnByValue: true,
+      });
+    }
     const geometry = resultValue(await cdp.send("Runtime.evaluate", { expression: geometryExpression, returnByValue: true }));
+    const readability = scenario.readabilityProbe
+      ? resultValue(await cdp.send("Runtime.evaluate", { expression: readabilityExpression, returnByValue: true }))
+      : null;
     const overlay = scenario.kind === "overlay"
       ? resultValue(await cdp.send("Runtime.evaluate", { expression: overlayExpression, returnByValue: true }))
       : null;
-    const screenshot = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true, captureBeyondViewport: false });
+    const screenshotOptions = { format: "png", fromSurface: true, captureBeyondViewport: false };
+    if (scenario.captureScale) screenshotOptions.clip = { x: 0, y: 0, width: scenario.width, height: scenario.height, scale: scenario.captureScale };
+    const screenshot = await cdp.send("Page.captureScreenshot", screenshotOptions);
     const screenshotPath = join(artifactRoot, `${sanitizeName(scenario.name)}.png`);
-    writeFileSync(screenshotPath, Buffer.from(screenshot.data, "base64"));
+    const screenshotBuffer = Buffer.from(screenshot.data, "base64");
+    const capturedSize = screenshotBuffer.length >= 24 && screenshotBuffer.subarray(1, 4).toString("ascii") === "PNG"
+      ? [screenshotBuffer.readUInt32BE(16), screenshotBuffer.readUInt32BE(20)]
+      : null;
+    writeFileSync(screenshotPath, screenshotBuffer);
 
     const failures = [];
     if (geometry.horizontalOverflow > 1) failures.push(`horizontal overflow ${geometry.horizontalOverflow}px`);
@@ -424,8 +505,17 @@ try {
     if (/LIVE TWITCH/.test(geometry.mode)) failures.push(`unverified page claims LIVE TWITCH: ${geometry.mode}`);
     if (scenario.path.includes("autostart=") && geometry.introVisible) failures.push("autostart left the cinematic intro blocking gameplay");
     if (overlay && !overlay.transparent) failures.push(`overlay root is not fully transparent`);
+    if (readability?.failures.length) {
+      failures.push(`${readability.failures.length} half-scale critical-text failure(s): ${readability.failures.map(item => `${item.name}:${item.reason}`).join(", ")}`);
+    }
+    if (scenario.captureScale) {
+      const expectedSize = [Math.round(scenario.width * scenario.captureScale), Math.round(scenario.height * scenario.captureScale)];
+      if (!capturedSize || capturedSize[0] !== expectedSize[0] || capturedSize[1] !== expectedSize[1]) {
+        failures.push(`expected scaled screenshot ${expectedSize.join("x")}, found ${capturedSize?.join("x") || "unknown"}`);
+      }
+    }
 
-    const scenarioResult = { ...scenario, screenshotPath, geometry, overlay, failures };
+    const scenarioResult = { ...scenario, screenshotPath, capturedSize, geometry, readability, overlay, failures };
     report.scenarios.push(scenarioResult);
     if (failures.length) {
       report.summary.failed++;
@@ -441,12 +531,64 @@ try {
   const reducedMotionCapture = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true, captureBeyondViewport: false });
   const reducedMotionScreenshotPath = join(artifactRoot, "prefers-reduced-motion-1280x720.png");
   writeFileSync(reducedMotionScreenshotPath, Buffer.from(reducedMotionCapture.data, "base64"));
-  const trivialMotion = value => /(^|, )0(?:s|ms)|0\.0*1ms/.test(value);
-  const motionFailure = !reducedMotion.mediaMatches || reducedMotion.timings.some((item) => !item.missing && (!trivialMotion(item.animationDuration) || !trivialMotion(item.transitionDuration)));
-  report.reducedMotion = { ...reducedMotion, screenshotPath: reducedMotionScreenshotPath, pass: !motionFailure };
+  const trivialMotion = value => String(value).split(",").every(part => Number.parseFloat(part) <= 0.001);
+  const completeStates = [];
+  for (const probe of reducedMotionCompleteProbes) {
+    const state = resultValue(await cdp.send("Runtime.evaluate", {
+      expression: `(() => {
+        const scene = document.querySelector('#scene');
+        const element = document.querySelector(${JSON.stringify(probe.selector)});
+        if (!scene || !element) return { missing: true };
+        scene.dataset.sceneBeat = ${JSON.stringify(probe.beat)};
+        void scene.offsetWidth;
+        const style = getComputedStyle(element);
+        const before = getComputedStyle(element, '::before');
+        const rect = element.getBoundingClientRect();
+        return {
+          missing: false,
+          sceneBeat: scene.dataset.sceneBeat,
+          opacity: Number(style.opacity),
+          rect: { width: rect.width, height: rect.height },
+          animationDuration: style.animationDuration,
+          transitionDuration: style.transitionDuration,
+          scale: style.scale,
+          rotate: style.rotate,
+          filter: style.filter,
+          clipPath: style.clipPath,
+          beforeBackgroundColor: before.backgroundColor,
+          beforeAnimationDuration: before.animationDuration,
+        };
+      })()`,
+      returnByValue: true,
+    }));
+    await delay(50);
+    const completeCapture = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true, captureBeyondViewport: false });
+    const completeScreenshotPath = join(artifactRoot, `prefers-reduced-motion-${sanitizeName(probe.beat)}-1280x720.png`);
+    writeFileSync(completeScreenshotPath, Buffer.from(completeCapture.data, "base64"));
+    const stationary = !state?.missing
+      && trivialMotion(state.animationDuration)
+      && trivialMotion(state.transitionDuration)
+      && trivialMotion(state.beforeAnimationDuration);
+    const visible = !state?.missing && state.opacity >= 0.99 && state.rect.width > 0 && state.rect.height > 0;
+    const signatureMatches = probe.signature === "sealed-sigil"
+      ? Number.parseFloat(state?.scale) === 1 && (state?.rotate === "none" || Math.abs(Number.parseFloat(state?.rotate)) < 0.01) && state?.filter === "none"
+      : probe.signature === "roof-dawn"
+        ? Math.abs(Number.parseFloat(state?.rotate) + 5) < 0.01 && /255\D+255\D+255/.test(state?.beforeBackgroundColor || "")
+        : /48%/.test(state?.clipPath || "");
+    completeStates.push({ ...probe, ...state, stationary, visible, signatureMatches, screenshotPath: completeScreenshotPath, pass: stationary && visible && signatureMatches && state?.sceneBeat === probe.beat });
+  }
+  await cdp.send("Runtime.evaluate", { expression: "delete document.querySelector('#scene')?.dataset.sceneBeat", returnByValue: true });
+  const motionFailure = !reducedMotion.mediaMatches
+    || reducedMotion.timings.some((item) => !item.missing && (!trivialMotion(item.animationDuration) || !trivialMotion(item.transitionDuration)))
+    || completeStates.some(state => !state.pass);
+  report.reducedMotion = { ...reducedMotion, completeStates, screenshotPath: reducedMotionScreenshotPath, pass: !motionFailure };
   if (motionFailure) {
     report.summary.failed++;
-    report.summary.failures.push({ scenario: "prefers-reduced-motion", failures: ["animated world layers retain non-trivial motion"] });
+    const failures = [];
+    if (!reducedMotion.mediaMatches) failures.push("reduced-motion media query did not match");
+    if (reducedMotion.timings.some((item) => !item.missing && (!trivialMotion(item.animationDuration) || !trivialMotion(item.transitionDuration)))) failures.push("animated world layers retain non-trivial motion");
+    for (const state of completeStates.filter(item => !item.pass)) failures.push(`${state.beat} missing its visible stationary final-state signature`);
+    report.summary.failures.push({ scenario: "prefers-reduced-motion", failures });
   } else report.summary.passed++;
 
   report.consoleErrors = [...new Set(consoleErrors)];

@@ -4,6 +4,12 @@ import { createWriteStream, existsSync, mkdirSync, rmSync, statSync, writeFileSy
 import { createServer as createNetServer } from "node:net";
 import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  assessEndingAudioTail,
+  classifyBrowserIssue,
+  ENDING_AUDIO_PEAK_THRESHOLD,
+  ENDING_AUDIO_RMS_THRESHOLD,
+} from "./capture-proof-diagnostics.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const artifactRoot = resolve(process.env.CAPTURE_PROOF_DIR || join(repoRoot, "..", "..", "work", "capture-proof"));
@@ -12,6 +18,7 @@ const stepDelayMs = Math.max(350, Number(process.env.CAPTURE_STEP_MS || 1150));
 const sceneHoldMs = Math.max(0, Number(process.env.CAPTURE_SCENE_HOLD_MS || 24000));
 const minimumCaptureMs = Math.max(60000, Number(process.env.CAPTURE_MINIMUM_MS || 300000));
 const finalHoldMs = Math.max(1500, Number(process.env.CAPTURE_FINAL_HOLD_MS || 3200));
+const minimumEndingAudioTailMs = Math.max(25000, Number(process.env.CAPTURE_ENDING_AUDIO_TAIL_MS || 25000));
 const operatorTimeoutMs = Math.max(30000, Number(process.env.CAPTURE_OPERATOR_TIMEOUT_MS || 300000));
 const browserCandidates = [
   process.env.CAPTURE_BROWSER,
@@ -184,6 +191,43 @@ function recorderInjection() {
   return `(() => {
     if (window.__nightshiftProof) return { installed: true, reused: true };
     const send = payload => window[${JSON.stringify(bindingName)}](JSON.stringify(payload));
+    const audioThresholds = {
+      rms: ${ENDING_AUDIO_RMS_THRESHOLD},
+      peak: ${ENDING_AUDIO_PEAK_THRESHOLD}
+    };
+    const createAudioStats = label => ({
+      label,
+      startedAt: Date.now(),
+      endedAt: null,
+      durationMs: 0,
+      sampleCount: 0,
+      nonSilentSampleCount: 0,
+      trailingSilentSampleCount: 0,
+      maximumConsecutiveSilentSamples: 0,
+      peak: 0,
+      rmsPeak: 0,
+      rmsSum: 0
+    });
+    const finishAudioStats = (stats, at = Date.now()) => {
+      if (!stats) return null;
+      if (!stats.endedAt) stats.endedAt = at;
+      stats.durationMs = Math.max(0, stats.endedAt - stats.startedAt);
+      return stats;
+    };
+    const publicAudioStats = stats => stats ? ({
+      label: stats.label,
+      startedAt: stats.startedAt,
+      endedAt: stats.endedAt,
+      durationMs: stats.endedAt ? stats.durationMs : Math.max(0, Date.now() - stats.startedAt),
+      sampleCount: stats.sampleCount,
+      nonSilentSampleCount: stats.nonSilentSampleCount,
+      nonSilentRatio: stats.sampleCount ? stats.nonSilentSampleCount / stats.sampleCount : 0,
+      trailingSilentSampleCount: stats.trailingSilentSampleCount,
+      maximumConsecutiveSilentSamples: stats.maximumConsecutiveSilentSamples,
+      peak: stats.peak,
+      rmsPeak: stats.rmsPeak,
+      rmsMean: stats.sampleCount ? stats.rmsSum / stats.sampleCount : 0
+    }) : null;
     const state = {
       status: "waiting-for-operator",
       startedAt: null,
@@ -197,6 +241,31 @@ function recorderInjection() {
       stream: null,
       queue: Promise.resolve(),
       captions: [],
+      audioTelemetry: {
+        source: "captured-display-stream",
+        available: false,
+        error: null,
+        sampleIntervalMs: 100,
+        rmsThreshold: audioThresholds.rms,
+        peakThreshold: audioThresholds.peak,
+        contextState: "unavailable",
+        total: null,
+        windows: {},
+        activeWindow: null,
+        context: null,
+        sourceNode: null,
+        analyser: null,
+        sinkNode: null,
+        timer: null
+      },
+      beginAudioTailWindow(label = "humane-ending") {
+        const telemetry = state.audioTelemetry;
+        if (!telemetry.available) return { started: false, label, error: telemetry.error || "Captured-stream analyser is unavailable" };
+        if (telemetry.activeWindow) finishAudioStats(telemetry.windows[telemetry.activeWindow]);
+        telemetry.windows[label] = createAudioStats(label);
+        telemetry.activeWindow = label;
+        return { started: true, label, at: telemetry.windows[label].startedAt };
+      },
       stop() {
         if (state.recorder?.state === "recording") {
           state.status = "stopping";
@@ -207,6 +276,113 @@ function recorderInjection() {
       }
     };
     window.__nightshiftProof = state;
+
+    const snapshotAudioTelemetry = () => {
+      const telemetry = state.audioTelemetry;
+      const windows = {};
+      for (const [name, stats] of Object.entries(telemetry.windows)) windows[name] = publicAudioStats(stats);
+      return {
+        source: telemetry.source,
+        available: telemetry.available,
+        error: telemetry.error,
+        sampleIntervalMs: telemetry.sampleIntervalMs,
+        rmsThreshold: telemetry.rmsThreshold,
+        peakThreshold: telemetry.peakThreshold,
+        contextState: telemetry.contextState,
+        total: publicAudioStats(telemetry.total),
+        windows
+      };
+    };
+    const updateAudioStats = (stats, rms, peak) => {
+      if (!stats) return;
+      stats.sampleCount++;
+      stats.rmsSum += rms;
+      stats.rmsPeak = Math.max(stats.rmsPeak, rms);
+      stats.peak = Math.max(stats.peak, peak);
+      if (rms >= audioThresholds.rms && peak >= audioThresholds.peak) {
+        stats.nonSilentSampleCount++;
+        stats.trailingSilentSampleCount = 0;
+      } else {
+        stats.trailingSilentSampleCount++;
+        stats.maximumConsecutiveSilentSamples = Math.max(stats.maximumConsecutiveSilentSamples, stats.trailingSilentSampleCount);
+      }
+    };
+    const stopAudioTelemetry = () => {
+      const telemetry = state.audioTelemetry;
+      if (telemetry.timer) clearInterval(telemetry.timer);
+      telemetry.timer = null;
+      const endedAt = Date.now();
+      finishAudioStats(telemetry.total, endedAt);
+      if (telemetry.activeWindow) finishAudioStats(telemetry.windows[telemetry.activeWindow], endedAt);
+      telemetry.activeWindow = null;
+      telemetry.contextState = telemetry.context?.state || telemetry.contextState;
+      const snapshot = snapshotAudioTelemetry();
+      try { telemetry.sourceNode?.disconnect(); } catch {}
+      try { telemetry.analyser?.disconnect(); } catch {}
+      try { telemetry.sinkNode?.disconnect(); } catch {}
+      Promise.resolve(telemetry.context?.close?.()).catch(() => {});
+      return snapshot;
+    };
+    const startAudioTelemetry = async stream => {
+      const telemetry = state.audioTelemetry;
+      const audioTrack = stream.getAudioTracks()[0];
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!audioTrack) {
+        telemetry.error = "The shared display stream has no audio track";
+        return;
+      }
+      if (!AudioContextClass) {
+        telemetry.error = "Web Audio analyser is unavailable";
+        return;
+      }
+      try {
+        const context = new AudioContextClass({ latencyHint: "interactive" });
+        telemetry.context = context;
+        await context.resume();
+        if (context.state !== "running") throw new Error("Captured-stream analyser context did not enter the running state");
+        const monitorStream = new MediaStream([audioTrack]);
+        const sourceNode = context.createMediaStreamSource(monitorStream);
+        const analyser = context.createAnalyser();
+        const sinkNode = context.createGain();
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = 0;
+        sourceNode.connect(analyser);
+        sinkNode.gain.setValueAtTime(0, context.currentTime);
+        analyser.connect(sinkNode);
+        sinkNode.connect(context.destination);
+        const samples = new Float32Array(analyser.fftSize);
+        telemetry.sourceNode = sourceNode;
+        telemetry.analyser = analyser;
+        telemetry.sinkNode = sinkNode;
+        telemetry.contextState = context.state;
+        telemetry.available = true;
+        telemetry.total = createAudioStats("capture-total");
+        const sample = () => {
+          try {
+            analyser.getFloatTimeDomainData(samples);
+            let sumSquares = 0;
+            let peak = 0;
+            for (const value of samples) {
+              sumSquares += value * value;
+              peak = Math.max(peak, Math.abs(value));
+            }
+            const rms = Math.sqrt(sumSquares / samples.length);
+            telemetry.contextState = context.state;
+            updateAudioStats(telemetry.total, rms, peak);
+            if (telemetry.activeWindow) updateAudioStats(telemetry.windows[telemetry.activeWindow], rms, peak);
+          } catch (error) {
+            telemetry.available = false;
+            telemetry.error = error?.message || String(error);
+          }
+        };
+        sample();
+        telemetry.timer = setInterval(sample, telemetry.sampleIntervalMs);
+      } catch (error) {
+        telemetry.available = false;
+        telemetry.error = error?.message || String(error);
+        telemetry.contextState = telemetry.context?.state || "failed";
+      }
+    };
 
     const style = document.createElement("style");
     style.textContent = \`
@@ -273,6 +449,7 @@ function recorderInjection() {
         state.mimeType = recorder.mimeType || mimeType || "video/webm";
         state.audioTrackCount = stream.getAudioTracks().length;
         state.videoTrackCount = stream.getVideoTracks().length;
+        await startAudioTelemetry(stream);
         recorder.addEventListener("dataavailable", event => {
           if (!event.data?.size) return;
           state.queue = state.queue.then(async () => {
@@ -289,6 +466,7 @@ function recorderInjection() {
           await state.queue;
           state.status = "complete";
           state.stoppedAt = Date.now();
+          const audioTelemetry = stopAudioTelemetry();
           send({
             kind: "done",
             mimeType: state.mimeType,
@@ -296,7 +474,8 @@ function recorderInjection() {
             videoTrackCount: state.videoTrackCount,
             bytes: state.bytes,
             durationMs: state.startedAt ? state.stoppedAt - state.startedAt : 0,
-            captions: state.captions
+            captions: state.captions,
+            audioTelemetry
           });
           for (const track of stream.getTracks()) track.stop();
         });
@@ -313,9 +492,11 @@ function recorderInjection() {
           mimeType: state.mimeType,
           audioTrackCount: state.audioTrackCount,
           videoTrackCount: state.videoTrackCount,
-          displaySurface: stream.getVideoTracks()[0]?.getSettings?.().displaySurface || null
+          displaySurface: stream.getVideoTracks()[0]?.getSettings?.().displaySurface || null,
+          audioTelemetry: snapshotAudioTelemetry()
         });
       } catch (error) {
+        stopAudioTelemetry();
         state.status = "error";
         button.disabled = false;
         button.textContent = "Try sharing this tab again";
@@ -350,7 +531,11 @@ let expectedSequence = 0;
 let videoHash = createHash("sha256");
 const milestones = [];
 const consoleErrors = [];
+const consoleIssues = [];
+const networkFailures = [];
+const networkRequests = new Map();
 const bindingErrors = [];
+let appOrigin = null;
 
 let resolveRecorderStarted;
 let rejectRecorderStarted;
@@ -381,7 +566,7 @@ function mark(label, detail = {}) {
 try {
   const appPort = await freePort();
   const debugPort = await freePort();
-  const appOrigin = `http://127.0.0.1:${appPort}`;
+  appOrigin = `http://127.0.0.1:${appPort}`;
   const appUrl = `${appOrigin}/?proof=rehearsal`;
 
   serverProcess = spawn(process.execPath, [join(repoRoot, "scripts", "serve.mjs"), "--port", String(appPort)], {
@@ -405,23 +590,102 @@ try {
     `--remote-debugging-port=${debugPort}`,
     `--user-data-dir=${profileRoot}`,
     "--new-window",
-    appUrl,
+    "about:blank",
   ], { stdio: "ignore", windowsHide: false });
 
   await waitForJson(`http://127.0.0.1:${debugPort}/json/version`);
-  const target = await waitForPageTarget(debugPort, appOrigin);
+  const target = await waitForPageTarget(debugPort, "about:blank");
   cdp = new CdpClient(target.webSocketDebuggerUrl);
   await cdp.connect();
-  await cdp.send("Page.enable");
-  await cdp.send("Runtime.enable");
-  await cdp.send("Log.enable");
-  await cdp.send("Runtime.addBinding", { name: bindingName });
 
   cdp.on("Runtime.exceptionThrown", params => {
-    consoleErrors.push(params.exceptionDetails?.exception?.description || params.exceptionDetails?.text || "Runtime exception");
+    const text = params.exceptionDetails?.exception?.description || params.exceptionDetails?.text || "Runtime exception";
+    const issue = { level: "error", source: "runtime", text, url: params.exceptionDetails?.url || null };
+    issue.classification = classifyBrowserIssue(issue, { appOrigin });
+    consoleIssues.push(issue);
+    consoleErrors.push(text);
+  });
+  cdp.on("Runtime.consoleAPICalled", params => {
+    if (!["error", "warning", "assert"].includes(params?.type)) return;
+    const text = (params.args || []).map(argument => {
+      if (Object.hasOwn(argument, "value")) {
+        if (typeof argument.value === "string") return argument.value;
+        try { return JSON.stringify(argument.value); }
+        catch { return String(argument.value); }
+      }
+      return argument.description || argument.unserializableValue || argument.type || "console value";
+    }).join(" ");
+    const issue = {
+      level: params.type === "warning" ? "warning" : "error",
+      source: "console",
+      text: text || `console.${params.type}`,
+      url: params.stackTrace?.callFrames?.[0]?.url || null,
+    };
+    issue.classification = classifyBrowserIssue(issue, { appOrigin });
+    consoleIssues.push(issue);
+    consoleErrors.push(`${issue.level}: ${issue.text}${issue.url ? ` (${issue.url})` : ""}`);
   });
   cdp.on("Log.entryAdded", ({ entry }) => {
-    if (["error", "warning"].includes(entry?.level)) consoleErrors.push(`${entry.level}: ${entry.text}`);
+    if (!["error", "warning"].includes(entry?.level)) return;
+    const request = networkRequests.get(entry?.networkRequestId);
+    const issue = {
+      level: entry.level,
+      source: entry.source || "browser",
+      text: entry.text || "Browser issue",
+      url: entry.url || request?.url || null,
+      networkRequestId: entry.networkRequestId || null,
+      method: request?.method || null,
+      type: request?.type || null,
+      status: request?.status ?? null,
+    };
+    issue.classification = classifyBrowserIssue(issue, { appOrigin });
+    consoleIssues.push(issue);
+    consoleErrors.push(`${entry.level}: ${entry.text}${issue.url ? ` (${issue.url})` : ""}`);
+  });
+  cdp.on("Network.requestWillBeSent", params => {
+    networkRequests.set(params.requestId, {
+      url: params.request?.url || null,
+      method: params.request?.method || null,
+      type: params.type || null,
+      status: null,
+    });
+  });
+  cdp.on("Network.responseReceived", params => {
+    const status = Number(params.response?.status || 0);
+    const request = networkRequests.get(params.requestId) || {};
+    request.url = params.response?.url || request.url || null;
+    request.type = params.type || request.type || null;
+    request.status = status;
+    request.statusText = params.response?.statusText || null;
+    networkRequests.set(params.requestId, request);
+    if (status < 400) return;
+    const failureEntry = {
+      source: "network",
+      requestId: params.requestId,
+      url: request.url,
+      method: request.method || null,
+      type: request.type,
+      status,
+      statusText: request.statusText,
+    };
+    failureEntry.classification = classifyBrowserIssue(failureEntry, { appOrigin });
+    networkFailures.push(failureEntry);
+  });
+  cdp.on("Network.loadingFailed", params => {
+    const request = networkRequests.get(params.requestId) || {};
+    const failureEntry = {
+      source: "network",
+      requestId: params.requestId,
+      url: request.url || null,
+      method: request.method || null,
+      type: params.type || request.type || null,
+      status: null,
+      errorText: params.errorText || "Network loading failed",
+      blockedReason: params.blockedReason || null,
+      canceled: Boolean(params.canceled),
+    };
+    failureEntry.classification = classifyBrowserIssue(failureEntry, { appOrigin });
+    networkFailures.push(failureEntry);
   });
 
   writeStream = createWriteStream(videoPath, { flags: "wx" });
@@ -460,6 +724,14 @@ try {
       bindingErrors.push(error.message);
     }
   });
+
+  await cdp.send("Page.enable");
+  await cdp.send("Runtime.enable");
+  await cdp.send("Log.enable");
+  await cdp.send("Network.enable");
+  await cdp.send("Runtime.addBinding", { name: bindingName });
+  const navigation = await cdp.send("Page.navigate", { url: appUrl });
+  assert(!navigation.errorText, `Unable to navigate to proof app: ${navigation.errorText || "unknown navigation error"}`);
 
   function resultValue(evaluation) {
     return evaluation?.result?.value;
@@ -580,8 +852,11 @@ try {
     audioTrackCount: started.audioTrackCount,
     videoTrackCount: started.videoTrackCount,
     displaySurface: started.displaySurface,
+    capturedStreamAnalyser: started.audioTelemetry?.available === true,
   });
   assert(started.videoTrackCount > 0, "The selected capture contains no video track.");
+  assert(started.displaySurface === "browser", `Choose This Tab, not ${started.displaySurface || "an unknown capture surface"}.`);
+  assert(started.audioTelemetry?.available === true, `Captured-stream audio analyser unavailable: ${started.audioTelemetry?.error || "unknown error"}`);
 
   await pacedClick("#enterWard", "episode:start", 1800);
   await waitFor(`document.querySelector('#dashStatus')?.textContent === 'VOTING'`);
@@ -657,9 +932,12 @@ try {
   assert(automationResult.recap.some(value => /WARDEN.*BOUND/i.test(value)), "The recorded ending did not bind the Warden.");
   mark("ending:MARA WALKS INTO DAWN", { recap: automationResult.recap });
   await screenshot(endingScreenshotPath);
+  const endingAudioWindow = await evaluate(`window.__nightshiftProof?.beginAudioTailWindow?.("humane-ending")`);
+  assert(endingAudioWindow?.started, `Unable to measure captured ending audio: ${endingAudioWindow?.error || "tail window did not start"}`);
+  mark("ending-audio-tail:started", endingAudioWindow);
   const remainingMinimumMs = Math.max(0, minimumCaptureMs - (Date.now() - captureStartedAt));
-  const endingHoldMs = Math.max(finalHoldMs, remainingMinimumMs);
-  mark("ending-hold", { durationMs: endingHoldMs, minimumCaptureMs });
+  const endingHoldMs = Math.max(finalHoldMs, remainingMinimumMs, minimumEndingAudioTailMs + 500);
+  mark("ending-hold", { durationMs: endingHoldMs, minimumCaptureMs, minimumEndingAudioTailMs });
   await delay(endingHoldMs);
 
   const stopRequested = await evaluate(`window.__nightshiftProof?.stop()`);
@@ -689,14 +967,24 @@ try {
   const videoExists = existsSync(videoPath);
   const videoSize = videoExists ? statSync(videoPath).size : 0;
   const audioPresent = Number(recorderMetadata?.audioTrackCount || 0) > 0;
+  const browserTabSurfaceSelected = recorderMetadata?.displaySurface === "browser";
+  const endingAudioTail = assessEndingAudioTail(recorderMetadata?.audioTelemetry, {
+    minimumDurationMs: minimumEndingAudioTailMs,
+  });
+  const endingAudioTailVerified = endingAudioTail.verified;
   const expectedEnding = automationResult?.ending === "MARA WALKS INTO DAWN";
   const zeroFallbacks = Boolean(automationResult?.recap?.some(value => /FALLBACKS.*0/i.test(value)));
   const hasCaptions = Number(automationResult?.captions?.length || recorderMetadata?.captions?.length || 0) > 0;
   const worktree = sourceWorktree();
-  const complete = !failure && videoSize > 0 && audioPresent && expectedEnding && zeroFallbacks && hasCaptions && bindingErrors.length === 0 && !worktree.dirty;
+  const unresolvedBrowserIssues = [
+    ...consoleIssues.filter(issue => issue.classification?.needsReview),
+    ...networkFailures.filter(issue => issue.classification?.needsReview),
+  ];
+  const browserDiagnosticsAccountedFor = unresolvedBrowserIssues.length === 0;
+  const complete = !failure && videoSize > 0 && audioPresent && browserTabSurfaceSelected && endingAudioTailVerified && expectedEnding && zeroFallbacks && hasCaptions && bindingErrors.length === 0 && browserDiagnosticsAccountedFor && !worktree.dirty;
   const sha256 = videoSize > 0 ? videoHash.digest("hex") : null;
   const manifest = {
-    schemaVersion: 1,
+    schemaVersion: 3,
     title: "NightShift Live five-act rehearsal capture",
     status: complete ? "COMPLETE_REHEARSAL_PROOF" : "INCOMPLETE_OR_FAILED_REHEARSAL_PROOF",
     provenance: {
@@ -715,6 +1003,7 @@ try {
       sceneHoldMs,
       minimumCaptureMs,
       finalHoldMs,
+      minimumEndingAudioTailMs,
     },
     recording: {
       path: videoExists ? videoPath : null,
@@ -728,6 +1017,8 @@ try {
       audioTrackCount: recorderMetadata?.audioTrackCount ?? null,
       videoTrackCount: recorderMetadata?.videoTrackCount ?? null,
       displaySurface: recorderMetadata?.displaySurface ?? null,
+      audioTelemetry: recorderMetadata?.audioTelemetry ?? null,
+      endingAudioTail,
     },
     screenshots: {
       opening: existsSync(openingScreenshotPath) ? openingScreenshotPath : null,
@@ -736,14 +1027,33 @@ try {
     automation: automationResult,
     milestones,
     consoleErrors,
+    diagnostics: {
+      consoleIssues,
+      networkFailures,
+      unresolvedBrowserIssues,
+      summary: {
+        consoleIssueCount: consoleIssues.length,
+        networkFailureCount: networkFailures.length,
+        unresolvedCount: unresolvedBrowserIssues.length,
+        allIssuesAccountedFor: browserDiagnosticsAccountedFor,
+      },
+      permissionPolicy: {
+        cameraAndMicrophone: "intentionally denied for getUserMedia",
+        captureApi: "getDisplayMedia",
+        statement: "Camera/microphone policy warnings do not invalidate a tab capture when the manifest verifies actual display video and tab-audio tracks.",
+      },
+    },
     bindingErrors,
     failure: failure ? { name: failure.name, message: failure.message, stack: failure.stack } : null,
     acceptance: {
       uninterruptedVideoBytes: videoSize > 0,
       tabAudioTrackPresent: audioPresent,
+      browserTabSurfaceSelected,
+      endingAudioTailVerified,
       captionEventsObserved: hasCaptions,
       earnedHumaneEnding: expectedEnding,
       zeroDirectorFallbacks: zeroFallbacks,
+      browserDiagnosticsAccountedFor,
       cleanCommittedSource: !worktree.dirty,
       rehearsalProvenanceOnly: true,
     },
@@ -751,6 +1061,8 @@ try {
       "real Twitch OAuth or EventSub interoperability",
       "a separate viewer account",
       "native OBS Browser Source alpha or audio routing",
+      "human-audible mix quality beyond the measured non-silent captured-stream tail",
+      "stereo channel separation or headphone spatial quality",
       "unfamiliar-human discoverability or pacing",
       "NVDA screen-reader output",
     ],

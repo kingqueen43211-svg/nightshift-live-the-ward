@@ -1,5 +1,7 @@
 # Devpost submission pack
 
+> **Final-entry handoff:** use [`RC7_SUBMISSION_PACK.md`](RC7_SUBMISSION_PACK.md) for the current judge-facing copy, clean-checkout path, official-rule checklist, and evidence boundaries. Use [`RC7_DEMO_NARRATION.md`](RC7_DEMO_NARRATION.md) with the 2:52 edit decision list. This RC6 document remains the detailed product-description source and must not be used to imply that external Twitch, OBS, repository, YouTube, human-testing, or Devpost evidence is complete.
+
 ## Title
 
 NightShift Live: The Ward
