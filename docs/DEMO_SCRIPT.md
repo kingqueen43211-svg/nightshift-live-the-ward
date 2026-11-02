@@ -1,6 +1,6 @@
 # 2:50 demo video script
 
-The final recording must use the public build and must preserve the visible mode label. Use **LIVE TWITCH** only after the two-account proof is complete. Otherwise record **REHEARSAL** or **SIMULATED** and describe it honestly.
+The final recording must use the promoted, freshly probed RC6 public build and must preserve the visible mode label. RC6 currently has local verification only; do not record the prior public baseline as the final candidate. Use **LIVE TWITCH** only after the two-account proof is complete. Otherwise record **REHEARSAL** or **SIMULATED** and describe it honestly.
 
 ## 0:00–0:12 — Cold open
 
@@ -18,7 +18,7 @@ Keep the mode label visible during the handoff.
 
 ## 0:30–0:58 — Two kinds of agency
 
-Show the three camera nodes traveling through the same layered room, including a foreground pass and deterministic settle. Then have the streamer search the desk and locker. Cut to the audience vote and let a command change its percentage. Attempt **Reconstruct file** too early once so the visible prerequisite explains why it is locked; then complete it. Hold long enough to show the persistent next-step panel change from the missing action to the audience/consequence phase.
+Show the three camera nodes traveling through the same layered room, including a foreground pass and deterministic settle. Then have the streamer search the desk and locker. Cut to the audience vote and let a command change its percentage. Focus the disabled **Reconstruct file** action so its exact prerequisite is readable, then complete it after satisfying the Ward checklist. Hold long enough to show the persistent next-step panel change from the missing action to the audience/consequence phase.
 
 “Streamer actions are not chat buttons. I choose where to look, combine evidence, solve sequences, and commit to an exit. Viewers vote on a parallel layer of the same persistent world.”
 
@@ -38,7 +38,7 @@ Include one item use with the persistent exact effect visible—for example fear
 
 ## 1:52–2:14 — Streamer product
 
-Show the control room: Twitch signal, event rehearsal, activity feed, checkpoint recovery, pacing telemetry, accessibility settings, sound volume, and mute. Cut to the transparent overlay over a checkerboard or contrasting video background.
+Show the control room: Twitch signal, event rehearsal, activity feed, checkpoint recovery, pacing telemetry, accessibility settings, caption size/background/duration/speaker/direction controls, sound volume, and mute. Cut to the transparent overlay over a checkerboard or contrasting video background.
 
 “The streamer gets one production console, a separate OBS browser source, safety controls, and an opt-in procedural soundscape with a visual caption for every meaningful cue.”
 
@@ -54,7 +54,7 @@ Never present a rehearsal trigger as a real Twitch event.
 
 ## 2:34–2:44 — Build evidence
 
-Show the final RC4 `npm run verify` summaries briefly. Use only the counts in that recorded report; do not reuse the prior baseline numbers after the candidate changes:
+Show the final RC6 `npm run verify` summaries briefly: 90/90 unit/contract, 29/29 visual, 9/9 gameplay, 5/5 integrity, 17/17 relay, 11/11 accessibility, 10/10 performance, and a 12.0 MiB / 24-file release audit. Do not reuse prior-baseline numbers:
 
 - engine/contract tests, including exact item deltas, no-op retention, final-route ownership, and the blackout-breach counter;
 - visual and responsive states, including all fifteen camera compositions and active-world-target collision checks;
@@ -65,7 +65,7 @@ Show the final RC4 `npm run verify` summaries briefly. Use only the counts in th
 
 ## 2:44–2:50 — Final hook
 
-Return to the strongest Warden or ending shot, then cut to the logo.
+Return to the UI-free rooftop dawn tableau from the earned humane ending, then cut to the logo.
 
 “NightShift Live. The streamer enters. The audience decides what follows.”
 
@@ -88,13 +88,16 @@ Return to the strongest Warden or ending shot, then cut to the logo.
 - [ ] One continuous spatial camera move with foreground/background parallax and no room-image swap.
 - [ ] One audience vote changing the physical world.
 - [ ] Persistent audience result and next required action.
+- [ ] Ward 06 five-step checklist and one truthfully disabled action with its exact prerequisite.
 - [ ] Isolation door closed, bolts releasing, and door open.
 - [ ] Warden warning plus successful or failed counterplay.
 - [ ] Exact persistent item effect or visible no-op retention.
 - [ ] In-world 2 · 1 · 3 breaker levers.
 - [ ] Control room and transparent overlay.
 - [ ] Captioned audio with sound muted for one beat.
+- [ ] Caption preference change reflected in both gameplay and overlay rails.
 - [ ] Ending recap with route and fallback provenance.
+- [ ] UI-free rooftop dawn tableau from the earned humane ending.
 - [ ] Real Twitch two-account proof, or an explicit on-screen statement that it remains pending.
 - [ ] Logged-out public repository and public YouTube playback.
 - [ ] Codex session ID and final Devpost fields checked before submit.

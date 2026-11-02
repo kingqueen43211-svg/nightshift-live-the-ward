@@ -1,6 +1,6 @@
-# RC5 procedural audio, score, captions, and capture
+# RC6 procedural audio, score, captions, and capture
 
-`dist/audio.mjs` supplies NightShift Live's production audio without downloaded sound files, external services, or autoplay. RC5 moves beyond generic interface tones: physical actions, items, audience consequences, Warden phases, room ambience, transitions, adaptive score, and endings each have an authored procedural cue and an exact caption.
+`dist/audio.mjs` supplies NightShift Live's production audio without downloaded sound files, external services, or autoplay. Physical actions, items, audience consequences, Warden phases, room ambience, transitions, adaptive score, and endings each have an authored procedural cue and an exact caption. RC6 adds persistent caption presentation preferences and optional speaker/directional metadata without changing campaign authority.
 
 Audio remains separate from campaign authority. If Web Audio is locked, unavailable, muted, or reduced, the action still completes and its caption still emits.
 
@@ -58,7 +58,7 @@ All meaningful APIs call the caption path before testing whether audio can play.
 }
 ```
 
-The controller stores only `{ cue, text, at }` in sanitized public state. The caption renders in the gameplay caption rail and `#overlayAudioCaption`, then travels through the validated `BroadcastChannel`/local-relay state used by passive OBS surfaces. It contains no OAuth token, viewer map, EventSub ID, or private checkpoint data.
+The controller stores a sanitized `{ cue, text, at, speaker?, direction? }` subset in public state. The caption renders in the gameplay caption rail and `#overlayAudioCaption`, then travels through the validated `BroadcastChannel`/local-relay state used by passive OBS surfaces. Persistent controls cover enablement, small/medium/large text, soft/solid/maximum background, a 3–8 second duration, speaker labels, and left/center/right direction labels. Caption state contains no OAuth token, viewer map, EventSub ID, or private checkpoint data.
 
 Passive mirror and overlay views are inert and do not create their own authoritative audio engine. The intended capture strategy is one controller tab producing the mix, with caption-only passive surfaces. This avoids doubled ambience, score, and cues while keeping the OBS overlay visually synchronized.
 
@@ -82,13 +82,13 @@ This capture is rehearsal proof, not live Twitch, native OBS, an unfamiliar-huma
 
 ## Verification boundary
 
-The RC5 suite results are:
+The locally verified RC6 suite results are:
 
-- 83/83 unit and contract tests;
+- 90/90 unit and contract tests;
 - 29/29 visual states, including compact HUD;
 - 9/9 gameplay, 5/5 integrity, 17/17 relay, 11/11 accessibility, and 10/10 performance gates;
-- performance final deltas: DOM 0, listeners 0, heap 0.285 MiB.
+- performance final deltas: DOM -223, listeners 0, heap 0.203 MiB.
 
-The tests cover gesture gating, bus routing, compressor fallback, panning, adaptive score stages, action/item/audience/Warden/ending captions, reduced effects, cleanup, sanitized caption transport, passive-mirror behavior, and the capture workflow contract. The final all-in-one RC5 composite passed end to end.
+The tests cover gesture gating, bus routing, compressor fallback, panning, adaptive score stages, action/item/audience/Warden/ending captions, caption preferences, reduced effects, cleanup, sanitized caption transport, passive-mirror behavior, and the capture workflow contract. The final all-in-one RC6 composite passed end to end locally; public RC6 promotion and a fresh anonymous probe remain pending.
 
 Browser QA still cannot prove that a human can hear and balance every cue on the target hardware, that Chrome supplies tab audio in the actual picker run, or that native OBS receives the intended mix. Those remain explicit manual gates.

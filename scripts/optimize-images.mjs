@@ -22,6 +22,7 @@ const workRoot = resolve(repoRoot, "..", "..", "work", "image-optimization");
 const profileRoot = join(workRoot, `.chrome-profile-${process.pid}`);
 const shouldWrite = process.argv.includes("--write");
 const thresholdBytes = Number(process.env.IMAGE_OPTIMIZE_THRESHOLD || 1_000_000);
+const matchPattern = process.env.IMAGE_OPTIMIZE_MATCH || "";
 const opaqueQuality = Number(process.env.IMAGE_WEBP_QUALITY || .94);
 const alphaQuality = Number(process.env.IMAGE_WEBP_ALPHA_QUALITY || 1);
 const browserCandidates = [
@@ -257,6 +258,7 @@ async function removeProfileWithRetries() {
 
 const targets = walk(sourceRoot)
   .filter(file => extname(file).toLowerCase() === ".png" && statSync(file).size >= thresholdBytes)
+  .filter(file => !matchPattern || relative(sourceRoot, file).split(sep).join("/").includes(matchPattern))
   .filter(file => !file.endsWith(`${sep}the-surgeon.png`))
   .sort((left, right) => statSync(right).size - statSync(left).size);
 

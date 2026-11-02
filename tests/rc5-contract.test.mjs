@@ -23,7 +23,8 @@ test("premium audio APIs are wired to physical gameplay and never gated before c
 test("sanitized audio captions travel to passive OBS surfaces without enabling mirror audio", () => {
   assert.match(engine, /lastAudioCue:null/);
   assert.match(publicState, /incoming\.lastAudioCue/);
-  assert.match(app, /state\.lastAudioCue = \{ cue, text, at \}/);
+  assert.match(app, /state\.lastAudioCue = \{[\s\S]{0,500}?cue:[\s\S]{0,500}?text:[\s\S]{0,500}?at/,
+    "caption transport must retain cue, text, timestamp, and sanitized optional metadata");
   assert.match(html, /id="overlayAudioCaption"[^>]*aria-live="polite"/);
   assert.match(app, /if \(PASSIVE_MIRROR\) \{[\s\S]*?#app"\)\.inert = true/);
 });

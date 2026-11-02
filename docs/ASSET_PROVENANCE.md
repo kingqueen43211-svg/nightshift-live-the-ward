@@ -1,11 +1,11 @@
-# V3 original asset provenance
+# Original asset provenance
 
 Date: 2026-11-01  
 Project: NightShift Live — The Ward
 
 ## Scope
 
-The V3 corridor pass adds original, project-specific raster assets generated for this game. They were prompted against the existing Ward corridor only to preserve the game's established lighting, grime, palette, and material language. They are not stock downloads and do not imitate a named artist, franchise, film, or game.
+The V3 corridor pass and RC6 humane-ending pass add original, project-specific raster assets generated for this game. They were prompted against the existing Ward only to preserve the game's established lighting, grime, palette, and material language. They are not stock downloads and do not imitate a named artist, franchise, film, or game.
 
 Every V3 prop and character file was requested as an isolated transparent PNG so it can participate in the live scene graph, parallax, occlusion, Warden phase changes, and the physical door animation instead of acting as a flattened screenshot.
 
@@ -19,6 +19,7 @@ Every V3 prop and character file was requested as an isolated transparent PNG so
 | `art-source/v3/gurney-foreground-v1.png` | Near-field corridor occluder and evidence prop | Corroded hospital gurney matching Ward materials, cyan/red scene light, no baked floor or background | 1536×1024 alpha source; public derivative in `dist/assets/v3/` |
 | `art-source/v3/curtain-foreground-v1.png` | Foreground depth, stealth cover | Wet, torn surgical privacy curtain and rail matching the corridor, isolated from wall and floor | 1024×1536 alpha source; public derivative in `dist/assets/v3/` |
 | `art-source/v3/isolation-door-v1.png` | Multi-phase physical isolation door | Front-elevation, buildable steel door with `ISOLATION 06`, wired glass, magnetic lock, bolt receivers, cyan/red scene light | 1024×1536 alpha source; public derivative in `dist/assets/v3/` |
+| `art-source/rc6/humane-ending-rooftop-v1.png` | Earned humane-ending rooftop dawn tableau | Match Mara, the Warden, wet rooftop materials, and restrained cyan-to-dawn lighting; no baked UI, title, logo, or watermark | 1672×941 opaque source; verified WebP derivative in `dist/assets/rc6/` |
 
 ## Prompt constraints used throughout
 
@@ -34,6 +35,6 @@ Every V3 prop and character file was requested as an isolated transparent PNG so
 - The Warden sprite is selected from explicit engine phases (`warning`, `approaching`/`striking`, `passing`, and `repelled`).
 - Curtain and gurney are independent foreground layers enabled only in Ward 06 and the operating theatre.
 - The isolation door is textured onto a CSS 3D panel with linked bolts, a real hinge transform, a connected-room reveal, and reduced-motion support.
-- Original PNGs remain under `art-source/` as the lossless source of truth. The public `dist/` uses visually verified WebP derivatives; the expanded post-switch visual matrix passed 28/28 and the browser campaign gate passed 8/8.
+- Original PNGs remain under `art-source/` as the lossless source of truth. The deployable `dist/` candidate uses visually verified WebP derivatives; the expanded post-switch visual matrix passed 29/29 and the browser campaign gate passed 9/9. RC6 is locally verified but not claimed as publicly promoted.
 
 This manifest records authorship and intended use; it is not a claim that automated generation alone proves final visual quality. The release screenshots and visual-QA matrix remain the acceptance evidence.

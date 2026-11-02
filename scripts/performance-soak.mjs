@@ -534,9 +534,13 @@ try {
         await waitFor(`![...document.querySelectorAll('#cameraRail [data-camera-node]')].some(button => button.disabled)`, 3000);
       }
 
-      let actions = await evaluate(`[...document.querySelectorAll('#actionTray [data-action]')].map(button => button.dataset.action)`);
-      if (room === "Generator Room") actions = ["breaker-2", "breaker-1", "breaker-3", "reroute-power"];
-      if (room === "Stairwell / Exits") actions = actions.filter(action => action === "seal-warden");
+      const actions = {
+        "Reception / Triage": ["search-desk", "open-locker", "reconstruct-file"],
+        "Ward 06": ["inspect-gurney", "listen-intercom", "hide-curtain"],
+        "Operating Theatre": ["align-lamps", "play-tape", "counter-warden"],
+        "Generator Room": ["breaker-2", "breaker-1", "breaker-3", "reroute-power"],
+        "Stairwell / Exits": ["seal-warden"],
+      }[room] || [];
       for (const action of actions) {
         await click(`#actionTray [data-action="${action}"]`);
         await delay(8);
@@ -561,10 +565,12 @@ try {
         await click('[data-view-target="gameplay"]');
         await click('[data-action="open-roof"]');
         await waitFor(`document.querySelector('#ending')?.classList.contains('show')`, 5000);
+      } else if (room === "Ward 06") {
+        await waitFor(`document.querySelector('#dashStatus')?.textContent === "CONSEQUENCE"`, 5000);
+        await click('#actionTray [data-action="force-door"]');
+        await click("#gameplayAdvance");
+        await waitFor(`document.querySelector('#dashRoom')?.textContent !== ${JSON.stringify(currentRoom)}`, 5000);
       } else {
-        await waitFor(`document.querySelector('#dashRoom')?.textContent !== ${JSON.stringify(currentRoom)} || document.querySelector('#dashStatus')?.textContent === "CONSEQUENCE"`, 5000);
-        const needsRecoveryAdvance = await evaluate(`document.querySelector('#dashRoom')?.textContent === ${JSON.stringify(currentRoom)}`);
-        if (needsRecoveryAdvance) await click("#advanceRoom");
         await waitFor(`document.querySelector('#dashRoom')?.textContent !== ${JSON.stringify(currentRoom)}`, 5000);
       }
     }

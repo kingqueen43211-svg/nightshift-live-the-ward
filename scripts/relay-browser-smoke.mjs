@@ -435,7 +435,7 @@ try {
   record("mirror renders relayed vote", Number.parseInt(mirrorVoteDom.voteCount, 10) === voteTotal(voteMessage), JSON.stringify(mirrorVoteDom));
   const syncedScreenshot = await capture(mirror, "mirror-synced-vote-1280x720.png");
 
-  await evaluate(controller, `document.querySelector("#advanceRoom").click()`);
+  await evaluate(controller, `(() => { window.confirm = () => true; document.querySelector("#directorRecovery").click(); })()`);
   const consequenceMessage = await waitForCondition(
     () => controller.controllerMessages.findLast(message => message.state?.sessionId === voteMessage.state.sessionId
       && message.state?.roomIndex === 0
@@ -462,10 +462,10 @@ try {
     `${consequenceMessage.state.status} in roomIndex ${consequenceMessage.state.roomIndex}`,
   );
 
-  // RC4 deliberately publishes the audience consequence before an incomplete
-  // room uses the director-recovery advance. The second click verifies that
+  // RC6 deliberately publishes the audience consequence before an incomplete
+  // room uses the explicitly confirmed Director Recovery. The second click verifies that
   // the later room transition is independently published to the OBS process.
-  await evaluate(controller, `document.querySelector("#advanceRoom").click()`);
+  await evaluate(controller, `document.querySelector("#directorRecovery").click()`);
   const roomMessage = await waitForCondition(
     () => controller.controllerMessages.findLast(message => message.state?.sessionId === voteMessage.state.sessionId && message.state?.roomIndex === 1),
     "controller room transition publication",

@@ -27,6 +27,8 @@ export function isValidPublicState(incoming) {
     if (!plainObject(incoming.lastAudioCue)) return false;
     if (!shortString(incoming.lastAudioCue.cue, 120) || !shortString(incoming.lastAudioCue.text, 500)) return false;
     if (!Number.isFinite(incoming.lastAudioCue.at)) return false;
+    if (incoming.lastAudioCue.speaker !== undefined && !shortString(incoming.lastAudioCue.speaker, 80)) return false;
+    if (incoming.lastAudioCue.direction !== undefined && !finiteIn(incoming.lastAudioCue.direction, -1, 1)) return false;
   }
 
   if (!Array.isArray(incoming.recent) || incoming.recent.length > 18 || !incoming.recent.every(event =>

@@ -60,15 +60,15 @@ npm run qa:performance
 npm run release:audit
 ```
 
-The final RC5 all-in-one composite passed end to end: 83/83 unit and contract tests, 29/29 visual states including compact HUD, 9/9 browser gameplay gates, 5/5 integrity gates, 17/17 independent-process relay gates, 11/11 accessibility/reflow gates, 10/10 performance gates, and the release-audit stage. The final performance run finished with zero DOM growth, zero listener growth, and a 0.285 MiB heap delta.
+The final RC6 all-in-one composite passed end to end: 90/90 unit and contract tests, 29/29 visual states including compact HUD, 9/9 browser gameplay gates, 5/5 integrity gates, 17/17 independent-process relay gates, 11/11 accessibility/reflow gates, 10/10 performance gates, and the release-audit stage. The final performance run finished with a −223 DOM-node delta, zero listener growth, and a 0.203 MiB post-GC heap delta. The audited deployable payload is 12.0 MiB across 24 files.
 
-The [public production Site](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/) now serves RC5. An anonymous production probe returned HTTP 200 and byte-matched the deployed `app.mjs`, `audio.mjs`, and `styles.css` against the tested release; the HTML difference was limited to Cloudflare's injected challenge script. A live-browser smoke check entered the episode, enabled compact HUD mode, opened the four-bus mixer, and produced the sound-ready caption. The Chrome share-tab/audio capture workflow is implemented and contract-validated, but no completed five-minute audiovisual proof is claimed until an operator performs the real picker run and its manifest passes. Real Twitch, native OBS, five unfamiliar humans, NVDA, audible listening, public repository/video, and Devpost remain external gates.
+RC6 is verified locally and ready for promotion, but the [public production Site](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/) must be treated as the prior independently probed baseline until the reviewed RC6 commit is deployed and a fresh anonymous probe byte-matches its core runtime and humane-ending asset. The Chrome share-tab/audio capture workflow is implemented and contract-validated, but no completed five-minute audiovisual proof is claimed until an operator performs the real picker run and its manifest passes. Real Twitch, native OBS, five unfamiliar humans, NVDA, audible listening, public repository/video, and Devpost remain external gates.
 
 Before sharing the entry, follow the logged-out hosting, OAuth callback, OBS alpha, and rollback steps in [`docs/PUBLIC_DEPLOYMENT.md`](docs/PUBLIC_DEPLOYMENT.md).
 
-The current judge findings, deterministic acceptance criteria, capture boundary, and non-automatable proof are tracked in [`docs/RC5_JUDGE_FIX_CONTRACT.md`](docs/RC5_JUDGE_FIX_CONTRACT.md).
+The finalist contract remains in [`docs/RC5_JUDGE_FIX_CONTRACT.md`](docs/RC5_JUDGE_FIX_CONTRACT.md); RC6's ten exact concept-reference reconciliations and current acceptance targets are tracked in [`docs/RC6_VISUAL_REFERENCE_MATRIX.md`](docs/RC6_VISUAL_REFERENCE_MATRIX.md).
 
-RC5 screenshots, machine-readable browser reports, and the still-empty capture-proof boundary are indexed in [`docs/evidence/RC5_EVIDENCE.md`](docs/evidence/RC5_EVIDENCE.md).
+RC5 screenshots and the still-empty capture-proof boundary remain indexed in [`docs/evidence/RC5_EVIDENCE.md`](docs/evidence/RC5_EVIDENCE.md). Fresh RC6 machine-readable reports are produced by `npm run verify` in the workspace evidence directories and must be preserved with the promoted commit.
 
 ## Connect a real Twitch channel
 
@@ -108,9 +108,10 @@ tests/
   *.test.mjs        Engine, campaign, Twitch, relay, audio, and accessibility tests
 docs/
   ARCHITECTURE.md   Technical design and event flow
-  QUALITY_TRACKER.md Evidence-backed RC5 gate status
+  QUALITY_TRACKER.md Evidence-backed RC6 gate status
   RC4_JUDGE_FIX_CONTRACT.md Judge finding → behavior → proof mapping
   RC5_JUDGE_FIX_CONTRACT.md Finalist-quality audiovisual/visual/capture contract
+  RC6_VISUAL_REFERENCE_MATRIX.md Ten exact concept frames → implementation and acceptance
   evidence/RC4_EVIDENCE.md Final screenshots and browser reports
   evidence/RC5_EVIDENCE.md RC5 suite artifacts and pending capture boundary
   SUBMISSION.md     Devpost-ready copy and checklist

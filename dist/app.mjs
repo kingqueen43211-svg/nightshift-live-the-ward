@@ -43,19 +43,19 @@ const LOCAL_RELAY = params.get("relay") === "local";
 const PASSIVE_MIRROR = params.get("role") === "mirror";
 const INSTANCE_ID = globalThis.crypto?.randomUUID?.() || `ward-tab-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 const CAMERA_META = {
-  "lobby-wide": ["LOBBY", "Wide threat context"],
+  "lobby-wide": ["LOBBY", "Scan reception and choose the first search"],
   "records-desk": ["RECORDS", "Inspect the torn intake record"],
   "locker-close": ["LOCKER", "Recover a survival resource"],
-  "corridor-wide": ["CORRIDOR", "Track the Warden's route"],
+  "corridor-wide": ["CORRIDOR", "Locate the gurney, intercom, and isolation door"],
   "door-approach": ["GURNEY", "Read the restraint evidence"],
   threshold: ["THRESHOLD", "Commit to the isolation breach"],
-  "theatre-wide": ["THEATRE", "Read the whole encounter"],
+  "theatre-wide": ["THEATRE", "Locate the lamp rig, tape deck, and Warden"],
   "lamp-array": ["LAMPS", "Prepare environmental counterplay"],
   "restraint-table": ["TABLE", "Decode the confession"],
-  "generator-wide": ["GENERATOR", "Read the exit topology"],
+  "generator-wide": ["GENERATOR", "Locate the breakers and service exit"],
   "breaker-close": ["BREAKERS", "Solve the 2 · 1 · 3 sequence"],
   "service-stairs": ["STAIRS", "Commit power to the escape grid"],
-  "landing-wide": ["LANDING", "Review final readiness"],
+  "landing-wide": ["LANDING", "Check containment status and powered exits"],
   "roof-exit": ["ROOF", "Choose exposure and rescue"],
   "ambulance-tunnel": ["TUNNEL", "Choose the underground route"]
 };
@@ -114,6 +114,7 @@ let cameraTimer;
 let sceneBeatTimers = [];
 let roomTransitionTimer;
 let wardenReactionTimer;
+let cinematicBeatTimer;
 let wardenReactionVisible = false;
 let cameraMotion = null;
 let audioCaptionTimer;
@@ -132,6 +133,7 @@ let lastEffectPulseAt = 0;
 let lastScoreRoom = "";
 let audienceClockPausedAt = null;
 let relayEvents = null;
+let helpReturnFocus = null;
 
 try {
   const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
@@ -146,6 +148,12 @@ state.settings.audioEffectsVolume ??= .82;
 state.settings.audioAmbienceVolume ??= .46;
 state.settings.audioMusicVolume ??= .38;
 state.settings.compactHud ??= false;
+state.settings.captionEnabled ??= true;
+state.settings.captionSize ??= "medium";
+state.settings.captionBackground ??= "solid";
+state.settings.captionSpeakerLabels ??= true;
+state.settings.captionDirectional ??= true;
+state.settings.captionDuration ??= 5200;
 if (params.get("hud") === "compact") state.settings.compactHud = true;
 
 const audio = createNightShiftAudio({
@@ -156,9 +164,15 @@ const audio = createNightShiftAudio({
     ambience: state.settings.audioAmbienceVolume,
     music: state.settings.audioMusicVolume
   },
-  onCaption: ({ cue, text, at = Date.now() }) => {
+  onCaption: ({ cue, text, at = Date.now(), speaker, direction }) => {
     if (cue === "ui-click") return;
-    state.lastAudioCue = { cue, text, at };
+    state.lastAudioCue = {
+      cue: String(cue || "sound").slice(0, 120),
+      text: String(text || "").slice(0, 500),
+      at,
+      ...(typeof speaker === "string" ? { speaker: speaker.slice(0, 80) } : {}),
+      ...(Number.isFinite(direction) ? { direction: Math.max(-1, Math.min(1, direction)) } : {})
+    };
     displayAudioCue(state.lastAudioCue);
   }
 });
@@ -170,15 +184,26 @@ function displayAudioCue(detail) {
   if (cueKey === lastRenderedAudioCueAt) return;
   lastRenderedAudioCueAt = cueKey;
   const targets = [$("#audioCaption"), $("#overlayAudioCaption")].filter(Boolean);
+  if (!state.settings.captionEnabled) {
+    for (const target of targets) target.hidden = true;
+    return;
+  }
+  const cue = String(detail.cue || "sound");
+  const speaker = detail.speaker || (cue.startsWith("warden") ? "WARDEN" : cue.startsWith("audience") ? "AUDIENCE" : cue.startsWith("score") ? "SCORE" : cue === "ambience" ? "ENVIRONMENT" : "NIGHTSHIFT");
+  const direction = Number.isFinite(detail.direction)
+    ? detail.direction < -.12 ? "LEFT" : detail.direction > .12 ? "RIGHT" : "CENTER"
+    : "";
+  const label = [state.settings.captionSpeakerLabels ? speaker : "SOUND CAPTION", state.settings.captionDirectional && direction ? direction : ""].filter(Boolean).join(" · ");
   for (const target of targets) {
     target.querySelector("span").textContent = detail.text;
-    target.dataset.cue = String(detail.cue || "sound").startsWith("warden") ? "warden" : detail.cue || "sound";
+    target.querySelector("small").textContent = label;
+    target.dataset.cue = cue.startsWith("warden") ? "warden" : cue;
     target.hidden = false;
   }
   clearTimeout(audioCaptionTimer);
   audioCaptionTimer = setTimeout(() => {
     for (const target of targets) target.hidden = true;
-  }, detail.cue === "ambience" || detail.cue === "score-start" ? 5200 : 4200);
+  }, Math.max(3000, Math.min(8000, Number(state.settings.captionDuration) || 5200)));
 }
 
 function announce(text) {
@@ -206,9 +231,22 @@ function isPassiveView() {
 }
 
 function visibleDialog() {
+  if ($("#helpDialog")?.open) return $("#helpDialog");
   if (!$("#cinematicIntro").classList.contains("dismissed")) return $("#cinematicIntro");
   if ($("#ending").classList.contains("show")) return $("#ending");
   return null;
+}
+
+function openHelp(trigger = document.activeElement) {
+  const dialog = $("#helpDialog");
+  helpReturnFocus = trigger instanceof HTMLElement ? trigger : $("#helpToggle");
+  if (!dialog.open) dialog.showModal();
+  setTimeout(() => $("#helpClose").focus(), 0);
+}
+
+function closeHelp() {
+  const dialog = $("#helpDialog");
+  if (dialog.open) dialog.close();
 }
 
 function focusableIn(root) {
@@ -324,9 +362,20 @@ function actionKind(action) {
 }
 
 function actionRequirement(action) {
+  const surgeryActions = state.rooms?.surgery?.actions || [];
+  const wardCluesReady = ["inspect-gurney", "listen-intercom"].every(step => surgeryActions.includes(step));
+  const audienceResolved = state.status === "consequence" || Boolean(state.winner);
+  const darkCounterReady = state.winner?.id === "dark" && surgeryActions.includes("hide-curtain");
+  const isolationRouteReady = state.winner?.id === "open" && state.doors.isolation;
+  const restoredRouteReady = state.power >= 20 && audienceResolved;
+  const wardMissing = [];
+  if (!surgeryActions.includes("inspect-gurney")) wardMissing.push("inspect restraint marks");
+  if (!surgeryActions.includes("listen-intercom")) wardMissing.push("decode the intercom");
+  if (!audienceResolved) wardMissing.push("resolve the audience round");
+  if (state.winner?.id === "dark" && !darkCounterReady) wardMissing.push("hide behind the curtain");
   const gates = {
     "reconstruct-file": [state.props.desk && state.props.locker, "Needs desk + locker"],
-    "force-door": [state.evidence.length >= 2 && (state.power >= 20 || (state.winner?.id === "dark" && state.rooms?.surgery?.actions?.includes("hide-curtain"))), state.winner?.id === "dark" ? "Hide first · manual breach costs 10 vitals" : "Needs 2 evidence + audience power result"],
+    "force-door": [wardCluesReady && audienceResolved && (restoredRouteReady || isolationRouteReady || darkCounterReady), wardMissing.length ? `First: ${wardMissing.join(" · ")}` : state.winner?.id === "dark" ? "Manual breach costs 10 vitals" : "Return to the threshold and cross isolation"],
     "play-tape": [state.story.subjectIdentified, "Identify Subject 06 first"],
     "counter-warden": [state.props.lamps && state.story.confessionDecoded, "Align lamps + decode confession"],
     "reroute-power": [state.props.breakerProgress.length === 3, "Complete 2 · 1 · 3"],
@@ -346,6 +395,8 @@ function clearSceneBeat() {
 
 function playSceneBeat(action, accepted) {
   clearSceneBeat();
+  clearTimeout(cinematicBeatTimer);
+  document.body.classList.remove("cinematic-beat");
   const scene = $("#scene");
   if (!accepted) {
     audio.playAction(action, {
@@ -363,6 +414,10 @@ function playSceneBeat(action, accepted) {
     roomId: roomFor(state).id,
     pan: /locker|roof|ambulance|breaker-3/.test(action) ? .28 : /desk|lamp|breaker-1/.test(action) ? -.28 : 0
   });
+  if (!state.settings.reducedMotion) {
+    document.body.classList.add("cinematic-beat");
+    cinematicBeatTimer = setTimeout(() => document.body.classList.remove("cinematic-beat"), 1900);
+  }
   const sequences = {
     "force-door": [["anticipation", 0], ["bolts", 260], ["swing", 720], ["settle", 1420]],
     "hide-curtain": [["close", 0], ["hold", 420], ["release", 1250]],
@@ -373,7 +428,10 @@ function playSceneBeat(action, accepted) {
     "breaker-1": [["anticipation", 0], ["impact", 280]],
     "breaker-2": [["anticipation", 0], ["impact", 280]],
     "breaker-3": [["anticipation", 0], ["impact", 280]],
-    "reroute-power": [["anticipation", 0], ["impact", 360], ["complete", 900]]
+    "reroute-power": [["anticipation", 0], ["impact", 360], ["complete", 900]],
+    "seal-warden": [["sigil", 0], ["bind", 480], ["sealed", 1320]],
+    "open-roof": [["unlock", 0], ["swing", 420], ["dawn", 1180]],
+    "open-ambulance": [["unlock", 0], ["rise", 420], ["open", 1180]]
   };
   const sequence = sequences[action] || [["impact", 0], ["complete", 420]];
   if (state.settings.reducedMotion || state.settings.lowEffects) {
@@ -421,7 +479,9 @@ function renderActions(room) {
     const requirement = actionRequirement(action);
     const completed = roomState?.actions?.includes(action);
     const status = completed ? "DONE" : requirement.ready ? actionKind(action) : "LOCKED";
-    return `<button data-action="${escape(action)}" class="${completed ? "completed" : ""} ${requirement.ready ? "" : "locked"}" title="${escape(requirement.cue)}"><small>${status} · 0${index + 1}</small><b>${escape(actionLabel(action))}</b><em>${escape(requirement.ready ? "" : requirement.cue)}</em></button>`;
+    const label = action === "force-door" && state.winner?.id === "open" ? "Cross isolation threshold" : actionLabel(action);
+    const reasonId = `action-reason-${action}`;
+    return `<button data-action="${escape(action)}" class="${completed ? "completed" : ""} ${requirement.ready ? "" : "locked"}" title="${escape(completed ? "Action already complete" : requirement.cue)}" aria-disabled="${String(Boolean(completed || !requirement.ready))}" aria-describedby="${escape(reasonId)}" ${completed || !requirement.ready ? "disabled" : ""}><small>${status} · 0${index + 1}</small><b>${escape(label)}</b><em id="${escape(reasonId)}">${escape(completed ? "Completed" : requirement.ready ? "Ready" : requirement.cue)}</em></button>`;
   }).join("");
   $$("[data-action]").forEach(button => button.addEventListener("click", () => performAction(button.dataset.action)));
   if (focusedAction) $("[data-action='" + CSS.escape(focusedAction) + "']")?.focus();
@@ -645,6 +705,30 @@ function missingStepText(missing = []) {
   return missing.map(step => MISSING_STEP_LABELS[step] || actionLabel(step)).join(" · ");
 }
 
+function wardChecklistModel() {
+  const actions = state.rooms?.surgery?.actions || [];
+  const inspectDone = actions.includes("inspect-gurney");
+  const intercomDone = actions.includes("listen-intercom");
+  const cluesDone = inspectDone && intercomDone;
+  const audienceDone = state.status === "consequence" || Boolean(state.winner);
+  const hideRequired = state.winner?.id === "dark";
+  const hideDone = actions.includes("hide-curtain");
+  const breachDone = actions.includes("force-door");
+  const raw = [
+    { id: "inspect", label: "Inspect restraint marks", detail: "Move to GURNEY and read tag 06.", done: inspectDone, unlocked: true, camera: "door-approach" },
+    { id: "intercom", label: "Decode the intercom", detail: "Listen for the short · short · long magnetic cycle.", done: intercomDone, unlocked: true, camera: "corridor-wide" },
+    { id: "audience", label: "Resolve audience consequence", detail: "Use a displayed command; if chat is quiet, the disclosed safe fallback is announced.", done: audienceDone, unlocked: cluesDone, camera: null },
+    { id: "hide", label: hideRequired ? "Hide behind the curtain" : "Curtain countermeasure", detail: hideRequired ? "Lights failed. Hide first to prepare the manual breach." : "Only required if the audience kills the lights.", done: !hideRequired || hideDone, unlocked: audienceDone && hideRequired, optional: !hideRequired, camera: "corridor-wide" },
+    { id: "breach", label: state.winner?.id === "open" ? "Cross isolation threshold" : "Breach isolation door", detail: "Return to THRESHOLD and make the physical move into theatre.", done: breachDone, unlocked: actionRequirement("force-door").ready, camera: "threshold" }
+  ];
+  let currentFound = false;
+  return raw.map(step => {
+    const current = !currentFound && !step.done && step.unlocked;
+    if (current) currentFound = true;
+    return { ...step, current };
+  });
+}
+
 function nextStepModel(room = roomFor(state), readiness = roomReadiness(state)) {
   const nextRoom = ROOMS[state.roomIndex + 1];
   const isFinal = room.id === "stairwell";
@@ -652,6 +736,21 @@ function nextStepModel(room = roomFor(state), readiness = roomReadiness(state)) 
   if (state.status === "paused") return { phase: "paused", title: "Episode paused", detail: "Resume when the streamer and audience are ready.", label: "Paused", disabled: true };
   if (state.status === "ended") return { phase: "ended", title: "Episode complete", detail: state.ending || "Review the ending recap.", label: "Complete", disabled: true };
   const successful = state.rooms?.[room.id]?.actions || [];
+  if (room.id === "surgery") {
+    const steps = wardChecklistModel();
+    const current = steps.find(step => step.current);
+    const breachDone = successful.includes("force-door");
+    if (!breachDone && current?.id !== "audience") {
+      return { phase: "ward-checklist", title: `Ward 06 · ${current?.label || "Follow the corridor checklist"}`, detail: current?.detail || "Complete the visible corridor steps in order.", label: "Complete the highlighted step", disabled: true, steps };
+    }
+    if (!breachDone && current?.id === "audience") {
+      const votes = totalVotes();
+      return { phase: "audience-gate", title: "Resolve the corridor audience consequence", detail: votes ? `${votes} verified ${votes === 1 ? "vote is" : "votes are"} ready. Lock the result; the streamer still makes the door move.` : "No votes yet. Resolving uses the disclosed safe fallback—never a fabricated viewer.", label: "Resolve corridor vote", disabled: advancing, steps };
+    }
+    if (!breachDone) {
+      return { phase: "ward-checklist", title: "Return to the isolation threshold", detail: actionRequirement("force-door").cue, label: "Use the highlighted door action", disabled: true, steps };
+    }
+  }
   const audienceUnlockReady = room.id === "surgery" && state.status === "voting" && ["inspect-gurney", "listen-intercom"].every(action => successful.includes(action));
   if (audienceUnlockReady) {
     const votes = totalVotes();
@@ -668,7 +767,7 @@ function nextStepModel(room = roomFor(state), readiness = roomReadiness(state)) 
   }
   if (state.status === "consequence") {
     const winner = state.winner;
-    if (isFinal) return { phase: "final-choice", title: winner ? `${winner.label} won the final vote` : "Final vote resolved", detail: `${winner?.effect || "The audience consequence is locked."} Choose Seal, Roof, or Ambulance above; chat cannot make that move for you.`, label: "Choose a route above", disabled: true };
+    if (isFinal) return { phase: "final-choice", title: winner ? `${winner.label} won the final vote` : "Final vote resolved", detail: `${winner?.effect || "The audience consequence is locked."} Optionally seal the Warden, then choose Roof or Ambulance; chat cannot make that move for you.`, label: "Choose Roof or Ambulance above", disabled: true };
     return { phase: "consequence", title: winner ? `${winner.label} changed the Ward` : "Audience consequence locked", detail: `${winner?.effect || "The consequence is ready."} Enter ${nextRoom.name} when ready.`, label: `Enter ${nextRoom.name} →`, disabled: advancing };
   }
   return { phase: state.status, title: "Follow the current objective", detail: room.hint, label: "Continue", disabled: true };
@@ -680,6 +779,13 @@ function renderNextStep(room, readiness) {
   panel.dataset.phase = model.phase;
   $("#nextStepTitle").textContent = advancing ? "Opening the route…" : model.title;
   $("#nextStepDetail").textContent = model.detail;
+  const checklist = $("#wardChecklist");
+  if (checklist) {
+    const steps = model.steps || (room.id === "surgery" ? wardChecklistModel() : []);
+    checklist.hidden = room.id !== "surgery";
+    checklist.innerHTML = steps.map(step => `<button type="button" data-ward-step="${escape(step.id)}" ${step.camera ? `data-ward-camera="${escape(step.camera)}"` : ""} class="${step.done ? "done" : step.current ? "current" : step.optional ? "optional" : "locked"}" ${!step.camera || (!step.unlocked && !step.done) ? "disabled" : ""}><i aria-hidden="true">${step.done ? "✓" : step.current ? "→" : step.optional ? "◇" : "·"}</i><span><b>${escape(step.label)}</b><small>${escape(step.detail)}</small></span>${step.camera ? `<em>${escape(CAMERA_META[step.camera]?.[0] || "VIEW")}</em>` : ""}</button>`).join("");
+    $$('[data-ward-camera]').forEach(button => button.addEventListener("click", () => selectCamera(button.dataset.wardCamera)));
+  }
   const gameplayButton = $("#gameplayAdvance");
   gameplayButton.textContent = advancing ? "Opening route…" : model.label;
   gameplayButton.disabled = model.disabled || advancing;
@@ -796,7 +902,7 @@ function render() {
       : "warden-approach-v1.webp";
   const wardenVisible = (state.warden.visible || wardenReactionVisible) && state.settings.jumpscares;
   if (wardenVisible && !$("#wardenSprite").src.endsWith(wardenAsset)) $("#wardenSprite").src = `./assets/v3/${wardenAsset}`;
-  $(".blackout").style.opacity = state.power < 15 ? ".68" : "0";
+  $(".blackout").style.opacity = state.power < 15 ? ".28" : "0";
   $(".alarm").style.opacity = !state.settings.lowEffects && state.danger > 70 ? "1" : "0";
 
   const doorOpen = room.id !== "surgery" || state.doors.isolation || state.doors.theatre;
@@ -888,6 +994,8 @@ function render() {
   document.body.classList.toggle("low-effects", state.settings.lowEffects);
   document.body.classList.toggle("high-contrast", state.settings.highContrast);
   document.body.classList.toggle("compact-hud", state.settings.compactHud);
+  document.body.dataset.captionSize = state.settings.captionSize;
+  document.body.dataset.captionBackground = state.settings.captionBackground;
   $("#cinematicHudToggle").setAttribute("aria-pressed", String(Boolean(state.settings.compactHud)));
   audio.setReducedEffects(state.settings.lowEffects);
   audio.setVolume("master", state.settings.audioVolume);
@@ -907,6 +1015,12 @@ function render() {
   if ($("#audioEffectsVolume")) $("#audioEffectsVolume").value = String(Math.round(state.settings.audioEffectsVolume * 100));
   if ($("#audioAmbienceVolume")) $("#audioAmbienceVolume").value = String(Math.round(state.settings.audioAmbienceVolume * 100));
   if ($("#audioMusicVolume")) $("#audioMusicVolume").value = String(Math.round(state.settings.audioMusicVolume * 100));
+  $("#captionEnabledToggle").checked = Boolean(state.settings.captionEnabled);
+  $("#captionSpeakerToggle").checked = Boolean(state.settings.captionSpeakerLabels);
+  $("#captionDirectionToggle").checked = Boolean(state.settings.captionDirectional);
+  $("#captionSize").value = state.settings.captionSize;
+  $("#captionBackground").value = state.settings.captionBackground;
+  $("#captionDuration").value = String(state.settings.captionDuration);
   if ($("#audioStatus")) {
     const audioState = audio.getSettings();
     $("#audioStatus").textContent = audioState.state === "unlocked"
@@ -918,8 +1032,12 @@ function render() {
   $("#gameplayPause").textContent = state.status === "paused" ? "▶" : "Ⅱ";
   $("#gameplayPause").setAttribute("aria-label", state.status === "paused" ? "Resume episode" : "Pause episode");
   const finalChoiceLocked = room.id === "stairwell" && state.status === "consequence";
-  $("#advanceRoom").disabled = advancing || finalChoiceLocked || ["briefing", "paused", "ended"].includes(state.status);
+  const audienceGateReady = nextStep.phase === "audience-gate";
+  const normalAdvanceBlocked = !readiness.ready && !audienceGateReady;
+  $("#advanceRoom").disabled = advancing || finalChoiceLocked || normalAdvanceBlocked || ["briefing", "paused", "ended"].includes(state.status);
   $("#advanceRoom").textContent = advancing ? "Applying consequence…" : finalChoiceLocked ? "Choose a final route in Live episode" : nextStep.label;
+  const recoveryAvailable = ["voting", "consequence"].includes(state.status) && !readiness.ready && room.id !== "stairwell";
+  $("#directorRecovery").hidden = !recoveryAvailable;
 
   if (ownsControllerLease()) {
     const message = { type: "state", state: publicState(state) };
@@ -1104,6 +1222,15 @@ if (oauthResume) {
 }
 
 $$("[data-view-target]").forEach(button => button.addEventListener("click", () => switchView(button.dataset.viewTarget, true)));
+$("#introHelp").addEventListener("click", event => openHelp(event.currentTarget));
+$("#helpToggle").addEventListener("click", event => openHelp(event.currentTarget));
+$("#helpClose").addEventListener("click", closeHelp);
+$("#helpResume").addEventListener("click", closeHelp);
+$("#helpDialog").addEventListener("close", () => {
+  const target = helpReturnFocus;
+  helpReturnFocus = null;
+  setTimeout(() => target?.isConnected && target.focus(), 0);
+});
 $("#enterWard").addEventListener("click", () => start({ userGesture: true }));
 $("#startShow").addEventListener("click", () => start({ userGesture: true }));
 $("#pauseShow").addEventListener("click", () => {
@@ -1136,7 +1263,11 @@ $("#stopShow").addEventListener("click", () => {
   stopEpisode(state);
   render();
 });
-$("#advanceRoom").addEventListener("click", () => advance({ allowFallback: true }));
+$("#advanceRoom").addEventListener("click", () => advance());
+$("#directorRecovery").addEventListener("click", () => {
+  if (!confirm("Director recovery skips unfinished authored actions and records a disclosed fallback. Continue?")) return;
+  advance({ allowFallback: true });
+});
 $("#gameplayAdvance").addEventListener("click", () => advance());
 $("#gameplayPause").addEventListener("click", togglePause);
 $("#restartEnding").addEventListener("click", () => {
@@ -1191,6 +1322,30 @@ $("#audioMuteToggle").addEventListener("change", event => {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
   render();
 });
+for (const [id, key] of [
+  ["captionEnabledToggle", "captionEnabled"],
+  ["captionSpeakerToggle", "captionSpeakerLabels"],
+  ["captionDirectionToggle", "captionDirectional"]
+]) {
+  $("#" + id).addEventListener("change", event => {
+    state.settings[key] = event.target.checked;
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
+    lastRenderedAudioCueAt = "";
+    render();
+  });
+}
+for (const [id, key, normalize] of [
+  ["captionSize", "captionSize", value => ["small", "medium", "large"].includes(value) ? value : "medium"],
+  ["captionBackground", "captionBackground", value => ["soft", "solid", "maximum"].includes(value) ? value : "solid"],
+  ["captionDuration", "captionDuration", value => Math.max(3000, Math.min(8000, Number(value) || 5200))]
+]) {
+  $("#" + id).addEventListener("change", event => {
+    state.settings[key] = normalize(event.target.value);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
+    lastRenderedAudioCueAt = "";
+    render();
+  });
+}
 $("#audioVolume").addEventListener("input", event => {
   state.settings.audioVolume = Number(event.target.value) / 100;
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));

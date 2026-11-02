@@ -11,12 +11,12 @@ No known P0 or P1 defect remains in the locally reviewable scope after the fixes
 Evidence captured against the current working tree:
 
 - security/transport/Twitch subset: **22/22 tests passed**;
-- full automated suite: **64/64 tests passed** in the parent release run;
+- full unit/contract suite: **90/90 tests passed** in the final RC6 composite;
 - focused integrity browser smoke: **5/5 passed**, with zero browser-console errors;
-- expanded visual/browser matrix: **28/28 passed**, with zero browser-console errors;
+- expanded visual/browser matrix: **29/29 passed**, with zero browser-console errors;
 - accessibility browser gate: **11/11 passed** across keyboard-only operation, focus, accessibility tree, contrast, and 200%-zoom-equivalent reflow;
 - performance browser gate: **10/10 passed** across cold load and eight measured full-campaign cycles;
-- release audit: **passed**, **11.6 MiB across 23 public files**, with no file over the 4 MiB hard limit.
+- release audit: **passed**, **12.0 MiB across 24 deployable files**, with no file over the 4 MiB hard limit.
 
 ## Trust boundaries
 
@@ -60,13 +60,13 @@ Evidence captured against the current working tree:
 
 ### Verified locally
 
-- The deployable directory is **11.6 MiB across 23 files**. The largest file is **1.9 MiB**; the next four Warden/door assets are **1.5–1.6 MiB** each.
-- Eleven large referenced images were converted to visually verified WebP derivatives with a documented **57.0% byte reduction**, preserved dimensions, and preserved transparency. Lossless sources remain outside `dist/`.
-- The 28-state Chromium matrix covers 390×844 through 1920×1080, all 15 authored camera compositions, Warden and door fixtures, dashboards, transparent overlays, and reduced motion. It recorded no current geometry, overflow, alpha, motion, or console failure.
+- The deployable directory is **12.0 MiB across 24 files**. No file exceeds the 4 MiB release-audit limit.
+- Twelve large referenced images were converted to visually verified WebP derivatives with a documented **59.0% byte reduction**, preserved dimensions, and preserved transparency where applicable. Lossless sources remain outside `dist/`.
+- The 29-state Chromium matrix covers 390×844 through 1920×1080, all 15 authored camera compositions, Warden and door fixtures, the humane-ending rooftop tableau, dashboards, transparent overlays, and reduced motion. It recorded no current geometry, overflow, alpha, motion, or console failure.
 - The focused browser integrity run recorded no echo storm: the controller produced traffic while the passive overlay produced zero posts.
 - Procedural audio is gesture-gated, reuses room ambience nodes, tracks one-shots, and has deterministic cleanup tests. Reduced-effects mode removes the noisy threat transients.
 - Reception cold start transfers **1.006 MiB** and no hidden V3 Warden/curtain/gurney/door asset. Those scene assets load only when the relevant room or threat phase becomes active.
-- Across the latest eight measured full-campaign cycles, forced-GC JavaScript heap changed by **0.23 MiB**; final DOM nodes and event listeners showed **zero growth**; relay posts remained between **75–77 per cycle**; network, browser console, process teardown, and profile cleanup all passed.
+- Across the latest eight measured full-campaign cycles, forced-GC JavaScript heap changed by **0.203 MiB**; the final DOM delta was **-223** and the final listener delta was **0**; relay posts remained between **67–70 per cycle**; network, browser console, process teardown, and profile cleanup all passed.
 
 ### Remaining performance risks
 
@@ -94,4 +94,4 @@ Evidence captured against the current working tree:
 5. Complete NVDA and human browser-native zoom/perception checks. Keyboard-only operation, computed contrast, and 200% zoom-equivalent reflow pass automated browser gates, but do not establish WCAG conformance.
 6. Run newcomer playtests and report measured timing and comprehension. Do not replace human evidence with engine targets.
 
-Until those gates are complete, the accurate status is **publicly deployed, locally hardened release candidate; live Twitch, native OBS, effective production-header review, native 30-minute performance, NVDA, and human usability remain unverified external evidence**.
+Until those gates are complete, the accurate status is **RC6 locally verified, with public promotion and a fresh anonymous production probe pending; live Twitch, native OBS, effective production-header review, native 30-minute performance, NVDA, and human usability remain unverified external evidence**. The already probed public Site is evidence for the prior baseline, not proof that RC6 is deployed.

@@ -85,6 +85,13 @@ test("a Chaos blackout raises the cost but leaves the streamer a manual door cou
   assert.equal(state.lastActionAccepted,true);assert.equal(state.doors.theatre,true);assert.equal(state.health,before-10);assert.match(state.lastOutcome,/manual breach costs 10 vitals/i);assert.equal(roomReadiness(state).ready,true);
 });
 
+test("the audience open-isolation result leaves a valid streamer threshold action",()=>{
+  const state=createState(1);startEpisode(state,1);completeIntake(state);castVote(state,"viewer-a","!records");resolveVote(state);advanceRoom(state,100);
+  playerAction(state,"inspect-gurney");playerAction(state,"listen-intercom");castVote(state,"viewer-b","!open");const resolution=resolveVote(state);
+  assert.equal(resolution.winner.id,"open");assert.equal(state.doors.isolation,true);assert.equal(state.doors.theatre,true);
+  playerAction(state,"force-door");assert.equal(state.lastActionAccepted,true);assert.match(state.lastOutcome,/threshold|door|theatre/i);assert.equal(roomReadiness(state).ready,true);
+});
+
 test("director advancement cannot replace the streamer's physical final route",()=>{
   const state=createState(1);startEpisode(state,1);state.roomIndex=4;state.act=5;state.rooms.stairwell.visited=true;state.doors.exit=true;resolveVote(state);advanceRoom(state,2);assert.equal(state.status,"consequence");assert.equal(state.ending,null);assert.equal(state.lastAdvanceAccepted,false);assert.match(state.lastOutcome,/streamer must choose/i);
 });

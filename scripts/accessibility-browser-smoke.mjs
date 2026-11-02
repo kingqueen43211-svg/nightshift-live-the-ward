@@ -507,9 +507,13 @@ try {
     const initial = await evaluate(`({ headerInert: document.querySelector("#appHeader").inert, mainInert: document.querySelector("#appMain").inert, dialog: document.querySelector("#cinematicIntro").getAttribute("role") })`);
     assert(initial.headerInert && initial.mainInert && initial.dialog === "dialog", "Intro did not isolate the application as a modal dialog");
     await press("Tab");
+    assert((await activeInfo()).signature === "#introHelp", "Forward Tab did not reach the intro help control");
+    await press("Tab");
     assert((await activeInfo()).signature === "#enterWard", "Forward Tab escaped the intro dialog");
     await press("Tab", { shift: true });
-    assert((await activeInfo()).signature === "#enterWard", "Reverse Tab escaped the intro dialog");
+    assert((await activeInfo()).signature === "#introHelp", "Reverse Tab escaped the intro dialog");
+    await press("Tab");
+    assert((await activeInfo()).signature === "#enterWard", "Forward Tab did not return to the primary intro action");
     await press("Enter");
     await waitFor(`document.querySelector("#cinematicIntro").classList.contains("dismissed") && document.activeElement === document.querySelector("#objective")`);
     return { ...initial, postStartFocus: (await activeInfo()).signature };
@@ -550,7 +554,7 @@ try {
     await press("Enter");
     await waitFor(`document.querySelector("#app").dataset.view === "dashboard" && document.activeElement === document.querySelector("#dashboard h1")`);
     const traversal = await tabThrough("#dashboard h1");
-    for (const required of ["#startShow", "#clientId", "#chatCommand", "#motionToggle", "#contrastToggle", "#audioVolume", "#advanceRoom"]) {
+    for (const required of ["#startShow", "#clientId", "#chatCommand", "#motionToggle", "#contrastToggle", "#audioVolume", "#directorRecovery"]) {
       assert(traversal.order.includes(required), `${required} was absent from the control-room Tab order`);
     }
     return traversal;
@@ -632,7 +636,7 @@ try {
     assert(layout.horizontalClipping.length === 0, `Control-room controls clip horizontally: ${JSON.stringify(layout.horizontalClipping)}`);
     assert(layout.scrollables.some(item => item.scrollHeight > item.clientHeight), "Control room did not retain vertical scrolling at 200%");
     const traversal = await tabThrough("#dashboard h1", { requireViewport: true });
-    for (const required of ['[data-view-target="gameplay"]', '[data-view-target="dashboard"]', "#startShow", "#clientId", "#chatCommand", "#contrastToggle", "#advanceRoom"]) {
+    for (const required of ['[data-view-target="gameplay"]', '[data-view-target="dashboard"]', "#startShow", "#clientId", "#chatCommand", "#contrastToggle", "#directorRecovery"]) {
       assert(traversal.order.includes(required), `${required} was lost from 200% keyboard traversal: ${traversal.order.join(" → ")}`);
     }
     const screenshotPath = await capture("dashboard-200pct-640x360.png");

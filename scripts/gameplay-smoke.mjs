@@ -377,22 +377,28 @@ try {
   });
 
   await check("rejected actions preserve progress and completion exposes a gameplay next step", async () => {
-    const before = await evaluate(`({ progress: document.querySelector('#objectiveProgressTrack')?.getAttribute('aria-valuenow') })`);
-    await click('[data-action="reconstruct-file"]');
-    await delay(60);
+    const before = await evaluate(`(() => ({
+      progress: document.querySelector('#objectiveProgressTrack')?.getAttribute('aria-valuenow'),
+      vitals: document.querySelector('#healthValue')?.textContent,
+      threat: document.querySelector('#dangerValue')?.textContent
+    }))()`);
     const rejected = await evaluate(`(() => {
       const action = document.querySelector('[data-action="reconstruct-file"]');
       return {
         progress: document.querySelector('#objectiveProgressTrack')?.getAttribute('aria-valuenow'),
         completed: action?.classList.contains('completed'),
         locked: action?.classList.contains('locked'),
-        toast: document.querySelector('#eventToast b')?.textContent,
-        feedback: document.querySelector('#actionFeedback')?.textContent
+        disabled: action?.disabled,
+        ariaDisabled: action?.getAttribute('aria-disabled'),
+        reason: action?.querySelector('em')?.textContent,
+        vitals: document.querySelector('#healthValue')?.textContent,
+        threat: document.querySelector('#dangerValue')?.textContent
       };
     })()`);
     assert(before.progress === "0" && rejected.progress === "0", "Rejected reconstruction advanced objective progress");
-    assert(!rejected.completed && rejected.locked, "Rejected reconstruction was marked complete or unlocked");
-    assert(rejected.toast === "ACTION BLOCKED" && /missing|search/i.test(rejected.feedback), "Rejected action did not explain its prerequisite");
+    assert(!rejected.completed && rejected.locked && rejected.disabled && rejected.ariaDisabled === "true", "Unavailable reconstruction was not a truly disabled locked control");
+    assert(/desk|locker/i.test(rejected.reason), "Locked action did not explain its exact prerequisite");
+    assert(before.vitals === rejected.vitals && before.threat === rejected.threat, "Inspecting a locked action changed player state");
 
     await click('[data-action="search-desk"]');
     await delay(40);
@@ -429,14 +435,15 @@ try {
   await check("inventory crafting, use, and checkpoint recovery are playable", async () => {
     await navigate("/?autostart=rehearsal");
     const setup = await evaluate(`(() => {
+      document.querySelector('[data-action="search-desk"]').click();
       document.querySelector('[data-action="open-locker"]').click();
+      document.querySelector('[data-action="reconstruct-file"]').click();
       document.querySelector('[data-view-target="dashboard"]').click();
       const motion = document.querySelector('#motionToggle');
       if (!motion.checked) motion.click();
       const input = document.querySelector('#chatCommand');
       input.value = '!medkit';
       document.querySelector('#sendChat').click();
-      document.querySelector('#advanceRoom').click();
       document.querySelector('#advanceRoom').click();
       return { advancing: document.querySelector('#advanceRoom').disabled };
     })()`);
@@ -471,10 +478,11 @@ try {
     assert(!used.tags.includes("Stabilized trauma kit") && used.toast === "ITEM EFFECT APPLIED", "Use action did not consume the stabilized kit");
     assert(/FEAR.*→/i.test(used.effect) && beforeUse.conditions !== used.conditions, "Item use did not persist an exact, visible condition change");
 
+    const entryEvidence = await evaluate(`Number.parseInt(document.querySelector('#evidenceCount')?.textContent || '0', 10)`);
     await click('[data-action="inspect-gurney"]');
     await delay(40);
-    const dirtyEvidence = await evaluate(`document.querySelector('#evidenceCount')?.textContent`);
-    assert(/^1 evidence/.test(dirtyEvidence), "Surgery action did not create state to recover from");
+    const dirtyEvidence = await evaluate(`Number.parseInt(document.querySelector('#evidenceCount')?.textContent || '0', 10)`);
+    assert(dirtyEvidence === entryEvidence + 1, "Surgery action did not create state to recover from");
     await click('[data-view-target="dashboard"]');
     await click('#restoreCheckpoint');
     await delay(60);
@@ -484,7 +492,7 @@ try {
       tags: [...document.querySelectorAll('#inventoryActions .item-tag')].map(tag => tag.textContent),
       toast: document.querySelector('#eventToast b')?.textContent
     }))()`);
-    assert(restored.room === "Ward 06" && restored.evidence === "0", "Checkpoint did not restore the room-entry evidence state");
+    assert(restored.room === "Ward 06" && Number(restored.evidence) === entryEvidence, "Checkpoint did not restore the room-entry evidence state");
     assert(restored.tags.includes("Sedative ampoule") && restored.tags.includes("Trauma kit"), "Checkpoint did not restore the pre-craft inventory");
     assert(restored.toast === "CHECKPOINT RESTORED", "Checkpoint recovery did not provide production feedback");
     return { inventory, crafted, beforeUse, used, restored };
@@ -496,7 +504,8 @@ try {
       document.querySelector('[data-view-target="dashboard"]').click();
       const motion = document.querySelector('#motionToggle');
       if (motion.checked) motion.click();
-      document.querySelector('#advanceRoom').click();
+      window.confirm = () => true;
+      document.querySelector('#directorRecovery').click();
     })()`);
     await delay(60);
     const result = await evaluate(`(() => ({
@@ -531,10 +540,34 @@ try {
     await waitFor(`document.querySelector('#dashRoom')?.textContent === 'Ward 06'`, 5000);
 
     await click('[data-view-target="gameplay"]');
-    for (const action of ["inspect-gurney", "listen-intercom", "hide-curtain"]) {
-      await click(`[data-action="${action}"]`);
-      await delay(30);
-    }
+    const readWardChecklist = () => evaluate(`(() => ({
+      visible: (() => { const element = document.querySelector('#wardChecklist'); if (!element) return false; const style = getComputedStyle(element); const rect = element.getBoundingClientRect(); return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 20 && rect.height > 20; })(),
+      text: document.querySelector('#wardChecklist')?.innerText || '',
+      steps: [...document.querySelectorAll('#wardChecklist [data-ward-step]')].map(element => ({
+        step: element.dataset.wardStep,
+        text: element.textContent,
+        done: ['done', 'complete', 'completed'].includes(element.dataset.state) || element.classList.contains('done') || element.classList.contains('complete') || element.getAttribute('aria-checked') === 'true' || /(?:✓|done|complete)/i.test(element.textContent)
+      }))
+    }))()`);
+    const wardInitial = await readWardChecklist();
+    assert(wardInitial.visible && wardInitial.steps.length === 5, `Ward 06 checklist is missing or incomplete: ${JSON.stringify(wardInitial)}`);
+    assert(/restraint/i.test(wardInitial.text) && /intercom/i.test(wardInitial.text) && /audience/i.test(wardInitial.text) && /threshold|breach/i.test(wardInitial.text), `Ward 06 checklist uses vague prerequisites: ${wardInitial.text}`);
+
+    await click('[data-action="inspect-gurney"]');
+    await delay(30);
+    const wardAfterInspect = await readWardChecklist();
+    assert(wardAfterInspect.steps.find(step => step.step === 'inspect')?.done, `Restraint inspection did not update checklist: ${JSON.stringify(wardAfterInspect.steps)}`);
+    assert(!wardAfterInspect.steps.find(step => step.step === 'intercom')?.done, `Intercom was marked complete before the player decoded it: ${JSON.stringify(wardAfterInspect.steps)}`);
+
+    await click('[data-action="listen-intercom"]');
+    await delay(30);
+    const wardAfterEvidence = await readWardChecklist();
+    assert(wardAfterEvidence.steps.find(step => step.step === 'inspect')?.done && wardAfterEvidence.steps.find(step => step.step === 'intercom')?.done,
+      `Ward evidence checklist did not preserve both completed steps: ${JSON.stringify(wardAfterEvidence.steps)}`);
+    assert(!wardAfterEvidence.steps.find(step => step.step === 'audience')?.done, `Audience result was marked complete before resolution: ${JSON.stringify(wardAfterEvidence.steps)}`);
+
+    await click('[data-action="hide-curtain"]');
+    await delay(30);
     await click('[data-view-target="dashboard"]');
     await evaluate(`(() => {
       const input = document.querySelector('#chatCommand');
@@ -543,6 +576,9 @@ try {
       document.querySelector('#advanceRoom').click();
       document.querySelector('[data-view-target="gameplay"]').click();
     })()`);
+    const wardAfterVote = await readWardChecklist();
+    assert(wardAfterVote.steps.find(step => step.step === 'audience')?.done, `Resolved Ward vote did not update checklist: ${JSON.stringify(wardAfterVote.steps)}`);
+    assert(!wardAfterVote.steps.find(step => step.step === 'breach')?.done, `Threshold was marked complete before the player crossed it: ${JSON.stringify(wardAfterVote.steps)}`);
     await click('[data-action="force-door"]');
     await click('#gameplayAdvance');
     await waitFor(`document.querySelector('#dashRoom')?.textContent === 'Operating Theatre'`, 5000);
@@ -596,7 +632,22 @@ try {
       values: [...document.querySelectorAll('#endingRecap span')].map(span => span.textContent.replace(/\\s+/g, ' ').trim()),
       mechanics: document.querySelector('#endingRecap p')?.textContent,
       focused: document.activeElement === document.querySelector('#endingTitle'),
-      backgroundInert: document.querySelector('.hud')?.inert === true
+      backgroundInert: document.querySelector('.hud')?.inert === true,
+      endingTone: document.querySelector('#ending')?.dataset.endingTone,
+      route: document.querySelector('#ending')?.dataset.route,
+      world: ['endingWorld', 'endingMara', 'endingWardenEcho'].map(id => {
+        const element = document.getElementById(id);
+        if (!element) return { id, visible: false, reason: 'missing' };
+        const style = getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return {
+          id,
+          visible: style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > .05 && rect.width > 20 && rect.height > 20,
+          opacity: style.opacity,
+          width: rect.width,
+          height: rect.height
+        };
+      })
     }))()`);
     assert(result.title === "MARA WALKS INTO DAWN", `Expected humane ending, found ${result.title || "none"}`);
     assert(/streamer and audience/i.test(result.summary) && !/fallback/i.test(result.summary), "Earned ending summary did not credit the real rehearsal path truthfully");
@@ -604,6 +655,8 @@ try {
     assert(result.values.some(value => /WARDEN.*BOUND/i.test(value)), "Earned ending recap omitted the humane seal");
     assert(result.values.some(value => /FALLBACKS.*0/i.test(value)), "Earned ending unexpectedly used a director fallback");
     assert(result.focused && result.backgroundInert, `Earned ending dialog did not isolate and focus the recap: ${JSON.stringify({ focused: result.focused, backgroundInert: result.backgroundInert })}`);
+    assert(result.endingTone === "humane" && result.route === "roof", `Earned ending did not expose humane roof provenance: ${JSON.stringify({ endingTone: result.endingTone, route: result.route })}`);
+    assert(result.world.every(element => element.visible), `Earned ending world tableau is not fully visible: ${JSON.stringify(result.world)}`);
 
     const screenshot = await cdp.send("Page.captureScreenshot", { format: "png", fromSurface: true, captureBeyondViewport: false });
     const screenshotPath = join(artifactRoot, "earned-ending-1280x720.png");
@@ -715,11 +768,13 @@ try {
       return toggle.checked;
     })()`);
     assert(motionEnabled, "Could not enable reduced motion for deterministic transition timing");
+    await evaluate(`window.confirm = () => true`);
 
     const expectedRooms = ["Ward 06", "Operating Theatre", "Generator Room", "Stairwell / Exits"];
     for (const expectedRoom of expectedRooms) {
-      await click('#advanceRoom');
-      await click('#advanceRoom');
+      await click('#directorRecovery');
+      await waitFor(`document.querySelector('#dashStatus')?.textContent === 'CONSEQUENCE'`, 2000);
+      await click('#directorRecovery');
       await waitFor(`document.querySelector('#dashRoom')?.textContent === ${JSON.stringify(expectedRoom)}`, 3000);
     }
     await click('[data-view-target="gameplay"]');

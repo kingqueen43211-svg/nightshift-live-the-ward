@@ -28,7 +28,7 @@ The result is not a poll laid over a video. Streamer actions and audience conseq
 
 The broadcast product is part of the game: a control room handles show state, rehearsal events, Twitch connection, checkpoints, pacing telemetry, privacy, and safety settings; a separate browser route provides a transparent OBS overlay; and BroadcastChannel carries state between views. The procedural Web Audio layer starts only after an explicit gesture, has mute and volume control, softens under reduced-effects preferences, and emits a visual caption for every meaningful sound cue.
 
-The V3 art pass uses original project-specific room plates plus transparent Warden poses, curtain, gurney, and isolation-door layers. Lossless sources and prompt constraints are recorded in the asset-provenance manifest. The public build uses visually verified WebP derivatives and locally bundled open-licensed fonts to keep the deployable payload at 11.6 MiB.
+The visual system uses original project-specific room plates plus state-driven Warden poses, curtain, gurney, isolation-door, generator, theatre, route, and ending layers. Lossless sources and prompt constraints are recorded in the asset-provenance manifest. Ten recovered concept frames are preserved outside the deployable build and reconciled individually in [`RC6_VISUAL_REFERENCE_MATRIX.md`](RC6_VISUAL_REFERENCE_MATRIX.md); they are design references, never baked fake UI. The public build uses visually verified WebP derivatives and locally bundled open-licensed fonts. The final payload size must be taken from the fresh RC6 release audit rather than copied from an earlier candidate.
 
 ### How it uses Twitch
 
@@ -59,25 +59,24 @@ The remaining work is proof, not a different product concept:
 - **Technical implementation:** deterministic campaign engine, hardened Twitch EventSub lifecycle, persistent state and checkpoints, cross-tab OBS transport, procedural captioned audio, and layered automated gates.
 - **Design:** original cinematic art, three authored camera compositions per room, a physical multi-phase isolation door, staged Warden poses, responsive broadcast hierarchy, and a complete streamer-facing control room.
 
-## Verified local evidence
+## RC6 verification status
 
-- **npm run check:** 64/64 tests pass.
-- **npm run qa:visual:** 28/28 viewport, fixture, authored-camera, OBS-alpha, and reduced-motion scenarios pass.
-- **npm run qa:gameplay:** 8/8 browser campaign gates pass, including a five-act earned humane-ending path with zero fallbacks.
-- **npm run qa:integrity:** 5/5 browser truthfulness, privacy, and single-controller gates pass.
-- **npm run qa:relay:** 16/16 checks pass across separate Chrome processes and profiles; exact session/vote/room state crosses the loopback relay while the mirror remains inert.
-- **npm run qa:accessibility:** 11/11 keyboard, focus, accessibility-tree, computed-contrast, and 200%-reflow checks pass.
-- **npm run qa:performance:** 10/10 checks pass across the latest eight measured campaigns; cold transfer is 1.006 MiB, post-GC heap delta is 0.23 MiB, and final DOM/listener growth is zero.
-- **npm run release:audit:** pass; public payload is 11.6 MiB.
+RC6 is a correction pass over the last public candidate. Do not reuse older suite totals or payload measurements as RC6 evidence. Before the submission copy is finalized, run the composite gate and preserve its generated reports:
 
-These results prove the local build and its deterministic browser paths. A separate stateless public matrix verifies judge access and deployable-file availability; neither class of evidence substitutes for real Twitch, real OBS, human pacing, or screen-reader evidence.
+```powershell
+npm run verify
+```
+
+The fresh run must cover unit/static checks, visual geometry and ending capture, the five-act browser campaign, integrity/privacy, separate-process relay, accessibility/reflow, performance soak, and release payload. Record exact totals, transfer size, heap measurements, source commit, and captured screenshots only after that command passes on the reviewed RC6 tree.
+
+Automated evidence proves deterministic local/browser behavior only. A separate anonymous production probe must verify judge access and deployed-file identity after promotion. Neither class of evidence substitutes for real Twitch, native OBS, unfamiliar-human pacing/comprehension, NVDA, or audible mix review.
 
 ## Final submission checklist
 
 - [ ] Push the reviewed branch to a hosted repository.
 - [ ] Make the repository public, or share the private GitHub/GitLab repository with the required Devpost reviewer account.
 - [ ] Run the README instructions on a clean machine.
-- [x] Deploy the dist directory to a logged-out public HTTPS URL and verify it without an authenticated session.
+- [ ] Promote the reviewed RC6 `dist/` directory to the public HTTPS URL and repeat logged-out verification; the URL currently represents the prior public baseline until that promotion finishes.
 - [ ] Register that exact URL as the Twitch OAuth redirect.
 - [ ] Record a two-account Twitch command and at least one real channel event.
 - [ ] Capture the transparent browser source in real OBS at both target resolutions.

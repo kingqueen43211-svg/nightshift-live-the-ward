@@ -70,7 +70,10 @@ export function createState(now=Date.now()){
     act:1,camera:{nodeId:ROOMS[0].cameraNodes[0],moving:false,history:[ROOMS[0].cameraNodes[0]]},rooms:initialRoomStates(),
     campaign:{meaningfulActions:0,mechanics:[],decisions:[],voteResolutions:0,zeroChatFallbacks:0,fallbackRecoveries:0,lastMeaningfulAt:now,elapsedMs:0,checkpoint:null},
     endingRecap:null,voteResolutionSource:null,
-    settings:{reducedMotion:false,lowEffects:false,highContrast:false,hideNames:false,jumpscares:true}
+    settings:{
+      reducedMotion:false,lowEffects:false,highContrast:false,hideNames:false,jumpscares:true,
+      captionEnabled:true,captionSize:"medium",captionBackground:"solid",captionSpeakerLabels:true,captionDirectional:true,captionDuration:5200
+    }
   };
 }
 
@@ -228,6 +231,8 @@ export function useInventoryItem(state,item){
 
 export function playerAction(state,action){
   state.player ||= {fear:12,noise:0,hidden:false,focus:100,lastAction:null,combo:0}; state.story ||= {subjectIdentified:false,confessionDecoded:false,wardenBound:false};
+  ensureCampaignState(state); const existingRoomState=state.rooms?.[roomFor(state).id];
+  if(existingRoomState?.actions?.includes(action)){state.lastActionAccepted=false;state.lastOutcome="That physical action is already complete.";return state;}
   let outcome="",accepted=false; state.player.hidden=false;
   if(action==="search-desk"){accepted=true;state.props.desk=true;addUnique(state.evidence,"Triage transfer slip");state.player.focus=clamp(state.player.focus-4);outcome="A transfer slip names Ward 06—but the patient line is torn away.";}
   if(action==="open-locker"){accepted=true;state.props.locker=true;addUnique(state.inventory,"Sedative ampoule");state.health=clamp(state.health+10);state.player.noise=clamp(state.player.noise+8);outcome="You recover a sedative. The locker clang echoes down the hall.";}
@@ -237,7 +242,9 @@ export function playerAction(state,action){
   if(action==="hide-curtain"){accepted=true;state.player.hidden=true;state.player.noise=0;state.danger=clamp(state.danger-10);state.player.fear=clamp(state.player.fear+4);state.warden.phase="passing";outcome="You hold your breath as the Warden passes the curtain.";}
   if(action==="force-door"){
     const chaosCounter=state.winner?.id==="dark"&&state.evidence.length>=2&&state.rooms?.surgery?.actions?.includes("hide-curtain");
-    if(state.power>=20&&state.evidence.length>=2){accepted=true;state.doors.isolation=true;state.doors.theatre=true;state.player.noise=clamp(state.player.noise+18);outcome="The bolts retract. The isolation door opens into real darkness.";}
+    const audienceOpened=state.winner?.id==="open"&&state.doors.isolation&&state.evidence.length>=2;
+    if(audienceOpened){accepted=true;state.doors.theatre=true;state.player.noise=clamp(state.player.noise+8);outcome="Chat released the isolation bolts. You cross the threshold and open the route to theatre.";}
+    else if(state.power>=20&&state.evidence.length>=2){accepted=true;state.doors.isolation=true;state.doors.theatre=true;state.player.noise=clamp(state.player.noise+18);outcome="The bolts retract on restored power. You breach isolation and open the route to theatre.";}
     else if(chaosCounter){accepted=true;state.doors.isolation=true;state.doors.theatre=true;state.health=clamp(state.health-10);state.danger=clamp(state.danger+10);state.player.noise=clamp(state.player.noise+28);outcome="With the lights dead, you use the curtain rail as a lever. The door tears open, but the manual breach costs 10 vitals and draws the Warden.";}
     else{state.health=clamp(state.health-8);state.player.fear=clamp(state.player.fear+12);outcome="The maglock rejects you. Read the corridor, resolve its power vote, or prepare a manual darkness breach.";}
   }
