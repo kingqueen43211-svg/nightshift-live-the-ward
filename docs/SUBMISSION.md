@@ -69,14 +69,14 @@ npm run verify
 
 The fresh run must cover unit/static checks, visual geometry and ending capture, the five-act browser campaign, integrity/privacy, separate-process relay, accessibility/reflow, performance soak, and release payload. Record exact totals, transfer size, heap measurements, source commit, and captured screenshots only after that command passes on the reviewed RC6 tree.
 
-Automated evidence proves deterministic local/browser behavior only. A separate anonymous production probe must verify judge access and deployed-file identity after promotion. Neither class of evidence substitutes for real Twitch, native OBS, unfamiliar-human pacing/comprehension, NVDA, or audible mix review.
+Automated evidence proves deterministic local/browser behavior only. The separate anonymous production probe has verified public HTTP access, deployed-file identity for the critical runtime/art assets, and a live first-room-to-Ward-06 path with no browser warnings/errors. Neither class of evidence substitutes for real Twitch, native OBS, unfamiliar-human pacing/comprehension, NVDA, or audible mix review.
 
 ## Final submission checklist
 
 - [ ] Push the reviewed branch to a hosted repository.
 - [ ] Make the repository public, or share the private GitHub/GitLab repository with the required Devpost reviewer account.
 - [ ] Run the README instructions on a clean machine.
-- [ ] Promote the reviewed RC6 `dist/` directory to the public HTTPS URL and repeat logged-out verification; the URL currently represents the prior public baseline until that promotion finishes.
+- [x] Promote the reviewed RC6 `dist/` directory to the public HTTPS URL and repeat anonymous byte and production-browser verification.
 - [ ] Register that exact URL as the Twitch OAuth redirect.
 - [ ] Record a two-account Twitch command and at least one real channel event.
 - [ ] Capture the transparent browser source in real OBS at both target resolutions.

@@ -4,7 +4,7 @@ Status vocabulary: **PASS** only when the stated gate has objective evidence; **
 
 ## Recorded RC6 suite gates
 
-The final RC6 all-in-one `npm run verify` composite passed end to end. This verifies the local release candidate only: the public Site remains the independently checked prior baseline until RC6 is promoted and receives a fresh anonymous byte probe and production-browser smoke check. External/manual gates remain separate.
+The final RC6 all-in-one `npm run verify` composite passed end to end. RC6 was then promoted to the public Site and passed fresh anonymous byte probes plus independent production-browser smoke. External/manual gates remain separate.
 
 | Gate | Status | Evidence / remaining proof |
 | --- | --- | --- |
@@ -53,7 +53,7 @@ The implementation and proof details live in [`RC4_JUDGE_FIX_CONTRACT.md`](RC4_J
 - `npm run qa:relay`: **PASS**, 17 checks across independent Chrome processes/profiles with exact state sync, zero mirror publications/mutations, and clean teardown.
 - `npm run qa:accessibility`: **PASS**, 11 keyboard-only, focus, accessibility-tree, computed-contrast, and 200%-zoom-equivalent reflow checks.
 - `npm run qa:performance`: **PASS**, 10 cold-load, forced-GC heap/DOM/listener, relay-rate, campaign-exercise, network/console, and teardown checks; final heap delta 0.203 MiB, final DOM delta -223, final listener delta 0.
-- Final all-in-one `npm run verify` composite: **PASS**, including the 12.0 MiB / 24-file release-audit stage. This is local RC6 evidence, not a public-deployment claim.
+- Final all-in-one `npm run verify` composite: **PASS**, including the 12.0 MiB / 24-file release-audit stage. Separate production evidence confirms HTTP 200, byte identity for five critical runtime/art assets, successful first-room progression into Ward 06, and zero browser warnings/errors.
 - Image conversion: **59.0%** reduction for the twelve referenced large source images; dimensions preserved, transparent alpha error 0, opaque-image PSNR remains above the documented floor, and the post-switch screenshot matrix passed.
 - Twitch lifecycle tests: OAuth state/expiry, critical versus optional subscriptions, message-ID dedupe, seamless reconnect, and keepalive timeout all pass.
 - Audio tests: no-autoplay gesture gate, captions while locked/muted, room ambience, adaptive score, four-bus routing, compressor fallback, stereo panning, action/item/audience/Warden/ending cues, reduced effects, startup failure, and cleanup all pass.
@@ -73,7 +73,7 @@ The implementation and proof details live in [`RC4_JUDGE_FIX_CONTRACT.md`](RC4_J
 | Continuous five-minute rehearsal capture | workflow yes; artifact no | recorder/manifest failure contract validated | real Chrome share-tab/audio picker run pending |
 | Transparent OBS route | yes | computed alpha at 1920×1080 and 1280×720 | actual OBS capture pending |
 | Twitch OAuth/EventSub | yes | deterministic lifecycle tests | real broadcaster + second viewer pending |
-| Public logged-out deployment | prior baseline yes; RC6 pending | prior production probe returned HTTP 200, byte-matched its core runtime assets, and reached gameplay, compact HUD, mixer, and caption state | promote RC6, repeat the stateless byte and browser probes, then prove the source repository and final video logged out |
+| Public logged-out deployment | RC6 yes | fresh production probes returned HTTP 200, byte-matched `app.mjs`, `engine.mjs`, `public-state.mjs`, `styles.css`, and the humane-ending WebP, and reached the Ward 06 checklist with no browser warnings/errors | prove the source repository and final video logged out |
 | 20–35 minute campaign | target only | instrumentation refuses to claim measured duration | five unfamiliar-human runs required |
 
 ## Remaining release blockers
@@ -83,7 +83,6 @@ The implementation and proof details live in [`RC4_JUDGE_FIX_CONTRACT.md`](RC4_J
 3. Run the real Chrome **This Tab + Share tab audio** five-minute rehearsal capture; retain a passing manifest and do not treat workflow validation as the recording.
 4. Run five unfamiliar newcomer playtests and report actual duration, help needed, comprehension, stuck points, route choice, and ending distribution.
 5. Complete NVDA, actual-audio listening/mix, and a 30-minute native Chrome+OBS performance/memory check. Keyboard-only, computed contrast, 200% zoom-equivalent reflow, and headless performance gates pass.
-6. Promote the reviewed RC6 payload and repeat the stateless anonymous byte probe plus production-browser smoke check; until then, keep the public Site labeled as the prior baseline.
-7. Publish the exact repository commit and under-three-minute judging video, verify both logged out, and finish Devpost with the Codex session ID only after truth labels are current.
+6. Publish the exact repository commit and under-three-minute judging video, verify both logged out, and finish Devpost with the Codex session ID only after truth labels are current.
 
 No document should describe the build as “first-place worthy,” live-Twitch verified, OBS verified, WCAG conformant, or a measured 20–35 minute experience until the matching evidence exists.

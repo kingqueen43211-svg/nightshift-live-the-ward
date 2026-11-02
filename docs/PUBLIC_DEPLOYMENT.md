@@ -4,7 +4,7 @@ The playable build is static and can be hosted without a game server.
 
 **Current production demo:** [https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/)
 
-RC6 is the current correction candidate. Treat the production URL as the last independently probed public build until RC6 completes `npm run verify`, is saved from the exact reviewed source commit, is deployed, and passes fresh anonymous HTTP plus real-Chrome probes. Do not copy an older commit hash, file count, suite total, or payload measurement into the RC6 record.
+RC6 is the current production build. It completed `npm run verify`, was saved from the exact pushed source state, deployed as Site version 9, and passed fresh anonymous HTTP plus real-browser probes. The live `app.mjs`, `engine.mjs`, `public-state.mjs`, `styles.css`, and humane-ending WebP exactly match the reviewed payload; the browser path reached the Ward 06 checklist without warnings or errors. Do not substitute older commit hashes, file counts, suite totals, or payload measurements for this RC6 record.
 
 The post-promotion probe must use a stateless no-cookie client for every deployable file plus the gameplay, dashboard, overlay, and passive-mirror entry URLs. It must confirm anonymous HTTP 200 responses, no login/access-request copy, matching core module/style/ending-asset hashes, truthful simulated-mode and audience-source labels, a real camera-node transition, the Ward 06 prerequisite checklist, caption preferences, and the earned humane ending treatment. A healthy shell serving older assets is a failed release.
 
@@ -52,7 +52,7 @@ Preview domains and production domains are distinct OAuth callbacks. Register ea
 - Run a second-viewer chat command and preserve the timestamped evidence requested by `TWITCH_VERIFICATION.md`.
 - Update the Twitch redirect and OBS URLs if the production domain changes.
 
-After RC6 promotion, capture the in-game next-step checklist, persistent audience/item status, truthful audience source, spatial camera travel, readable generator/isolation/Warden states, caption customization, and humane dawn from the public URL. Compare deployed core-module and ending-asset hashes against the reviewed commit. Capture the same decisive states again in the final public demo video.
+The production smoke captured the in-game next-step checklist, truthful simulated-audience source, completed-action lockout, and Ward 06 prerequisite gate, then compared the deployed core-module and ending-asset hashes against the reviewed payload. The final public demo video must still capture persistent audience/item status, spatial camera travel, readable generator/isolation/Warden states, caption customization, and the humane dawn.
 
 ## Submission handoff
 
