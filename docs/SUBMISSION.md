@@ -1,6 +1,6 @@
 # Devpost submission pack
 
-> **Final-entry handoff:** use [`RC7_SUBMISSION_PACK.md`](RC7_SUBMISSION_PACK.md) for the current judge-facing copy, clean-checkout path, official-rule checklist, and evidence boundaries. Use [`RC7_DEMO_NARRATION.md`](RC7_DEMO_NARRATION.md) with the 2:52 edit decision list. This RC6 document remains the detailed product-description source and must not be used to imply that external Twitch, OBS, repository, YouTube, human-testing, or Devpost evidence is complete.
+> **Final-entry handoff:** use [`RC8_SUBMISSION_PACK.md`](RC8_SUBMISSION_PACK.md) for the current judge-facing copy, clean-checkout path, official-rule checklist, and evidence boundaries. Use [`RC8_DEMO_NARRATION.md`](RC8_DEMO_NARRATION.md) with the manifest-bound 2:52 edit decision list. Older RC6/RC7 documents are historical and must not be used to imply that external Twitch, OBS, repository, YouTube, human-testing, or Devpost evidence is complete.
 
 ## Title
 
@@ -30,7 +30,7 @@ The result is not a poll laid over a video. Streamer actions and audience conseq
 
 The broadcast product is part of the game: a control room handles show state, rehearsal events, Twitch connection, checkpoints, pacing telemetry, privacy, and safety settings; a separate browser route provides a transparent OBS overlay; and BroadcastChannel carries state between views. The procedural Web Audio layer starts only after an explicit gesture, has mute and volume control, softens under reduced-effects preferences, and emits a visual caption for every meaningful sound cue.
 
-The visual system uses original project-specific room plates plus state-driven Warden poses, curtain, gurney, isolation-door, generator, theatre, route, and ending layers. Lossless sources and prompt constraints are recorded in the asset-provenance manifest. Ten recovered concept frames are preserved outside the deployable build and reconciled individually in [`RC6_VISUAL_REFERENCE_MATRIX.md`](RC6_VISUAL_REFERENCE_MATRIX.md); they are design references, never baked fake UI. The public build uses visually verified WebP derivatives and locally bundled open-licensed fonts. The final payload size must be taken from the fresh RC6 release audit rather than copied from an earlier candidate.
+The visual system uses original project-specific room plates plus state-driven Warden poses, curtain, gurney, isolation-door, generator, theatre, route, and ending layers. Lossless sources and prompt constraints are recorded in the asset-provenance manifest. Ten recovered concept frames are preserved outside the deployable build and reconciled individually in the historical [`RC6_VISUAL_REFERENCE_MATRIX.md`](RC6_VISUAL_REFERENCE_MATRIX.md); they are design references, never baked fake UI. The public build uses visually verified WebP derivatives and locally bundled open-licensed fonts. The RC8 release audit records a 12.0 MiB / 25-file payload.
 
 ### How it uses Twitch
 
@@ -61,15 +61,15 @@ The remaining work is proof, not a different product concept:
 - **Technical implementation:** deterministic campaign engine, hardened Twitch EventSub lifecycle, persistent state and checkpoints, cross-tab OBS transport, procedural captioned audio, and layered automated gates.
 - **Design:** original cinematic art, three authored camera compositions per room, a physical multi-phase isolation door, staged Warden poses, responsive broadcast hierarchy, and a complete streamer-facing control room.
 
-## RC6 verification status
+## RC8 verification status
 
-RC6 is a correction pass over the last public candidate. Do not reuse older suite totals or payload measurements as RC6 evidence. Before the submission copy is finalized, run the composite gate and preserve its generated reports:
+The pre-promotion hosted baseline recorded for this source tree is RC8 / Site version 13 from commit `54b9cd1d7ab75d2c4d0bd051bf3ddef4fa4f431c`. The post-audit source candidate adds filesystem-identity collision checks, an exclusive build lock, BOM-less ffmpeg concat input, staged evidence-report publication, and rollback-safe final-video promotion. Its retained record is 160 unit/contract tests (159 passed, 1 optional permission-gated symlink case skipped, 0 failed), 33/33 visual scenarios, 9/9 gameplay, 5/5 integrity, 17/17 relay, 11/11 accessibility/reflow, 10/10 performance, and a 12.0 MiB / 25-file release audit. Its Sites-assigned identity and fresh parity/logged-out-smoke result belong in the generated external handoff after publication. Do not carry the totals onto another changed tree without a fresh composite run:
 
 ```powershell
 npm run verify
 ```
 
-The fresh run must cover unit/static checks, visual geometry and ending capture, the five-act browser campaign, integrity/privacy, separate-process relay, accessibility/reflow, performance soak, and release payload. Record exact totals, transfer size, heap measurements, source commit, and captured screenshots only after that command passes on the reviewed RC6 tree.
+The fresh run must cover unit/static checks, visual geometry and ending capture, the five-act browser campaign, integrity/privacy, separate-process relay, accessibility/reflow, performance soak, and release payload. Record exact totals, transfer size, heap measurements, source commit, and captured screenshots only after that command passes on the reviewed RC8 tree.
 
 Automated evidence proves deterministic local/browser behavior only. The separate anonymous production probe has verified public HTTP access, deployed-file identity for the critical runtime/art assets, and a live first-room-to-Ward-06 path with no browser warnings/errors. Neither class of evidence substitutes for real Twitch, native OBS, unfamiliar-human pacing/comprehension, NVDA, or audible mix review.
 
@@ -78,7 +78,7 @@ Automated evidence proves deterministic local/browser behavior only. The separat
 - [ ] Push the reviewed branch to a hosted repository.
 - [ ] Make the repository public, or share the private GitHub/GitLab repository with the required Devpost reviewer account.
 - [ ] Run the README instructions on a clean machine.
-- [x] Promote the reviewed RC6 `dist/` directory to the public HTTPS URL and repeat anonymous byte and production-browser verification.
+- [x] Promote reviewed RC8 commit `54b9cd1d7ab75d2c4d0bd051bf3ddef4fa4f431c` as Site version 13 and repeat anonymous parity and production-browser verification.
 - [ ] Register that exact URL as the Twitch OAuth redirect.
 - [ ] Record a two-account Twitch command and at least one real channel event.
 - [ ] Capture the transparent browser source in real OBS at both target resolutions.

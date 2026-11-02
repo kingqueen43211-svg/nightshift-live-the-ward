@@ -9,6 +9,7 @@ This is a truth boundary, not an evidence claim. The local capture-integrity, de
 - `npm run release:audit` requires the capture and demo validators, EDL, sidecar schema, builder, and evidence-assembly instructions in addition to the deployable payload.
 - `npm run capture:proof -- --preflight` fails unless `CAPTURE_EXPECTED_COMMIT` is a full SHA matching a clean repository's `HEAD` and the source/runtime hashes reconcile.
 - `npm run demo:evidence:validate -- <explicit validator arguments>` fails unless exact-commit rehearsal and external media, matching sidecars, ffprobe, plan, and report paths are supplied. It does not create or infer evidence.
+- `docs/demo-video/build-demo.ps1` reserves every source/intermediate/report/output path before writes, rejects adversarial canonical collisions, pins promoted bytes to the verified staging SHA-256, and atomically restores a prior valid MP4 if promotion verification fails.
 
 ## External evidence gates
 

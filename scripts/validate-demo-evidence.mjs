@@ -280,6 +280,7 @@ function validateEdl(edl) {
 
   let cursor = 0;
   const clipIds = new Set();
+  const generatedClipIds = new Set();
   for (const clip of edl.timeline) {
     invariant(clip.id && sourceDefinitions.has(clip.source), `Timeline clip ${clip.id || "(unnamed)"} has an unknown source`);
     invariant(!clipIds.has(clip.id), `Duplicate timeline clip id: ${clip.id}`);
@@ -294,14 +295,21 @@ function validateEdl(edl) {
       for (const segment of clip.segments) {
         invariant(segment.id && !segmentIds.has(segment.id), `${clip.id} has a duplicate or missing segment id`);
         segmentIds.add(segment.id);
+        const generatedClipId = `${clip.id}-${segment.id}`;
+        invariant(!generatedClipIds.has(generatedClipId), `Duplicate generated clip id: ${generatedClipId}`);
+        generatedClipIds.add(generatedClipId);
         invariant(typeof segment.startMilestone === "string" && segment.startMilestone.length > 0, `${clip.id}/${segment.id} has no proof milestone`);
         invariant(Number.isFinite(segment.duration) && segment.duration > 0, `${clip.id}/${segment.id} has an invalid duration`);
       }
       const segmentDuration = Number(clip.segments.reduce((sum, segment) => sum + Number(segment.duration || 0), 0).toFixed(3));
       invariant(segmentDuration === clip.duration, `${clip.id} montage segments do not equal its timeline duration`);
     } else if (clip.source === "final-proof") {
+      invariant(!generatedClipIds.has(clip.id), `Duplicate generated clip id: ${clip.id}`);
+      generatedClipIds.add(clip.id);
       invariant(typeof clip.startMilestone === "string" && clip.startMilestone.length > 0, `${clip.id} has no proof milestone`);
     } else {
+      invariant(!generatedClipIds.has(clip.id), `Duplicate generated clip id: ${clip.id}`);
+      generatedClipIds.add(clip.id);
       invariant(Number.isFinite(clip.sourceStart) && clip.sourceStart >= 0, `${clip.id} has an invalid external source start`);
     }
     cursor = Number((cursor + clip.duration).toFixed(3));
@@ -445,6 +453,7 @@ function buildPlan(edl, proofManifest, sourceFiles) {
       requiresAudibleEnding: timelineClip.requiresAudibleEnding === true
     });
   }
+  invariant(new Set(clips.map(clip => clip.id)).size === clips.length, "Assembly plan contains duplicate generated clip IDs");
   return {
     schemaVersion: 1,
     targetDurationSeconds: edl.targetDurationSeconds,
@@ -476,6 +485,7 @@ export function validateAssemblyEvidence({
   probeMedia,
   analyzeAudio = null,
   outputPath = null,
+  expectedOutputSha256 = null,
   expectedPlanSha256 = null,
   expectedEvidenceSetSha256 = null
 }) {
@@ -547,6 +557,9 @@ export function validateAssemblyEvidence({
   let output = null;
   if (outputPath) {
     const outputFacts = fileFacts(outputPath, "assembled demo output");
+    if (expectedOutputSha256) {
+      invariant(outputFacts.sha256 === expectedOutputSha256, `Assembled output changed after verification: expected ${expectedOutputSha256}, got ${outputFacts.sha256}`);
+    }
     const outputMedia = probeMedia(outputFacts.path);
     validateOutputMedia(outputMedia, edl.target, edl.rules.maximumDurationSeconds, edl.targetDurationSeconds);
     invariant(typeof analyzeAudio === "function", "Decoded output-audio analysis is required before assembly verification");
@@ -653,6 +666,7 @@ function runCli() {
     probeMedia: path => ffprobeMedia(path, args.ffprobe),
     analyzeAudio: args.output ? (path, window) => decodeAudioWindow(path, args.ffmpeg, window) : null,
     outputPath: args.output ? resolve(args.output) : null,
+    expectedOutputSha256: args["expected-output-sha256"] || null,
     expectedPlanSha256: args["expected-plan-sha256"] || null,
     expectedEvidenceSetSha256: args["expected-evidence-set-sha256"] || null
   });

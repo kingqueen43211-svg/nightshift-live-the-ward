@@ -1,4 +1,6 @@
-# 2:50 demo video script
+# Historical RC6 2:50 demo video script
+
+> **Superseded for RC8.** This file preserves the historical RC6 capture plan. Use [`RC8_DEMO_NARRATION.md`](RC8_DEMO_NARRATION.md) and its manifest-bound 2:52 edit plan for the current release. Do not reuse the RC6 totals, public-build status, or fixed capture assumptions below as RC8 evidence.
 
 The final recording must use the promoted, freshly probed RC6 public build and must preserve the visible mode label. RC6 currently has local verification only; do not record the prior public baseline as the final candidate. Use **LIVE TWITCH** only after the two-account proof is complete. Otherwise record **REHEARSAL** or **SIMULATED** and describe it honestly.
 

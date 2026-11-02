@@ -1,14 +1,16 @@
-# Security and performance release review
+# Historical RC6 security and performance release review
+
+> **Historical / superseded:** This file preserves the 2026-11-01 RC6 audit evidence and measurements. It is not the current release-status record. See [Status](./STATUS.md) and the [RC8 release gate](./RC8_RELEASE_GATE.md) for the active candidate, current totals, and remaining external gates.
 
 Date: 2026-11-01  
 Reviewed branch: `v3/gold-corridor`  
 Scope: browser client, Twitch lifecycle, public/OBS state transport, loopback relay, static-server headers and caching, and deployable payload
 
-## Release verdict
+## Historical RC6 release verdict
 
-No known P0 or P1 defect remains in the locally reviewable scope after the fixes below. The candidate is suitable for a controlled hackathon demonstration, but this is not a production security certification. Real Twitch interoperability, native OBS behavior, public-host configuration, and a native 30-minute Chrome+OBS run remain external gates.
+At the time of this RC6 review, no known P0 or P1 defect remained in the locally reviewable scope after the fixes below. The candidate was considered suitable for a controlled hackathon demonstration, but this was not a production security certification. Real Twitch interoperability, native OBS behavior, public-host configuration, and a native 30-minute Chrome+OBS run remained external gates.
 
-Evidence captured against the current working tree:
+Evidence captured against the RC6 working tree reviewed on 2026-11-01:
 
 - security/transport/Twitch subset: **22/22 tests passed**;
 - full unit/contract suite: **90/90 tests passed** in the final RC6 composite;
@@ -85,7 +87,7 @@ Evidence captured against the current working tree:
 - The game engine is browser-authoritative. A hosted multi-streamer product needs authorization-code/PKCE or a confidential backend, encrypted refresh-token storage, signed sessions, server-side rate limiting/moderation, audit logs, and centralized authoritative state.
 - The final host can weaken or omit checked-in headers. Effective production headers must be inspected after deployment.
 
-## External release gates
+## Historical RC6 external release gates
 
 1. Re-check effective production CSP/MIME/cache behavior in a clean browser; all public routes and assets return 200, but the current Sites host does not apply the checked-in Netlify `_headers` policy.
 2. Use a broadcaster and separate viewer account to record chat command → accepted vote → physical world change → matching OBS state. Exercise reconnect, token expiry, and one real optional channel event.
@@ -94,4 +96,4 @@ Evidence captured against the current working tree:
 5. Complete NVDA and human browser-native zoom/perception checks. Keyboard-only operation, computed contrast, and 200% zoom-equivalent reflow pass automated browser gates, but do not establish WCAG conformance.
 6. Run newcomer playtests and report measured timing and comprehension. Do not replace human evidence with engine targets.
 
-Until those gates are complete, the accurate status is **RC6 locally verified, with public promotion and a fresh anonymous production probe pending; live Twitch, native OBS, effective production-header review, native 30-minute performance, NVDA, and human usability remain unverified external evidence**. The already probed public Site is evidence for the prior baseline, not proof that RC6 is deployed.
+The historical RC6 conclusion was: **RC6 locally verified, with public promotion and a fresh anonymous production probe pending; live Twitch, native OBS, effective production-header review, native 30-minute performance, NVDA, and human usability remain unverified external evidence**. The already probed public Site was evidence for the prior baseline, not proof that RC6 was deployed. For the active candidate, use [Status](./STATUS.md) and the [RC8 release gate](./RC8_RELEASE_GATE.md).

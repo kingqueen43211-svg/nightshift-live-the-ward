@@ -1,6 +1,6 @@
-# RC6 procedural audio, score, captions, and capture
+# RC8 procedural audio, score, captions, and capture
 
-`dist/audio.mjs` supplies NightShift Live's production audio without downloaded sound files, external services, or autoplay. Physical actions, items, audience consequences, Warden phases, room ambience, transitions, adaptive score, and endings each have an authored procedural cue and an exact caption. RC6 adds persistent caption presentation preferences and optional speaker/directional metadata without changing campaign authority.
+`dist/audio.mjs` supplies NightShift Live's production audio without downloaded sound files, external services, or autoplay. Physical actions, items, audience consequences, Warden phases, room ambience, transitions, adaptive score, and endings each have an authored procedural cue and an exact caption. RC8 retains persistent caption presentation preferences and optional speaker/directional metadata without changing campaign authority, and its demo validator decodes final-output audio windows instead of trusting a declared track alone.
 
 Audio remains separate from campaign authority. If Web Audio is locked, unavailable, muted, or reduced, the action still completes and its caption still emits.
 
@@ -82,13 +82,13 @@ This capture is rehearsal proof, not live Twitch, native OBS, an unfamiliar-huma
 
 ## Verification boundary
 
-The locally verified RC6 suite results are:
+The retained RC8 suite results are:
 
-- 90/90 unit and contract tests;
-- 29/29 visual states, including compact HUD;
+- 160 total unit and contract tests: 159 passed, 1 optional Windows file-symlink case skipped because this host lacks symlink permission, and 0 failed;
+- 33/33 visual states, including compact HUD and four true 640×360 captures;
 - 9/9 gameplay, 5/5 integrity, 17/17 relay, 11/11 accessibility, and 10/10 performance gates;
-- performance final deltas: DOM -223, listeners 0, heap 0.203 MiB.
+- performance cleanup: no positive attached-DOM or listener growth, and post-GC heap remained within the enforced 8 MiB-or-75% budget.
 
-The tests cover gesture gating, bus routing, compressor fallback, panning, adaptive score stages, action/item/audience/Warden/ending captions, caption preferences, reduced effects, cleanup, sanitized caption transport, passive-mirror behavior, and the capture workflow contract. The final all-in-one RC6 composite passed end to end locally; public RC6 promotion and a fresh anonymous probe remain pending.
+The tests cover gesture gating, bus routing, compressor fallback, panning, adaptive score stages, action/item/audience/Warden/ending captions, caption preferences, reduced effects, cleanup, sanitized caption transport, passive-mirror behavior, the capture workflow contract, and decoded final-output ending/final-tail audio metrics. The retained RC8 composite passed end to end, and Site version 13 was anonymously probed. No completed RC8 recording, final MP4, human headphone/speaker listen, or native OBS audio review is claimed.
 
 Browser QA still cannot prove that a human can hear and balance every cue on the target hardware, that Chrome supplies tab audio in the actual picker run, or that native OBS receives the intended mix. Those remain explicit manual gates.

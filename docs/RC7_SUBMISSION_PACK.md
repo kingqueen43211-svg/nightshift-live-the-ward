@@ -1,4 +1,6 @@
-# NightShift Live — final submission pack
+# NightShift Live — historical RC7 submission pack
+
+> **Superseded by [`RC8_SUBMISSION_PACK.md`](RC8_SUBMISSION_PACK.md).** Preserve this file as the RC7 planning record; do not use its release identity or pending placeholders as current evidence.
 
 Status: **prepared copy; external evidence still required**. Replace every bracketed field only with a verified final URL or result. Do not submit a draft that still contains brackets.
 

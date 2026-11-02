@@ -1,6 +1,8 @@
-# Image optimization and verification
+# Historical RC6 image optimization and verification
 
-The RC6 release candidate uses verified WebP derivatives for every referenced PNG larger than 1 MB. After references were switched, the expanded visual matrix passed 29/29 and the browser campaign gate passed 9/9. Lossless PNG sources remain outside the deployable directory under `art-source/`. Public RC6 promotion is pending.
+> **Historical / superseded:** This file preserves the 2026-11-01 RC6 optimization measurements. It is not the current release-status record. See [Status](./STATUS.md) and the [RC8 release gate](./RC8_RELEASE_GATE.md) for the active candidate and deployment truth.
+
+The RC6 release candidate used verified WebP derivatives for every referenced PNG larger than 1 MB. After references were switched, its expanded visual matrix passed 29/29 and its browser campaign gate passed 9/9. Lossless PNG sources remained outside the deployable directory under `art-source/`. Public RC6 promotion was pending at the time of this record.
 
 ## Reproducible command
 
@@ -33,4 +35,4 @@ The twelve referenced source images total 29,922,670 bytes. Their deployable der
 - Opaque scene plates measured 38.28–41.78 dB PSNR.
 - The Warden and reception plate were also reviewed side by side at rendered resolution.
 
-The application now references the WebP files from HTML, CSS, JavaScript, and room metadata. The lossless PNGs remain in `art-source/` for rollback and re-encoding but are excluded from the static deployment directory. The release audit passes at 12.0 MiB across 24 files. A real OBS capture, RC6 public promotion, and a fresh public-origin probe remain required before public-release verification is complete.
+The RC6 application referenced the WebP files from HTML, CSS, JavaScript, and room metadata. The lossless PNGs remained in `art-source/` for rollback and re-encoding but were excluded from the static deployment directory. Its release audit passed at 12.0 MiB across 24 files. At the time of this record, a real OBS capture, RC6 public promotion, and a fresh public-origin probe were still required before public-release verification could be complete. Current gates are tracked in [Status](./STATUS.md) and the [RC8 release gate](./RC8_RELEASE_GATE.md).

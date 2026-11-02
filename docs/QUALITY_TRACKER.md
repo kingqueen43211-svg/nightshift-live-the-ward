@@ -1,35 +1,36 @@
-# RC6 quality tracker
+# RC8 quality tracker
 
 Status vocabulary: **PASS** only when the stated gate has objective evidence; **PARTIAL** when the implementation exists but a required manual or external proof is missing; **FAIL** for a reproduced blocker; **NOT TESTED** when no valid proof exists.
 
-## Recorded RC6 suite gates
+## Recorded RC8 suite gates
 
-The final RC6 all-in-one `npm run verify` composite passed end to end. RC6 was then promoted to the public Site and passed fresh anonymous byte probes plus independent production-browser smoke. External/manual gates remain separate.
+The retained post-audit RC8 all-in-one `npm run verify` composite passed end to end. The pre-promotion public baseline recorded for this source tree is commit `54b9cd1d7ab75d2c4d0bd051bf3ddef4fa4f431c` / Site version 13, which passed fresh anonymous byte probes plus production-browser smoke. The Sites-assigned identity and post-deploy proof for this candidate are recorded externally after publication. External/manual gates remain separate and **NOT VERIFIED**.
 
 | Gate | Status | Evidence / remaining proof |
 | --- | --- | --- |
-| S0 current-build inspection | PASS | Source, routes, browser console, 29 viewport/state captures, campaign/integrity/accessibility browser flows, performance soak, 90 unit/contract tests, and the 12.0 MiB / 24-file release-audit stage passed in the final composite. Historical evidence is indexed in [`evidence/RC5_EVIDENCE.md`](evidence/RC5_EVIDENCE.md), and RC6 visual acceptance criteria are recorded in [`RC6_VISUAL_REFERENCE_MATRIX.md`](RC6_VISUAL_REFERENCE_MATRIX.md). |
+| S0 current-build inspection | PASS | Source, routes, browser console, 33 viewport/state captures, campaign/integrity/accessibility browser flows, performance soak, 160 unit/contract tests (159 passed, 1 optional permission-gated symlink case skipped, 0 failed), and the 12.0 MiB / 25-file release-audit stage passed in the retained RC8 source-candidate composite. Historical evidence is indexed in [`evidence/RC5_EVIDENCE.md`](evidence/RC5_EVIDENCE.md), and the historical visual acceptance criteria remain in [`RC6_VISUAL_REFERENCE_MATRIX.md`](RC6_VISUAL_REFERENCE_MATRIX.md). |
 | S1 gold-standard corridor | PASS | Spatial camera travel, node-specific records/locker/restraint/service reveals, theatre lamps/tape/containment, final roof/tunnel treatment, physical door, Warden phases, action-specific cues, and reduced-motion/caption equivalents pass local contract and visual gates. |
 | S2 coherent 10–15 minute showcase section | PARTIAL | The five-act mechanics and director-safe fallbacks are playable end to end, but no uncut newcomer playtest has yet established a real 10–15 minute showcase duration or comprehension result. |
 | S3 full campaign | PARTIAL | Five persistent acts, checkpoints, inventory crafting/use, prerequisites, distinct endings, fallback recovery, and route/cause/decision recap pass automated and browser integration tests. A 20–35 minute duration remains a target, not a claim, until five unfamiliar-human full runs are recorded. |
 | S4 real Twitch + OBS | PARTIAL | OAuth/EventSub lifecycle and 17/17 separate-process relay gates pass, including exact state sync and a passive mirror. A public callback URL exists; broadcaster credentials, a second viewer, and native OBS alpha captures are still required. |
-| S5 compositor-wide polish | PARTIAL | 29/29 visual gates including compact HUD, 9/9 gameplay, 5/5 integrity, 17/17 relay, 11/11 accessibility/reflow, 10/10 performance, and 90/90 unit/contract tests pass. NVDA, audible output, real share-tab/audio capture, native OBS, and a native 30-minute soak remain manual gates. |
+| S5 compositor-wide polish | PARTIAL | 33/33 visual gates including compact HUD and four true 640×360 captures, 9/9 gameplay, 5/5 integrity, 17/17 relay, 11/11 accessibility/reflow, 10/10 performance, and 159 passed / 1 permission-gated optional skip / 0 failed across 160 unit/contract tests. Human compressed-player reading, NVDA, audible output, an exact-release capture, native OBS, and a native 30-minute soak remain external/manual gates. |
 | S6 independent design review | PASS | Independent design and security/performance reviews are recorded. Their actionable local P1 findings were resolved; external Twitch/OBS/human proof remains explicitly open. |
 
-## RC6 finalist-quality gates
+## RC8 finalist-quality gates
 
 | Gate | Status | Evidence / remaining proof |
 | --- | --- | --- |
 | A01 authored action sound | PASS | Physical actions, items, audience outcomes, Warden phases, transitions, and endings expose action-specific procedural sequences and exact captions; blocked/no-op paths remain captioned. Audible listening is still manual. |
 | A02 adaptive broadcast mix | PASS | Five-room ambience and adaptive score route through effects/ambience/music/master gains, compressor fallback, and optional stereo panning; mixer controls and reduced-effects behavior pass unit/contract tests. |
 | A03 caption synchronization | PASS | Sanitized caption state, including optional speaker and directional metadata, reaches gameplay and passive overlay rails through validated transport without enabling audio on mirror controllers. Persistent enablement, size, background-strength, duration, speaker-label, and directional-cue preferences are contract-tested. Native OBS observation remains external. |
-| V01 camera-specific reveals | PASS | Records, medicine locker, corridor restraint, service grid, theatre, roof, and tunnel reveal rigs are bound to authored camera nodes and included in the 29-state visual matrix. |
+| V01 camera-specific reveals | PASS | Records, medicine locker, corridor restraint, service grid, theatre, roof, and tunnel reveal rigs are bound to authored camera nodes and included in the 33-state visual matrix. |
 | V02 theatre/finale choreography | PASS | Surgical lamps, confession tape, containment sigil, roof beacon, and tunnel gate respond to decisive scene beats with reduced-motion state/caption equivalents. |
 | V03 causal ending treatment | PASS | Ending UI exposes route, cause, streamer decision trace, audience/fallback provenance, visual tone, and ending-specific score resolution. The earned humane route adds a UI-free rooftop dawn tableau. |
 | U01 broadcast legibility | PASS | Compact cinematic HUD, exact item-effect chips, meter response, and truthful idle pacing hints are user-controlled and locally tested. Human comprehension remains external. |
 | P01 continuous rehearsal proof | PARTIAL | The five-minute `getDisplayMedia`/`MediaRecorder` workflow, watermark, clean-tree/audio/video/caption/ending checks, and failure manifest are implemented and contract-validated. A real Chrome **This Tab + Share tab audio** picker run is pending; no complete WebM is claimed. |
+| P02 collision-safe judging-video assembly | PASS | Every source/tool/intermediate/report/output path is reserved before writes and compared by canonical path, filesystem identity, and resolved reparse target. A per-build-directory exclusive lock rejects concurrent assembly; concat is BOM-less UTF-8; the final report is staged; atomic promotion preserves/restores a prior MP4 without deleting another process's destination; promoted bytes are pinned to the verified staging hash. Hardlink, junction, collision, race, rollback, and cleanup regressions pass without modifying evidence. The optional file-symlink case is permission-gated on this host. Genuine media and the finished video remain external gates. |
 
-## RC4 regression gates retained through RC6
+## RC4 regression gates retained through RC8
 
 The implementation and proof details live in [`RC4_JUDGE_FIX_CONTRACT.md`](RC4_JUDGE_FIX_CONTRACT.md). The local automation rows passed in the final composite; that result cannot close an external/manual gate.
 
@@ -44,16 +45,16 @@ The implementation and proof details live in [`RC4_JUDGE_FIX_CONTRACT.md`](RC4_J
 | S05 consequence legibility | PASS | Persistent audience outcome, gameplay condition/item effect, and dashboard audience/next/recent fields pass required status-surface assertions. |
 | S10 dynamic proof | PASS | Motion/consequence assertions and three clean end-to-end runs pass, replacing reliance on final-state screenshots alone. A public uncut capture remains required for submission proof. |
 
-## Recorded RC6 automated evidence
+## Recorded RC8 automated evidence
 
-- `npm run check`: **PASS**, 90 tests, 0 failures.
-- `npm run qa:visual`: **PASS**, 29 scenarios including compact HUD, with 0 geometry/overflow/alpha/motion failures and 0 browser-console errors.
+- `npm run check`: **PASS**, 160 tests total: 159 passed, 1 optional Windows file-symlink case skipped because this host lacks symlink permission, and 0 failed.
+- `npm run qa:visual`: **PASS**, 33 scenarios including compact HUD and four true 640×360 captures, with 0 geometry/overflow/alpha/motion failures and 0 browser-console errors.
 - `npm run qa:gameplay`: **PASS**, 9 campaign/UI gates, including dynamic camera travel, visible progression, exact item effects, checkpoint recovery, truthful zero-chat labeling, a fully earned humane-ending path, fallback recap, and three clean visible-guidance runs without fixtures or fallbacks.
 - `npm run qa:integrity`: **PASS**, 5 browser truthfulness/privacy/single-controller gates with zero console errors.
 - `npm run qa:relay`: **PASS**, 17 checks across independent Chrome processes/profiles with exact state sync, zero mirror publications/mutations, and clean teardown.
 - `npm run qa:accessibility`: **PASS**, 11 keyboard-only, focus, accessibility-tree, computed-contrast, and 200%-zoom-equivalent reflow checks.
-- `npm run qa:performance`: **PASS**, 10 cold-load, forced-GC heap/DOM/listener, relay-rate, campaign-exercise, network/console, and teardown checks; final heap delta 0.203 MiB, final DOM delta -223, final listener delta 0.
-- Final all-in-one `npm run verify` composite: **PASS**, including the 12.0 MiB / 24-file release-audit stage. Separate production evidence confirms HTTP 200, byte identity for five critical runtime/art assets, successful first-room progression into Ward 06, and zero browser warnings/errors.
+- `npm run qa:performance`: **PASS**, 10 cold-load, forced-GC heap/DOM/listener, relay-rate, campaign-exercise, network/console, and teardown checks; no positive attached-DOM or listener growth, and post-GC heap remained within the enforced 8 MiB-or-75% budget.
+- Retained post-audit RC8 all-in-one `npm run verify` composite: **PASS**, including the 12.0 MiB / 25-file release-audit stage. Separate production evidence for the pre-promotion Site v13 baseline confirms HTTP 200, parity for six critical runtime/style files, logged-out Help/Control Room/browser-overlay/Cinema-HUD smoke, and zero browser warnings/errors. This candidate requires its own post-deploy record.
 - Image conversion: **59.0%** reduction for the twelve referenced large source images; dimensions preserved, transparent alpha error 0, opaque-image PSNR remains above the documented floor, and the post-switch screenshot matrix passed.
 - Twitch lifecycle tests: OAuth state/expiry, critical versus optional subscriptions, message-ID dedupe, seamless reconnect, and keepalive timeout all pass.
 - Audio tests: no-autoplay gesture gate, captions while locked/muted, room ambience, adaptive score, four-bus routing, compressor fallback, stereo panning, action/item/audience/Warden/ending cues, reduced effects, startup failure, and cleanup all pass.
@@ -73,7 +74,7 @@ The implementation and proof details live in [`RC4_JUDGE_FIX_CONTRACT.md`](RC4_J
 | Continuous five-minute rehearsal capture | workflow yes; artifact no | recorder/manifest failure contract validated | real Chrome share-tab/audio picker run pending |
 | Transparent OBS route | yes | computed alpha at 1920×1080 and 1280×720 | actual OBS capture pending |
 | Twitch OAuth/EventSub | yes | deterministic lifecycle tests | real broadcaster + second viewer pending |
-| Public logged-out deployment | RC6 yes | fresh production probes returned HTTP 200, byte-matched `app.mjs`, `engine.mjs`, `public-state.mjs`, `styles.css`, and the humane-ending WebP, and reached the Ward 06 checklist with no browser warnings/errors | prove the source repository and final video logged out |
+| Public logged-out deployment | RC8 / Site v13 yes | commit `54b9cd1d7ab75d2c4d0bd051bf3ddef4fa4f431c`; fresh production probes returned HTTP 200, byte-matched `app.mjs`, `audio.mjs`, `engine.mjs`, `public-state.mjs`, `twitch.mjs`, and `styles.css`, and exercised logged-out judge surfaces with no browser warnings/errors | prove the source repository and final video logged out |
 | 20–35 minute campaign | target only | instrumentation refuses to claim measured duration | five unfamiliar-human runs required |
 
 ## Remaining release blockers

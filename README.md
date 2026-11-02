@@ -113,7 +113,9 @@ docs/
   RC5_JUDGE_FIX_CONTRACT.md Finalist-quality audiovisual/visual/capture contract
   RC6_VISUAL_REFERENCE_MATRIX.md Ten exact concept frames → implementation and acceptance
   RC7_JUDGE_RESPONSE.md Independent audit finding → evidence/external gate mapping
-  RC7_SUBMISSION_PACK.md Truthful final submission copy and checklist
+  RC8_SUBMISSION_PACK.md Truthful current submission copy and checklist
+  RC8_DEMO_NARRATION.md  Current manifest-bound 2:52 narration/edit plan
+  RC7_SUBMISSION_PACK.md Historical RC7 planning record
   RC8_RELEASE_GATE.md Local implementation and external NOT VERIFIED boundary
   demo-video/      Truth-gated 2:52 edit plan, schema, evidence guide, and builder
   evidence/RC4_EVIDENCE.md Final screenshots and browser reports

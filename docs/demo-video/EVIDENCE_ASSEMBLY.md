@@ -81,11 +81,15 @@ The assembler:
 3. burns the source truth label into every segment;
 4. normalizes to 1920×1080, 30 fps, stereo 48 kHz H.264/AAC;
 5. binds the render to the exact preflight plan and evidence-set hashes, so a changed EDL, manifest, sidecar, or source cannot be promoted mid-build;
-6. rejects any resolved-path collision among sources, sidecars, the EDL, validator, plan, preflight/prepublish/final reports, staging file, and final output before preflight writes anything;
-7. assembles to an `.unverified.mp4` staging file;
-8. ffprobes the staging result and enforces MP4, H.264, yuv420p, AAC, stereo 48 kHz, the 172-second target, and the 180-second ceiling;
-9. decodes float PCM from both the 25-second humane-ending window and the final 25 seconds, rejecting digital zero, more than one terminal second of silence, poor sample coverage, non-finite samples, or sample clipping;
-10. promotes it to the requested output only after it passes;
-11. repeats the media and decoded-audio checks after promotion and writes the final evidence report with the plan, evidence-set, source, manifest, output, and audio-analysis facts.
+6. resolves the builder plus Node.js, ffmpeg, and ffprobe executables, expands the EDL clip IDs with index-qualified reservations, rejects duplicate standalone/montage generated IDs, and before any write compares lexical paths, final OS paths, Windows file IDs for existing files, and nearest-existing-parent identities for future files across all protected inputs and generated paths;
+7. refuses every pre-existing writable intermediate, normalized clip, list, report, staging, backup, or quarantine path; only a distinct prior final MP4 may exist for atomic replacement;
+8. atomically acquires and holds one exclusive build-directory lock before preflight writes, preventing concurrent runs from sharing the plan, clips, concat list, staging file, or reports;
+9. writes ffmpeg's concat list as explicit BOM-less UTF-8 and assembles to an `.unverified.mp4` staging file;
+10. ffprobes the staging result and enforces MP4, H.264, yuv420p, AAC, stereo 48 kHz, the 172-second target, and the 180-second ceiling;
+11. decodes float PCM from both the 25-second humane-ending window and the final 25 seconds, rejecting digital zero, more than one terminal second of silence, poor sample coverage, non-finite samples, or sample clipping;
+12. promotes it with a same-directory atomic replacement while retaining any prior final MP4 as a rollback backup and holding the promoted file against replacement during verification;
+13. requires the promoted bytes to retain the verified staging SHA-256, writes post-promotion evidence to a reserved staging report, and atomically publishes that report only after validation succeeds;
+14. rolls back only a destination proven to contain this run's bytes, never deletes a destination whose move failed, and releases the build lock in `finally`;
+15. treats backup deletion after a committed MP4/report pair as noncritical cleanup: failure retains the consistent verified pair and leaves the backup for deliberate operator handling.
 
 The decoded-audio gate proves digital continuity, not perceived mix quality. Headphone and speaker listening, stereo-image and balance review, YouTube transcode review, logged-out YouTube playback, and Devpost submission remain external actions. `ASSEMBLY_VERIFIED` does not claim those actions occurred.

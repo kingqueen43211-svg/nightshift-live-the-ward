@@ -1,4 +1,6 @@
-# NightShift Live — 2:52 judging-video narration and screen copy
+# NightShift Live — historical RC7 2:52 judging-video narration
+
+> **Superseded by [`RC8_DEMO_NARRATION.md`](RC8_DEMO_NARRATION.md).** This file preserves the RC7 edit draft and must not be presented as the current release record.
 
 This script matches `docs/demo-video/demo-edl.json` exactly: **172 seconds**. Use the corrected exact-release proof, not the audited `02-33-43-114Z` recording. The real-Twitch, native-OBS, Codex, accessibility/human-QA, and closing-card clips are mandatory source assets.
 
