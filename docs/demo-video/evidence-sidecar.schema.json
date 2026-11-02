@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nightshift-live.local/schemas/external-evidence-sidecar.schema.json",
+  "title": "NightShift external video evidence sidecar",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "kind",
+    "sourceId",
+    "status",
+    "verifiedAt",
+    "verifiedBy",
+    "source",
+    "artifact",
+    "assertions",
+    "notes"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "kind": { "const": "NIGHTSHIFT_EXTERNAL_EVIDENCE" },
+    "sourceId": {
+      "enum": ["real-twitch", "native-obs", "codex-bts", "accessibility-human-qa", "closing-card"]
+    },
+    "status": { "const": "VERIFIED_EVIDENCE" },
+    "verifiedAt": { "type": "string", "format": "date-time" },
+    "verifiedBy": { "type": "string", "minLength": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit"],
+      "properties": {
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileName", "bytes", "sha256", "durationSeconds"],
+      "properties": {
+        "fileName": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "durationSeconds": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "assertions": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "type": "boolean" }
+    },
+    "notes": { "type": "array", "items": { "type": "string" } }
+  }
+}

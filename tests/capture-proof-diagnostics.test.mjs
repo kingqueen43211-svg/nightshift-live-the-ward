@@ -34,6 +34,16 @@ test("complete proof uses measured shared-stream samples rather than scheduled g
   assert.match(captureSource, /complete = [^;]*endingAudioTailVerified/);
 });
 
+test("complete proof is gated by initial/final Git, commit, tree, and runtime reconciliation", () => {
+  assert.match(captureSource, /const initialSourceIntegrity = inspectSourceIntegrity\(\)/);
+  assert.match(captureSource, /const finalSourceIntegrity = inspectSourceIntegrity\(\)/);
+  assert.match(captureSource, /const sourceIntegrity = reconcileSourceIntegrity\(initialSourceIntegrity, finalSourceIntegrity\)/);
+  assert.match(captureSource, /complete = [^;]*sourceIntegrity\.verified/);
+  assert.match(captureSource, /releaseCommitMatched:/);
+  assert.match(captureSource, /runtimeSourceHashesReconciled:/);
+  assert.match(captureSource, /cleanCommittedSource: sourceIntegrity\.checks\.cleanWorktree/);
+});
+
 test("only the exact same-origin legacy favicon 404 is noncritical", () => {
   const expected = classifyBrowserIssue({
     source: "network",

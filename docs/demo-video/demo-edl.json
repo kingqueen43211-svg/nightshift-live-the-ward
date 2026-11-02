@@ -1,8 +1,18 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "title": "NightShift Live — Hackathon Demo",
   "targetDurationSeconds": 172,
-  "target": { "width": 1920, "height": 1080, "fps": 30, "videoCodec": "h264", "audioCodec": "aac", "audioChannels": 2, "audioSampleRate": 48000 },
+  "target": {
+    "container": "mp4",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "videoCodec": "h264",
+    "videoPixelFormat": "yuv420p",
+    "audioCodec": "aac",
+    "audioChannels": 2,
+    "audioSampleRate": 48000
+  },
   "rules": {
     "maximumDurationSeconds": 180,
     "youtubeVisibility": "public",
@@ -10,34 +20,280 @@
     "allowBrowserOverlayAsNativeObs": false,
     "requireRealTwitchBeforeSecond": 44,
     "requireCodexSessionEvidence": true,
-    "requireLoggedOutLinkCheck": true
+    "requireLoggedOutLinkCheck": true,
+    "requireExactCommitForEverySource": true,
+    "requireBurnedTruthLabels": true
   },
+  "sources": [
+    {
+      "id": "final-proof",
+      "kind": "schema-v3-rehearsal-proof",
+      "truthLabel": "REHEARSAL / SIMULATED",
+      "requiredManifestStatus": "COMPLETE_REHEARSAL_PROOF"
+    },
+    {
+      "id": "real-twitch",
+      "kind": "external-evidence",
+      "truthLabel": "REAL TWITCH / VERIFIED EVIDENCE",
+      "requiredAssertions": [
+        "liveTwitch",
+        "separateViewer",
+        "notSimulated",
+        "authoritativeInputAcceptedOnce",
+        "worldChangeVisible",
+        "passiveOverlayMatched"
+      ]
+    },
+    {
+      "id": "native-obs",
+      "kind": "external-evidence",
+      "truthLabel": "NATIVE OBS / VERIFIED EVIDENCE",
+      "requiredAssertions": [
+        "nativeObs",
+        "browserSourceVisible",
+        "transparencyVerified",
+        "captionsVisible",
+        "correctSizing",
+        "singleAudioPath"
+      ]
+    },
+    {
+      "id": "codex-bts",
+      "kind": "external-evidence",
+      "truthLabel": "CODEX SESSION / VERIFIED EVIDENCE",
+      "requiredAssertions": [
+        "actualCodexSessionVisible",
+        "expectedCommitVisible",
+        "currentVerificationVisible"
+      ]
+    },
+    {
+      "id": "accessibility-human-qa",
+      "kind": "external-evidence",
+      "truthLabel": "HUMAN QA / VERIFIED EVIDENCE",
+      "requiredAssertions": [
+        "humanReviewed",
+        "halfScaleReadable",
+        "captionsReadable",
+        "reducedMotionShown"
+      ]
+    },
+    {
+      "id": "closing-card",
+      "kind": "external-evidence",
+      "truthLabel": "VERIFIED LINKS / FINAL CARD",
+      "requiredAssertions": [
+        "liveUrlVerifiedLoggedOut",
+        "repositoryVerifiedLoggedOut",
+        "codexSessionIdVisible",
+        "submissionStateTruthful"
+      ]
+    }
+  ],
   "requiredExternalAssets": [
-    { "id": "real-twitch", "durationSeconds": 24, "evidence": "Separate viewer genuine command; authoritative vote/event accepted; visible world change; LIVE TWITCH label." },
-    { "id": "native-obs", "durationSeconds": 14, "evidence": "OBS Studio Browser Source, transparency, captions, correct sizing, one clean audio path." },
-    { "id": "codex-bts", "durationSeconds": 12, "evidence": "Actual Codex work, exact session ID, implementation evidence, current verification." },
-    { "id": "accessibility-human-qa", "durationSeconds": 11, "evidence": "Caption/accessibility controls and human-readable half-size playback check." },
-    { "id": "closing-card", "durationSeconds": 8, "evidence": "Live URL, public repo, Built with Codex, exact session ID, truthful submission state." }
+    {
+      "id": "real-twitch",
+      "durationSeconds": 24,
+      "evidence": "Separate viewer genuine command; authoritative vote/event accepted once; visible world change; matching passive overlay; LIVE TWITCH label."
+    },
+    {
+      "id": "native-obs",
+      "durationSeconds": 14,
+      "evidence": "OBS Studio Browser Source, transparency, captions, correct sizing, one clean audio path."
+    },
+    {
+      "id": "codex-bts",
+      "durationSeconds": 12,
+      "evidence": "Actual Codex work, exact session ID, implementation evidence, current verification."
+    },
+    {
+      "id": "accessibility-human-qa",
+      "durationSeconds": 11,
+      "evidence": "Caption/accessibility controls and logged human-readable half-size playback check."
+    },
+    {
+      "id": "closing-card",
+      "durationSeconds": 8,
+      "evidence": "Logged-out live URL and public repository, Built with Codex, exact session ID, truthful submission state."
+    }
   ],
   "timeline": [
-    { "id": "cold-open", "finalStart": 0, "duration": 7, "source": "final-proof", "sourceStart": 271.4, "truthLabel": "REHEARSAL / SIMULATED" },
-    { "id": "premise-a", "finalStart": 7, "duration": 5, "source": "final-proof", "sourceStart": 0.0, "truthLabel": "REHEARSAL / SIMULATED" },
-    { "id": "premise-b", "finalStart": 12, "duration": 8, "source": "final-proof", "sourceStart": 29.3, "truthLabel": "REHEARSAL / SIMULATED" },
-    { "id": "real-twitch", "finalStart": 20, "duration": 24, "source": "real-twitch", "requiredRealEvidence": true },
-    { "id": "native-obs", "finalStart": 44, "duration": 14, "source": "native-obs", "requiredRealEvidence": true },
-    { "id": "codex-bts", "finalStart": 58, "duration": 12, "source": "codex-bts", "requiredRealEvidence": true },
-    { "id": "ward-vote", "finalStart": 70, "duration": 5.7, "source": "final-proof", "sourceStart": 61.0, "truthLabel": "REHEARSAL / SIMULATED" },
-    { "id": "ward-clues", "finalStart": 75.7, "duration": 7.1, "source": "final-proof", "sourceStart": 87.4, "truthLabel": "REHEARSAL / SIMULATED" },
-    { "id": "ward-door", "finalStart": 82.8, "duration": 4.2, "source": "final-proof", "sourceStart": 116.2, "truthLabel": "REHEARSAL / SIMULATED" },
-    { "id": "theatre-vote", "finalStart": 87, "duration": 5, "source": "final-proof", "sourceStart": 123.0, "truthLabel": "REHEARSAL / SIMULATED" },
-    { "id": "theatre-clues", "finalStart": 92, "duration": 5.7, "source": "final-proof", "sourceStart": 147.8, "truthLabel": "REHEARSAL / SIMULATED" },
-    { "id": "theatre-warden", "finalStart": 97.7, "duration": 6.3, "source": "final-proof", "sourceStart": 174.8, "truthLabel": "REHEARSAL / SIMULATED" },
-    { "id": "generator-arrival", "finalStart": 104, "duration": 3.8, "source": "final-proof", "sourceStart": 181.2, "truthLabel": "REHEARSAL / SIMULATED" },
-    { "id": "generator-sequence", "finalStart": 107.8, "duration": 6.2, "source": "final-proof", "sourceStart": 207.6, "truthLabel": "REHEARSAL / SIMULATED" },
-    { "id": "generator-consequence", "finalStart": 114, "duration": 4, "source": "final-proof", "sourceStart": 213.8, "truthLabel": "REHEARSAL / SIMULATED" },
-    { "id": "audience-montage", "finalStart": 118, "duration": 10, "source": "final-proof-montage", "truthLabel": "REHEARSAL / SIMULATED" },
-    { "id": "accessibility-human-qa", "finalStart": 128, "duration": 11, "source": "accessibility-human-qa", "requiredRealEvidence": true },
-    { "id": "humane-ending", "finalStart": 139, "duration": 25, "source": "final-proof", "sourceStart": 266.8, "truthLabel": "REHEARSAL / SIMULATED", "requiresAudibleEnding": true },
-    { "id": "closing-card", "finalStart": 164, "duration": 8, "source": "closing-card", "requiredRealEvidence": true }
+    {
+      "id": "cold-open",
+      "finalStart": 0,
+      "duration": 7,
+      "source": "final-proof",
+      "startMilestone": "ending:MARA WALKS INTO DAWN",
+      "offsetSeconds": 0,
+      "truthLabel": "REHEARSAL / SIMULATED"
+    },
+    {
+      "id": "premise-a",
+      "finalStart": 7,
+      "duration": 5,
+      "source": "final-proof",
+      "startMilestone": "episode:start",
+      "offsetSeconds": 0,
+      "truthLabel": "REHEARSAL / SIMULATED"
+    },
+    {
+      "id": "premise-b",
+      "finalStart": 12,
+      "duration": 8,
+      "source": "final-proof",
+      "startMilestone": "act1:search-desk",
+      "offsetSeconds": -0.45,
+      "truthLabel": "REHEARSAL / SIMULATED"
+    },
+    {
+      "id": "real-twitch",
+      "finalStart": 20,
+      "duration": 24,
+      "source": "real-twitch",
+      "sourceStart": 0,
+      "truthLabel": "REAL TWITCH / VERIFIED EVIDENCE",
+      "requiredRealEvidence": true
+    },
+    {
+      "id": "native-obs",
+      "finalStart": 44,
+      "duration": 14,
+      "source": "native-obs",
+      "sourceStart": 0,
+      "truthLabel": "NATIVE OBS / VERIFIED EVIDENCE",
+      "requiredRealEvidence": true
+    },
+    {
+      "id": "codex-bts",
+      "finalStart": 58,
+      "duration": 12,
+      "source": "codex-bts",
+      "sourceStart": 0,
+      "truthLabel": "CODEX SESSION / VERIFIED EVIDENCE",
+      "requiredRealEvidence": true
+    },
+    {
+      "id": "ward-vote",
+      "finalStart": 70,
+      "duration": 5.7,
+      "source": "final-proof",
+      "startMilestone": "room:Ward 06",
+      "offsetSeconds": -0.35,
+      "truthLabel": "REHEARSAL / SIMULATED"
+    },
+    {
+      "id": "ward-clues",
+      "finalStart": 75.7,
+      "duration": 7.1,
+      "source": "final-proof",
+      "startMilestone": "act2:inspect-gurney",
+      "offsetSeconds": -0.5,
+      "truthLabel": "REHEARSAL / SIMULATED"
+    },
+    {
+      "id": "ward-door",
+      "finalStart": 82.8,
+      "duration": 4.2,
+      "source": "final-proof",
+      "startMilestone": "act2:force-door",
+      "offsetSeconds": -1.3,
+      "truthLabel": "REHEARSAL / SIMULATED"
+    },
+    {
+      "id": "theatre-vote",
+      "finalStart": 87,
+      "duration": 5,
+      "source": "final-proof",
+      "startMilestone": "rehearsal-vote:!tape",
+      "offsetSeconds": -0.3,
+      "truthLabel": "REHEARSAL / SIMULATED"
+    },
+    {
+      "id": "theatre-clues",
+      "finalStart": 92,
+      "duration": 5.7,
+      "source": "final-proof",
+      "startMilestone": "act3:align-lamps",
+      "offsetSeconds": -1.2,
+      "truthLabel": "REHEARSAL / SIMULATED"
+    },
+    {
+      "id": "theatre-warden",
+      "finalStart": 97.7,
+      "duration": 6.3,
+      "source": "final-proof",
+      "startMilestone": "act3:counter-warden",
+      "offsetSeconds": -1.7,
+      "truthLabel": "REHEARSAL / SIMULATED"
+    },
+    {
+      "id": "generator-arrival",
+      "finalStart": 104,
+      "duration": 3.8,
+      "source": "final-proof",
+      "startMilestone": "room:Generator Room",
+      "offsetSeconds": -0.35,
+      "truthLabel": "REHEARSAL / SIMULATED"
+    },
+    {
+      "id": "generator-sequence",
+      "finalStart": 107.8,
+      "duration": 6.2,
+      "source": "final-proof",
+      "startMilestone": "act4:breaker-2",
+      "offsetSeconds": -0.6,
+      "truthLabel": "REHEARSAL / SIMULATED"
+    },
+    {
+      "id": "generator-consequence",
+      "finalStart": 114,
+      "duration": 4,
+      "source": "final-proof",
+      "startMilestone": "advance:Stairwell / Exits",
+      "offsetSeconds": 0.9,
+      "truthLabel": "REHEARSAL / SIMULATED"
+    },
+    {
+      "id": "audience-montage",
+      "finalStart": 118,
+      "duration": 10,
+      "source": "final-proof",
+      "truthLabel": "REHEARSAL / SIMULATED",
+      "segments": [
+        { "id": "records", "startMilestone": "dashboard:open for !records", "offsetSeconds": -0.1, "duration": 2 },
+        { "id": "ward", "startMilestone": "room:Ward 06", "offsetSeconds": -0.35, "duration": 2 },
+        { "id": "theatre", "startMilestone": "room:Operating Theatre", "offsetSeconds": -0.25, "duration": 2 },
+        { "id": "generator", "startMilestone": "room:Generator Room", "offsetSeconds": -0.15, "duration": 2 },
+        { "id": "finale", "startMilestone": "room:Stairwell / Exits", "offsetSeconds": -0.16, "duration": 2 }
+      ]
+    },
+    {
+      "id": "accessibility-human-qa",
+      "finalStart": 128,
+      "duration": 11,
+      "source": "accessibility-human-qa",
+      "sourceStart": 0,
+      "truthLabel": "HUMAN QA / VERIFIED EVIDENCE",
+      "requiredRealEvidence": true
+    },
+    {
+      "id": "humane-ending",
+      "finalStart": 139,
+      "duration": 25,
+      "source": "final-proof",
+      "startMilestone": "act5:seal-warden",
+      "offsetSeconds": -0.9,
+      "truthLabel": "REHEARSAL / SIMULATED",
+      "requiresAudibleEnding": true
+    },
+    {
+      "id": "closing-card",
+      "finalStart": 164,
+      "duration": 8,
+      "source": "closing-card",
+      "sourceStart": 0,
+      "truthLabel": "VERIFIED LINKS / FINAL CARD",
+      "requiredRealEvidence": true
+    }
   ]
 }

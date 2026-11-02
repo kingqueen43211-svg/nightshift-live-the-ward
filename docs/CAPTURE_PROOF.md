@@ -10,10 +10,15 @@ From the repository root:
 
 ```powershell
 node scripts/capture-proof.mjs --validate
+$env:CAPTURE_EXPECTED_COMMIT = (git rev-parse HEAD).Trim()
+node scripts/capture-proof.mjs --preflight
 node scripts/capture-proof.mjs
 ```
 
 The optional `--validate` pass compiles both the Node script and its injected browser recorder payload without opening Chrome.
+The required source-integrity preflight refuses to start capture unless Git can execute, the configured root is a valid repository root, `CAPTURE_EXPECTED_COMMIT` is a full 40-character commit that exactly equals `HEAD`, and the entire worktree (including untracked files) is clean. It records both the full source tree and `dist/` runtime tree plus deterministic SHA-256 hashes of their Git file manifests. The same checks run again after recording; any commit, tree, runtime-manifest, source-manifest, or worktree change during the capture prevents complete status. `--preflight` prints the machine-readable source report without opening a browser.
+
+For a release process that already pins tree objects, the optional `CAPTURE_EXPECTED_SOURCE_TREE` and `CAPTURE_EXPECTED_RUNTIME_TREE` variables add independent 40-character tree-hash checks. A missing Git executable, failed Git command, non-repository directory, missing `dist` tree, release-commit mismatch, dirty worktree, or tree-hash mismatch fails closed.
 
 The script opens an isolated, headed Chrome or Edge window. In that window:
 
@@ -41,7 +46,7 @@ relative to the repository root. Each run uses a unique timestamped base name an
 - an opening screenshot;
 - an earned-ending screenshot.
 
-The manifest records the source commit and worktree state, media type, audio/video track counts, byte count, SHA-256 hash, milestones, accepted rehearsal inputs, ending recap, observed sound captions, browser errors, and acceptance results. Schema v3 attaches diagnostics before navigating to the app, records exact failed-request URLs, methods, resource types, statuses, request IDs, and narrow classifications, and samples the actual shared display-stream audio with a Web Audio analyser. The status is `COMPLETE_REHEARSAL_PROOF` only when the source is a clean committed tree, the file is non-empty, Chrome supplied a browser-tab audio track, the selected surface is `browser`, the captured humane-ending window contains at least 25 seconds of sufficiently covered non-silent samples, caption events were observed, the humane ending was earned with zero director fallbacks, no chunk-order error occurred, and every browser/network issue is either resolved or explicitly classified as non-gameplay noise.
+The manifest records the declared release commit, observed `HEAD`, source/runtime Git tree hashes, source/runtime file-manifest SHA-256 hashes, initial/final source-integrity reports, worktree state, media type, audio/video track counts, byte count, recording SHA-256, milestones, accepted rehearsal inputs, ending recap, observed sound captions, browser errors, and acceptance results. Schema v3 attaches diagnostics before navigating to the app, records exact failed-request URLs, methods, resource types, statuses, request IDs, and narrow classifications, and samples the actual shared display-stream audio with a Web Audio analyser. The status is `COMPLETE_REHEARSAL_PROOF` only when Git/source/runtime integrity reconciles before and after capture, the source is the exact declared clean commit, the file is non-empty, Chrome supplied a browser-tab audio track, the selected surface is `browser`, the captured humane-ending window contains at least 25 seconds of sufficiently covered non-silent samples, caption events were observed, the humane ending was earned with zero director fallbacks, no chunk-order error occurred, and every browser/network issue is either resolved or explicitly classified as non-gameplay noise.
 
 The only allowlisted diagnostics are a same-origin `GET /favicon.ico` returning 404 as an `Other`/`Image` resource and Chrome's exact camera/microphone Permissions Policy violation entry. NightShift intentionally denies `getUserMedia` device access and records through `getDisplayMedia`; the manifest must still prove actual display-video and tab-audio tracks plus a non-silent captured ending tail. Every other failed request, application `console.warn`/`console.error`, or browser warning blocks complete status until reviewed. The ending gate requires 95% non-silent samples and permits no more than one terminal second below threshold, so a short cue followed by a digital-zero tail cannot pass. This numerical gate does not replace a human listening, stereo, or mix-quality review. See `RC6_CAPTURE_PARITY_AND_DIAGNOSTICS.md` for the historical RC6 classification and commit-parity evidence.
 
@@ -50,6 +55,12 @@ Useful optional environment variables:
 ```powershell
 $env:CAPTURE_BROWSER = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 $env:CAPTURE_PROOF_DIR = "C:\absolute\output\directory"
+$env:CAPTURE_EXPECTED_COMMIT = "FULL_40_CHARACTER_RELEASE_COMMIT"
+# Optional additional pins, obtainable with:
+# git rev-parse HEAD^{tree}
+# git rev-parse HEAD:dist
+$env:CAPTURE_EXPECTED_SOURCE_TREE = "FULL_40_CHARACTER_SOURCE_TREE"
+$env:CAPTURE_EXPECTED_RUNTIME_TREE = "FULL_40_CHARACTER_DIST_TREE"
 $env:CAPTURE_STEP_MS = "1400"
 $env:CAPTURE_SCENE_HOLD_MS = "24000"
 $env:CAPTURE_MINIMUM_MS = "300000"

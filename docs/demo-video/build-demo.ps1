@@ -1,93 +1,190 @@
 param(
+  [Parameter(Mandatory=$true)][ValidatePattern('^[0-9a-fA-F]{40}$')][string]$ExpectedCommit,
   [Parameter(Mandatory=$true)][string]$FinalProof,
+  [Parameter(Mandatory=$true)][string]$FinalProofManifest,
   [Parameter(Mandatory=$true)][string]$RealTwitch,
+  [Parameter(Mandatory=$true)][string]$RealTwitchManifest,
   [Parameter(Mandatory=$true)][string]$NativeObs,
+  [Parameter(Mandatory=$true)][string]$NativeObsManifest,
   [Parameter(Mandatory=$true)][string]$CodexBts,
+  [Parameter(Mandatory=$true)][string]$CodexBtsManifest,
   [Parameter(Mandatory=$true)][string]$AccessibilityQa,
+  [Parameter(Mandatory=$true)][string]$AccessibilityQaManifest,
   [Parameter(Mandatory=$true)][string]$ClosingCard,
+  [Parameter(Mandatory=$true)][string]$ClosingCardManifest,
+  [string]$EdlPath = "",
+  [string]$NodePath = "node",
   [string]$FfmpegPath = "ffmpeg",
-  [string]$OutputPath = ".\build\nightshift-live-hackathon-demo.mp4"
+  [string]$FfprobePath = "ffprobe",
+  [string]$OutputPath = ".\build\nightshift-live-hackathon-demo.mp4",
+  [string]$EvidenceReportPath = ".\build\nightshift-live-hackathon-demo.evidence.json",
+  [switch]$ValidateOnly
 )
 
 $ErrorActionPreference = "Stop"
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$buildRoot = Join-Path $scriptRoot "build"
+$repoRoot = [System.IO.Path]::GetFullPath((Join-Path $scriptRoot "..\.."))
+$validatorPath = Join-Path $repoRoot "scripts\validate-demo-evidence.mjs"
+if (-not $EdlPath) { $EdlPath = Join-Path $scriptRoot "demo-edl.json" }
 
 function Resolve-RequiredFile([string]$Path, [string]$Label) {
   $resolved = Resolve-Path -LiteralPath $Path -ErrorAction SilentlyContinue
-  if (-not $resolved) { throw "Missing required $Label footage: $Path" }
+  if (-not $resolved) { throw "Missing required $Label`: $Path" }
+  $item = Get-Item -LiteralPath $resolved.Path
+  if (-not $item.PSIsContainer -and $item.Length -le 0) { throw "$Label is zero bytes: $Path" }
   return $resolved.Path
 }
 
-function Require-Tool([string]$Path) {
+function Resolve-OutputPath([string]$Path) {
+  if ([System.IO.Path]::IsPathRooted($Path)) { return [System.IO.Path]::GetFullPath($Path) }
+  return [System.IO.Path]::GetFullPath((Join-Path $scriptRoot $Path))
+}
+
+function Require-Tool([string]$Path, [string]$Label) {
   if (Test-Path -LiteralPath $Path) { return (Resolve-Path -LiteralPath $Path).Path }
   $command = Get-Command $Path -ErrorAction SilentlyContinue
-  if (-not $command) { throw "ffmpeg is required but was not found. Supply -FfmpegPath with an existing ffmpeg.exe." }
+  if (-not $command) { throw "$Label is required but was not found. Supply its explicit path." }
   return $command.Source
 }
 
-$ffmpeg = Require-Tool $FfmpegPath
-$proof = Resolve-RequiredFile $FinalProof "final exact-commit rehearsal"
-$twitch = Resolve-RequiredFile $RealTwitch "real Twitch"
-$obs = Resolve-RequiredFile $NativeObs "native OBS"
-$codex = Resolve-RequiredFile $CodexBts "Codex development"
-$accessibility = Resolve-RequiredFile $AccessibilityQa "accessibility/human QA"
-$closing = Resolve-RequiredFile $ClosingCard "closing card"
-
-if ($proof -match "02-33-43-114Z") {
-  throw "The audited RC6 recording has a silent ending and commit mismatch. Supply the corrected exact-release proof instead."
+function Escape-DrawText([string]$Text) {
+  return $Text.Replace("\", "\\").Replace(":", "\:").Replace("'", "\'").Replace("%", "\%")
 }
 
+function Assert-NoPathCollisions([System.Collections.IDictionary]$Claims) {
+  $seen = @{}
+  foreach ($label in $Claims.Keys) {
+    $fullPath = [System.IO.Path]::GetFullPath([string]$Claims[$label])
+    if ($seen.ContainsKey($fullPath)) {
+      throw "Path collision: $label and $($seen[$fullPath]) both resolve to $fullPath. Evidence inputs and assembly outputs must use distinct files."
+    }
+    $seen[$fullPath] = $label
+  }
+}
+
+$node = Require-Tool $NodePath "Node.js"
+$ffprobe = Require-Tool $FfprobePath "ffprobe"
+$edl = Resolve-RequiredFile $EdlPath "demo EDL"
+$validator = Resolve-RequiredFile $validatorPath "demo evidence validator"
+
+$resolvedInputs = @{
+  FinalProof = Resolve-RequiredFile $FinalProof "final exact-commit rehearsal"
+  FinalProofManifest = Resolve-RequiredFile $FinalProofManifest "final rehearsal schema-v3 manifest"
+  RealTwitch = Resolve-RequiredFile $RealTwitch "real Twitch footage"
+  RealTwitchManifest = Resolve-RequiredFile $RealTwitchManifest "real Twitch evidence sidecar"
+  NativeObs = Resolve-RequiredFile $NativeObs "native OBS footage"
+  NativeObsManifest = Resolve-RequiredFile $NativeObsManifest "native OBS evidence sidecar"
+  CodexBts = Resolve-RequiredFile $CodexBts "Codex development footage"
+  CodexBtsManifest = Resolve-RequiredFile $CodexBtsManifest "Codex development evidence sidecar"
+  AccessibilityQa = Resolve-RequiredFile $AccessibilityQa "accessibility and human-QA footage"
+  AccessibilityQaManifest = Resolve-RequiredFile $AccessibilityQaManifest "accessibility and human-QA evidence sidecar"
+  ClosingCard = Resolve-RequiredFile $ClosingCard "closing-card footage"
+  ClosingCardManifest = Resolve-RequiredFile $ClosingCardManifest "closing-card evidence sidecar"
+}
+
+$resolvedOutput = Resolve-OutputPath $OutputPath
+$resolvedEvidenceReport = Resolve-OutputPath $EvidenceReportPath
+$buildRoot = Split-Path -Parent $resolvedOutput
+$planPath = Join-Path $buildRoot "assembly-plan.json"
+$preflightReportPath = Join-Path $buildRoot "assembly-preflight.evidence.json"
+$prepublishReportPath = Join-Path $buildRoot "assembly-prepublish.evidence.json"
+$outputDirectory = Split-Path -Parent $resolvedOutput
+$stagingOutput = Join-Path $outputDirectory (([System.IO.Path]::GetFileNameWithoutExtension($resolvedOutput)) + ".unverified.mp4")
+
+$pathClaims = [ordered]@{
+  "output" = $resolvedOutput
+  "final evidence report" = $resolvedEvidenceReport
+  "assembly plan" = $planPath
+  "preflight evidence report" = $preflightReportPath
+  "prepublish evidence report" = $prepublishReportPath
+  "staging output" = $stagingOutput
+  "demo EDL" = $edl
+  "demo evidence validator" = $validator
+}
+foreach ($key in $resolvedInputs.Keys) {
+  $pathClaims["input or manifest: $key"] = [string]$resolvedInputs[$key]
+}
+Assert-NoPathCollisions $pathClaims
+
+$validatorArguments = @(
+  $validator,
+  "--edl", $edl,
+  "--expected-commit", $ExpectedCommit.ToLowerInvariant(),
+  "--ffprobe", $ffprobe,
+  "--final-proof", $resolvedInputs.FinalProof,
+  "--final-proof-manifest", $resolvedInputs.FinalProofManifest,
+  "--real-twitch", $resolvedInputs.RealTwitch,
+  "--real-twitch-manifest", $resolvedInputs.RealTwitchManifest,
+  "--native-obs", $resolvedInputs.NativeObs,
+  "--native-obs-manifest", $resolvedInputs.NativeObsManifest,
+  "--codex-bts", $resolvedInputs.CodexBts,
+  "--codex-bts-manifest", $resolvedInputs.CodexBtsManifest,
+  "--accessibility-human-qa", $resolvedInputs.AccessibilityQa,
+  "--accessibility-human-qa-manifest", $resolvedInputs.AccessibilityQaManifest,
+  "--closing-card", $resolvedInputs.ClosingCard,
+  "--closing-card-manifest", $resolvedInputs.ClosingCardManifest,
+  "--plan", $planPath
+)
+
+& $node @validatorArguments "--report" $preflightReportPath
+if ($LASTEXITCODE -ne 0) { throw "Demo preflight evidence validation failed." }
+$preflightReport = Get-Content -Raw -LiteralPath $preflightReportPath | ConvertFrom-Json
+$snapshotArguments = @(
+  "--expected-plan-sha256", [string]$preflightReport.assemblyPlan.sha256,
+  "--expected-evidence-set-sha256", [string]$preflightReport.evidenceSet.sha256
+)
+
+if ($ValidateOnly) {
+  Write-Host "Preflight evidence verified. No video was assembled."
+  Write-Host "Plan: $planPath"
+  Write-Host "Report: $preflightReportPath"
+  return
+}
+
+$ffmpeg = Require-Tool $FfmpegPath "ffmpeg"
+$outputValidationArguments = $snapshotArguments + @("--ffmpeg", $ffmpeg)
+$plan = Get-Content -Raw -LiteralPath $planPath | ConvertFrom-Json
 New-Item -ItemType Directory -Force -Path $buildRoot | Out-Null
 
 function New-NormalizedClip {
-  param([string]$InputPath, [double]$Start, [double]$Duration, [string]$Name)
-  $target = Join-Path $buildRoot ("{0}.mp4" -f $Name)
-  & $ffmpeg -hide_banner -loglevel error -y -ss $Start -t $Duration -i $InputPath `
-    -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black,fps=30,format=yuv420p" `
+  param([object]$Clip, [int]$Index)
+  $safeId = ([string]$Clip.id) -replace '[^a-zA-Z0-9._-]', '-'
+  $target = Join-Path $buildRoot ("{0:D2}-{1}.mp4" -f $Index, $safeId)
+  $label = Escape-DrawText ([string]$Clip.truthLabel)
+  $videoFilter = "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black,fps=30,drawtext=text='$label':fontcolor=white:fontsize=38:box=1:boxcolor=black@0.78:boxborderw=12:x=48:y=42,format=yuv420p"
+  & $ffmpeg -hide_banner -loglevel error -y `
+    -ss ([double]$Clip.sourceStart) -t ([double]$Clip.duration) -i ([string]$Clip.inputPath) `
+    -map 0:v:0 -map 0:a:0 `
+    -vf $videoFilter `
     -af "aresample=48000,aformat=channel_layouts=stereo,loudnorm=I=-16:LRA=9:TP=-1.5" `
     -c:v libx264 -preset medium -crf 18 -c:a aac -b:a 192k -movflags +faststart $target
-  if ($LASTEXITCODE -ne 0) { throw "ffmpeg failed while creating $Name" }
+  if ($LASTEXITCODE -ne 0) { throw "ffmpeg failed while creating $($Clip.id)" }
   return $target
 }
 
 $clips = [System.Collections.Generic.List[string]]::new()
-function Add-Clip([string]$Path) { $clips.Add($Path) }
-
-Add-Clip (New-NormalizedClip $proof 271.4 7 "00-cold-open")
-Add-Clip (New-NormalizedClip $proof 0.0 5 "01-premise-a")
-Add-Clip (New-NormalizedClip $proof 29.3 8 "02-premise-b")
-Add-Clip (New-NormalizedClip $twitch 0 24 "03-real-twitch")
-Add-Clip (New-NormalizedClip $obs 0 14 "04-native-obs")
-Add-Clip (New-NormalizedClip $codex 0 12 "05-codex-bts")
-Add-Clip (New-NormalizedClip $proof 61.0 5.7 "06-ward-vote")
-Add-Clip (New-NormalizedClip $proof 87.4 7.1 "07-ward-clues")
-Add-Clip (New-NormalizedClip $proof 116.2 4.2 "08-ward-door")
-Add-Clip (New-NormalizedClip $proof 123.0 5 "09-theatre-vote")
-Add-Clip (New-NormalizedClip $proof 147.8 5.7 "10-theatre-clues")
-Add-Clip (New-NormalizedClip $proof 174.8 6.3 "11-theatre-warden")
-Add-Clip (New-NormalizedClip $proof 181.2 3.8 "12-generator-arrival")
-Add-Clip (New-NormalizedClip $proof 207.6 6.2 "13-generator-sequence")
-Add-Clip (New-NormalizedClip $proof 213.8 4 "14-generator-consequence")
-
-$montageStarts = @(2.8, 61.0, 122.1, 181.4, 215.6)
-for ($index = 0; $index -lt $montageStarts.Count; $index++) {
-  Add-Clip (New-NormalizedClip $proof $montageStarts[$index] 2 ("15-audience-{0}" -f $index))
+for ($index = 0; $index -lt $plan.clips.Count; $index++) {
+  $clips.Add((New-NormalizedClip $plan.clips[$index] $index))
 }
 
-Add-Clip (New-NormalizedClip $accessibility 0 11 "16-accessibility-human-qa")
-Add-Clip (New-NormalizedClip $proof 266.8 25 "17-humane-ending")
-Add-Clip (New-NormalizedClip $closing 0 8 "18-closing-card")
-
 $concatPath = Join-Path $buildRoot "concat.txt"
-$concatLines = $clips | ForEach-Object { "file '$($_.Replace("'", "''"))'" }
+$concatLines = $clips | ForEach-Object {
+  if ($_ -match "'") { throw "Clip path contains an unsupported apostrophe: $_" }
+  "file '$($_.Replace('\', '/'))'"
+}
 Set-Content -LiteralPath $concatPath -Value $concatLines -Encoding utf8
 
-$resolvedOutput = [System.IO.Path]::GetFullPath((Join-Path $scriptRoot $OutputPath))
-$outputDirectory = Split-Path -Parent $resolvedOutput
 New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null
-& $ffmpeg -hide_banner -loglevel error -y -f concat -safe 0 -i $concatPath -c copy -movflags +faststart $resolvedOutput
+& $ffmpeg -hide_banner -loglevel error -y -f concat -safe 0 -i $concatPath -c copy -movflags +faststart $stagingOutput
 if ($LASTEXITCODE -ne 0) { throw "ffmpeg failed while concatenating the demo" }
 
-Write-Host "Created $resolvedOutput"
-Write-Host "Before upload: confirm <3:00 runtime, public YouTube, real Twitch/OBS, Codex evidence, audible ending, logged-out links, and no secrets."
+& $node @validatorArguments @outputValidationArguments "--report" $prepublishReportPath "--output" $stagingOutput
+if ($LASTEXITCODE -ne 0) { throw "Assembled demo failed format, duration, or evidence validation. The final output was not published." }
+
+Move-Item -LiteralPath $stagingOutput -Destination $resolvedOutput -Force
+& $node @validatorArguments @outputValidationArguments "--report" $resolvedEvidenceReport "--output" $resolvedOutput
+if ($LASTEXITCODE -ne 0) { throw "Final output failed post-move evidence validation." }
+
+Write-Host "Created verified demo: $resolvedOutput"
+Write-Host "Assembly evidence: $resolvedEvidenceReport"
+Write-Host "YouTube upload, logged-out playback, and Devpost submission remain separate external actions."

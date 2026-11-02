@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node scripts/serve.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check dist/app.mjs && node --check dist/engine.mjs && node --check dist/public-state.mjs && node --check dist/runtime-mode.mjs && node --check dist/twitch.mjs && node --check scripts/serve.mjs && node --check scripts/release-audit.mjs && node --check scripts/visual-qa.mjs && node --check scripts/gameplay-smoke.mjs && node --check scripts/integrity-browser-smoke.mjs && node --check scripts/relay-browser-smoke.mjs && node --check scripts/accessibility-browser-smoke.mjs && node --check scripts/performance-soak.mjs && node --check scripts/optimize-images.mjs && node --check scripts/capture-proof.mjs && npm test",
+    "check": "node --check dist/app.mjs && node --check dist/engine.mjs && node --check dist/public-state.mjs && node --check dist/runtime-mode.mjs && node --check dist/twitch.mjs && node --check scripts/serve.mjs && node --check scripts/release-audit.mjs && node --check scripts/visual-qa.mjs && node --check scripts/gameplay-smoke.mjs && node --check scripts/integrity-browser-smoke.mjs && node --check scripts/relay-browser-smoke.mjs && node --check scripts/accessibility-browser-smoke.mjs && node --check scripts/performance-soak.mjs && node --check scripts/optimize-images.mjs && node --check scripts/capture-proof.mjs && node --check scripts/validate-demo-evidence.mjs && npm test",
     "qa:visual": "node scripts/visual-qa.mjs",
     "qa:gameplay": "node scripts/gameplay-smoke.mjs",
     "qa:integrity": "node scripts/integrity-browser-smoke.mjs",
@@ -15,6 +15,7 @@
     "qa:performance": "node scripts/performance-soak.mjs",
     "verify": "npm run check && npm run qa:visual && npm run qa:gameplay && npm run qa:integrity && npm run qa:relay && npm run qa:accessibility && npm run qa:performance && npm run release:audit",
     "release:audit": "node scripts/release-audit.mjs",
-    "capture:proof": "node scripts/capture-proof.mjs"
+    "capture:proof": "node scripts/capture-proof.mjs",
+    "demo:evidence:validate": "node scripts/validate-demo-evidence.mjs"
   }
 }

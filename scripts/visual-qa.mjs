@@ -217,15 +217,30 @@ const readabilityExpression = `(() => {
   const outputScale = 0.5;
   const targets = [
     { name: 'objective', selector: '#objective', minimumCssPx: 18, minimumScaledPx: 9 },
-    { name: 'next-step title', selector: '#nextStepTitle', minimumCssPx: 13, minimumScaledPx: 6.5 },
-    { name: 'next-step detail', selector: '#nextStepDetail', minimumCssPx: 12, minimumScaledPx: 6 },
+    { name: 'mission detail', selector: '#hint', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'next-step label', selector: '#nextStep small', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'next-step title', selector: '#nextStepTitle', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'next-step detail', selector: '#nextStepDetail', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'next-step action', selector: '#gameplayAdvance', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'resource labels', selector: '#metersPanel .meter span', minimumCssPx: 18, minimumScaledPx: 9 },
     { name: 'resource values', selector: '#healthValue,#dangerValue,#powerValue', minimumCssPx: 18, minimumScaledPx: 9 },
-    { name: 'condition values', selector: '#conditionStrip b', minimumCssPx: 12, minimumScaledPx: 6 },
-    { name: 'streamer actions', selector: '#actionTray button b', minimumCssPx: 12, minimumScaledPx: 6 },
-    { name: 'vote labels', selector: '#voteOptions .vote-option b', minimumCssPx: 12, minimumScaledPx: 6 },
-    { name: 'vote percentages', selector: '#voteOptions .vote-option > strong', minimumCssPx: 16, minimumScaledPx: 8 },
-    { name: 'consequence detail', selector: '#eventToast span', minimumCssPx: 11, minimumScaledPx: 5.5 },
-    { name: 'sound caption', selector: '#audioCaption span', minimumCssPx: 14, minimumScaledPx: 7, allowHidden: true },
+    { name: 'condition labels', selector: '#conditionStrip span', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'action feedback', selector: '#actionFeedback', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'streamer action state', selector: '#actionTray button small', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'streamer action name', selector: '#actionTray button b', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'streamer action detail', selector: '#actionTray button em', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'item-effect label', selector: '#itemEffectSummary small', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'item-effect detail', selector: '#itemEffectSummary > span', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'vote source', selector: '#voteSource', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'vote labels', selector: '#voteOptions .vote-option b', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'vote commands', selector: '#voteOptions .vote-option small', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'vote percentages', selector: '#voteOptions .vote-option > strong', minimumCssPx: 18, minimumScaledPx: 9 },
+    { name: 'vote result detail', selector: '#audienceOutcome', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'consequence label', selector: '#eventToast small', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'consequence title', selector: '#eventToast b', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'consequence detail', selector: '#eventToast span', minimumCssPx: 16, minimumScaledPx: 8 },
+    { name: 'sound-caption label', selector: '#audioCaption small', minimumCssPx: 16, minimumScaledPx: 8, allowHidden: true },
+    { name: 'sound caption', selector: '#audioCaption span', minimumCssPx: 18, minimumScaledPx: 9, allowHidden: true },
   ];
   const visible = (element) => {
     const rect = element.getBoundingClientRect();
@@ -271,6 +286,49 @@ const readabilityExpression = `(() => {
   ];
   return { outputScale, expectedOutput: [640, 360], entries, failures };
 })()`;
+
+function readabilitySetupExpression(probeState = "default") {
+  return `(() => {
+    const probeState = ${JSON.stringify(probeState)};
+    const caption = document.querySelector('#audioCaption');
+    const captionText = caption?.querySelector('span');
+    if (caption && captionText) {
+      document.body.dataset.captionSize = 'medium';
+      captionText.textContent = '[RIGHT] Warden breathing behind you';
+      caption.hidden = false;
+    }
+    if (probeState === 'long-locked') {
+      const lockedActions = [
+        ['Cross isolation threshold', 'Needs exit power + resolved vote'],
+        ['Seal the Warden', 'Needs sigil + 4 evidence'],
+        ['Reconstruct file', 'Needs desk + locker'],
+      ];
+      for (const [index, button] of [...document.querySelectorAll('#actionTray button')].entries()) {
+        const [label, cue] = lockedActions[index] || lockedActions.at(-1);
+        button.classList.add('locked');
+        button.disabled = true;
+        button.querySelector('small').textContent = 'LOCKED · 0' + (index + 1);
+        button.querySelector('b').textContent = label;
+        button.querySelector('em').textContent = cue;
+      }
+      document.querySelector('#nextStepTitle').textContent = 'Resolve the audience consequence';
+      document.querySelector('#nextStepDetail').textContent = 'The isolation door remains locked until the vote is resolved; then the streamer must cross the physical threshold.';
+      document.querySelector('#gameplayAdvance').textContent = 'Resolve audience result';
+    }
+    if (probeState === 'compact') document.body.classList.add('compact-hud');
+    if (probeState === 'vote-toast-caption') {
+      const toast = document.querySelector('#eventToast');
+      toast.classList.add('show');
+      toast.querySelector('b').textContent = 'CORRIDOR BLACKOUT';
+      toast.querySelector('span').textContent = 'Chaos cut emergency power. The streamer still controls the door and must choose the physical counter.';
+      document.querySelector('#voteSource').textContent = 'REHEARSAL RESULT · SIMULATED INPUT';
+      document.querySelector('#audienceOutcome').textContent = 'RESOLVED · 3 verified votes · blackout changed the Ward';
+      const scores = ['67%', '33%', '0%'];
+      [...document.querySelectorAll('#voteOptions .vote-option > strong')].forEach((node, index) => { node.textContent = scores[index] || '0%'; });
+    }
+    return { probeState, actionCount: document.querySelectorAll('#actionTray button').length };
+  })()`;
+}
 
 const reducedMotionExpression = `(() => {
   const selectors = ['.rain','.far-fog','.mid-fog','.warden','.room-wipe'];
@@ -396,7 +454,10 @@ const scenarios = [
   { name: "gameplay-1600x900", width: 1600, height: 900, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
   { name: "gameplay-1366x768", width: 1366, height: 768, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
   { name: "gameplay-1280x720", width: 1280, height: 720, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
-  { name: "gameplay-twitch-player-50pct-640x360", width: 1280, height: 720, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED", captureScale: 0.5, readabilityProbe: true },
+  { name: "gameplay-twitch-player-50pct-640x360", width: 1280, height: 720, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED", captureScale: 0.5, readabilityProbe: "default" },
+  { name: "gameplay-twitch-player-compact-50pct-640x360", width: 1280, height: 720, path: "/?autostart=rehearsal&hud=compact", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED", captureScale: 0.5, readabilityProbe: "compact" },
+  { name: "gameplay-twitch-player-locked-copy-50pct-640x360", width: 1280, height: 720, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED", captureScale: 0.5, readabilityProbe: "long-locked" },
+  { name: "gameplay-twitch-player-vote-toast-caption-50pct-640x360", width: 1280, height: 720, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED", captureScale: 0.5, readabilityProbe: "vote-toast-caption" },
   { name: "gameplay-compact-1280x720", width: 1280, height: 720, path: "/?autostart=rehearsal&hud=compact", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
   { name: "gameplay-768x1024", width: 768, height: 1024, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
   { name: "gameplay-390x844", width: 390, height: 844, path: "/?autostart=rehearsal", kind: "geometry", waitMs: 1300, expectedMode: "SIMULATED" },
@@ -474,7 +535,7 @@ try {
     await new Promise((resolveWait) => setTimeout(resolveWait, scenario.waitMs));
     if (scenario.readabilityProbe) {
       await cdp.send("Runtime.evaluate", {
-        expression: `(() => { const caption = document.querySelector('#audioCaption'); const text = caption?.querySelector('span'); if (caption && text) { document.body.dataset.captionSize = 'medium'; text.textContent = '[RIGHT] Warden breathing behind you'; caption.hidden = false; } return true; })()`,
+        expression: readabilitySetupExpression(scenario.readabilityProbe),
         returnByValue: true,
       });
     }

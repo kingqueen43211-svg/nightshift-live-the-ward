@@ -31,7 +31,7 @@ Exit codes:
 ## Covered scenarios
 
 - Gameplay at 1920×1080, 1600×900, 1366×768, 1280×720, 768×1024, and 390×844.
-- A 1280×720 gameplay frame physically encoded at 50% scale as a 640×360 PNG, with computed type-size and clipping checks for the objective, next step, resources, conditions, streamer actions, vote labels/percentages, consequence detail, and sound caption.
+- Four 1280×720 gameplay states physically encoded at 50% scale as 640×360 PNGs: default play, Cinema/compact HUD, representative long locked-action copy, and resolved vote plus active consequence toast and sound caption. Computed type-size and clipping checks cover the objective, mission and next-step guidance, resources, conditions, action state/name/detail, persistent item effects, vote source/labels/commands/results, consequence text, and sound caption.
 - Busy Warden and opened-door fixtures at 1280×720.
 - All 15 authored camera compositions at 1280×720.
 - Dashboard at desktop and phone sizes.
@@ -48,7 +48,7 @@ For every viewport, the harness records:
 - mode provenance (`SIMULATED`, `REHEARSAL`, or live);
 - browser warnings and runtime exceptions.
 
-The half-scale scenario is not a filename-only proxy. Chromium renders the 1280×720 game, `Page.captureScreenshot` encodes it with a `0.5` clip scale, and the harness reads the PNG header back to require a real 640×360 output. The JSON report records both CSS-pixel and scaled-output font sizes for every critical text target and fails on a missing target, a target below its declared floor, or clipped content.
+The half-scale scenarios are not filename-only proxies. Chromium renders the 1280×720 game, `Page.captureScreenshot` encodes each probe with a `0.5` clip scale, and the harness reads every PNG header back to require a real 640×360 output. The JSON report records both CSS-pixel and scaled-output font sizes for every critical text target and fails on a missing target, clipping, fewer than 8 physical output pixels for decision-critical labels/details/actions/conditions/toast text, or fewer than 9 physical output pixels for the objective, resource readouts, vote percentages, and caption text.
 
 The isolated browser profile has no Twitch credentials. Normal gameplay, dashboard, and overlay scenarios must therefore say `MODE: SIMULATED`; deterministic Warden and door fixtures must say `MODE: REHEARSAL`. Any unverified `LIVE TWITCH` claim fails the run. A real authenticated `LIVE TWITCH` check remains part of integration testing, not this local harness.
 

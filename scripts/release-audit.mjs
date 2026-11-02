@@ -43,6 +43,14 @@ for (const path of [
   ".openai/hosting.json",
   "README.md",
   "docs/TWITCH_VERIFICATION.md",
+  "docs/CAPTURE_PROOF.md",
+  "docs/RC8_RELEASE_GATE.md",
+  "scripts/capture-proof.mjs",
+  "scripts/validate-demo-evidence.mjs",
+  "docs/demo-video/demo-edl.json",
+  "docs/demo-video/evidence-sidecar.schema.json",
+  "docs/demo-video/build-demo.ps1",
+  "docs/demo-video/EVIDENCE_ASSEMBLY.md",
 ]) await requireFile(path);
 
 let files = [];
@@ -76,6 +84,17 @@ for (const path of textFiles) {
 try {
   const status = await readFile(resolve(ROOT, "docs/TWITCH_VERIFICATION.md"), "utf8");
   if (!/UNVERIFIED/i.test(status)) failures.push("Twitch verification document must retain an explicit UNVERIFIED status until real evidence exists");
+} catch {}
+
+try {
+  const releaseGate = await readFile(resolve(ROOT, "docs/RC8_RELEASE_GATE.md"), "utf8");
+  const lines = releaseGate.split(/\r?\n/);
+  for (const gate of ["Real Twitch", "Native OBS", "Human review", "NVDA", "Final video", "Public submission"]) {
+    const truthLine = lines.find(line => line.toLowerCase().includes(gate.toLowerCase()));
+    if (!truthLine || !/NOT VERIFIED/i.test(truthLine)) {
+      failures.push(`RC8 release gate must keep ${gate} explicitly NOT VERIFIED until retained evidence exists`);
+    }
+  }
 } catch {}
 
 const largest = sizes.sort((a, b) => b.size - a.size).slice(0, 5);

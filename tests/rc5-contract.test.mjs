@@ -63,7 +63,8 @@ test("continuous proof recorder requires a real five-minute audio-video rehearsa
   assert.match(capture, /REHEARSAL PROOF · SIMULATED INPUT · NOT LIVE TWITCH/);
   assert.match(capture, /audioPresent/);
   assert.match(capture, /COMPLETE_REHEARSAL_PROOF/);
-  assert.match(capture, /!worktree\.dirty/);
+  assert.match(capture, /sourceIntegrity\.verified/);
+  assert.match(capture, /cleanCommittedSource: sourceIntegrity\.checks\.cleanWorktree/);
   assert.match(capture, /#proofRecorderPrompt\[hidden\]\{display:none\}/,
     "the recorder prompt must not cover the captured playthrough after sharing starts");
   assert.match(capture, /const finalVoteStillOpen/);

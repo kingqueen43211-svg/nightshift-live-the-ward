@@ -60,15 +60,15 @@ npm run qa:performance
 npm run release:audit
 ```
 
-The final RC7 local release gate passed end to end: 109/109 unit and contract tests, 30/30 visual states including a real 640×360 half-scale render and all reduced-motion route finales, 9/9 browser gameplay gates, 5/5 integrity gates, 17/17 independent-process relay gates, 11/11 accessibility/reflow gates, 10/10 performance gates, and the release-audit stage. The final performance run held the live DOM at 521 nodes with zero listener growth and a 0.303 MiB post-GC heap delta. The audited deployable payload is 12.0 MiB across 25 files.
+The RC8 local code gates are implemented: `npm test` runs the full unit/contract suite, `npm run check` includes both capture and demo-evidence syntax validation, and `npm run release:audit` requires the truth-gated video assembly files. Run them again from the intended clean release commit and retain their output; this README is not proof that a future checkout passed.
 
-The [public production Site](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/) is the canonical hosted build. RC7's recorder now attaches diagnostics before navigation and rejects a supposedly complete rehearsal unless the captured browser-tab stream contains measured, non-silent audio across the final 25-second humane-ending window. The previously audited RC6 rehearsal is historical evidence only and must not be reused as final proof. Real Twitch, native OBS, unfamiliar-human readability, NVDA, audible mix/stereo review, public repository/video, and Devpost remain external gates until performed on the release build.
+The recorder now fails closed unless Git succeeds, `HEAD` equals the declared full release commit, the worktree is clean, and source/runtime hashes reconcile before and after capture. `npm run demo:evidence:validate -- <explicit validator arguments>` likewise requires real media, exact hashes, matching evidence sidecars, and explicit plan/report paths; it cannot create or infer evidence. The previously audited RC6 rehearsal is historical evidence only and must not be reused as final proof.
+
+External status remains explicit: real Twitch is **NOT VERIFIED**; native OBS is **NOT VERIFIED**; unfamiliar-human review is **NOT VERIFIED**; NVDA is **NOT VERIFIED**; the final assembled/public video is **NOT VERIFIED**; and the public repository/video/Devpost submission is **NOT VERIFIED**. The [hosted Site URL](https://nightshift-live-ward.chinnaaa-2023.chatgpt.site/) remains listed for review, but its logged-out exact-release deployment must still be verified before submission. See [`docs/RC8_RELEASE_GATE.md`](docs/RC8_RELEASE_GATE.md) for the promotion boundary.
 
 Before sharing the entry, follow the logged-out hosting, OAuth callback, OBS alpha, and rollback steps in [`docs/PUBLIC_DEPLOYMENT.md`](docs/PUBLIC_DEPLOYMENT.md).
 
-The finalist contract remains in [`docs/RC5_JUDGE_FIX_CONTRACT.md`](docs/RC5_JUDGE_FIX_CONTRACT.md); RC6's ten exact concept-reference reconciliations and current acceptance targets are tracked in [`docs/RC6_VISUAL_REFERENCE_MATRIX.md`](docs/RC6_VISUAL_REFERENCE_MATRIX.md).
-
-RC5 screenshots and the still-empty capture-proof boundary remain indexed in [`docs/evidence/RC5_EVIDENCE.md`](docs/evidence/RC5_EVIDENCE.md). Fresh RC6 machine-readable reports are produced by `npm run verify` in the workspace evidence directories and must be preserved with the promoted commit.
+The finalist contract remains in [`docs/RC5_JUDGE_FIX_CONTRACT.md`](docs/RC5_JUDGE_FIX_CONTRACT.md); RC6's ten exact concept-reference reconciliations are tracked in [`docs/RC6_VISUAL_REFERENCE_MATRIX.md`](docs/RC6_VISUAL_REFERENCE_MATRIX.md). Capture requirements are in [`docs/CAPTURE_PROOF.md`](docs/CAPTURE_PROOF.md), while [`docs/demo-video/EVIDENCE_ASSEMBLY.md`](docs/demo-video/EVIDENCE_ASSEMBLY.md) defines the exact-commit media and sidecar workflow. Preserve fresh machine-readable reports with the promoted commit.
 
 ## Connect a real Twitch channel
 
@@ -114,7 +114,8 @@ docs/
   RC6_VISUAL_REFERENCE_MATRIX.md Ten exact concept frames → implementation and acceptance
   RC7_JUDGE_RESPONSE.md Independent audit finding → evidence/external gate mapping
   RC7_SUBMISSION_PACK.md Truthful final submission copy and checklist
-  demo-video/      Truth-gated 2:52 edit plan and build script
+  RC8_RELEASE_GATE.md Local implementation and external NOT VERIFIED boundary
+  demo-video/      Truth-gated 2:52 edit plan, schema, evidence guide, and builder
   evidence/RC4_EVIDENCE.md Final screenshots and browser reports
   evidence/RC5_EVIDENCE.md RC5 suite artifacts and pending capture boundary
   SUBMISSION.md     Devpost-ready copy and checklist

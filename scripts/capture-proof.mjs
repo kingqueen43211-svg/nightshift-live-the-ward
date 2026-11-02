@@ -11,7 +11,12 @@ import {
   ENDING_AUDIO_RMS_THRESHOLD,
 } from "./capture-proof-diagnostics.mjs";
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const defaultRepoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const repoRoot = resolve(process.env.CAPTURE_PROOF_REPO_ROOT || defaultRepoRoot);
+const gitBinary = process.env.CAPTURE_GIT_BINARY || "git";
+const expectedReleaseCommit = process.env.CAPTURE_EXPECTED_COMMIT?.trim() || null;
+const expectedSourceTree = process.env.CAPTURE_EXPECTED_SOURCE_TREE?.trim() || null;
+const expectedRuntimeTree = process.env.CAPTURE_EXPECTED_RUNTIME_TREE?.trim() || null;
 const artifactRoot = resolve(process.env.CAPTURE_PROOF_DIR || join(repoRoot, "..", "..", "work", "capture-proof"));
 const profileRoot = join(artifactRoot, `.chrome-profile-${process.pid}`);
 const stepDelayMs = Math.max(350, Number(process.env.CAPTURE_STEP_MS || 1150));
@@ -27,14 +32,6 @@ const browserCandidates = [
   "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
 ].filter(Boolean);
 const browserPath = browserCandidates.find(existsSync);
-
-if (!browserPath) {
-  console.error("Proof capture requires Chrome or Edge. Set CAPTURE_BROWSER to an installed Chromium executable.");
-  process.exit(2);
-}
-
-mkdirSync(artifactRoot, { recursive: true });
-mkdirSync(profileRoot, { recursive: true });
 
 const stamp = new Date().toISOString().replace(/[:.]/g, "-");
 const baseName = `nightshift-rehearsal-proof-${stamp}`;
@@ -176,15 +173,131 @@ async function removeProfileWithRetries() {
   throw new Error(`Unable to remove temporary browser profile: ${safeProfile}`);
 }
 
-function sourceCommit() {
-  const result = spawnSync("git", ["rev-parse", "HEAD"], { cwd: repoRoot, encoding: "utf8", windowsHide: true });
-  return result.status === 0 ? result.stdout.trim() : null;
+function runGit(args, cwd = repoRoot) {
+  const result = spawnSync(gitBinary, args, { cwd, encoding: "utf8", windowsHide: true });
+  return {
+    command: [gitBinary, ...args],
+    ok: !result.error && result.status === 0,
+    status: result.status,
+    stdout: result.stdout?.trim() || "",
+    stderr: result.stderr?.trim() || "",
+    error: result.error?.message || null,
+  };
 }
 
-function sourceWorktree() {
-  const result = spawnSync("git", ["status", "--short"], { cwd: repoRoot, encoding: "utf8", windowsHide: true });
-  const entries = result.status === 0 ? result.stdout.trim().split(/\r?\n/).filter(Boolean) : [];
-  return { dirty: entries.length > 0, entries };
+function normalizedPath(path) {
+  const absolute = resolve(path);
+  return process.platform === "win32" ? absolute.toLowerCase() : absolute;
+}
+
+function gitListingSha256(listing) {
+  return createHash("sha256").update(`${listing}\n`).digest("hex");
+}
+
+function inspectSourceIntegrity({
+  root = repoRoot,
+  declaredCommit = expectedReleaseCommit,
+  declaredSourceTree = expectedSourceTree,
+  declaredRuntimeTree = expectedRuntimeTree,
+} = {}) {
+  const errors = [];
+  const commands = [];
+  const command = args => {
+    const result = runGit(args, root);
+    commands.push({ command: result.command, ok: result.ok, status: result.status, stderr: result.stderr, error: result.error });
+    if (!result.ok) {
+      const detail = result.error || result.stderr || `exit ${result.status}`;
+      errors.push(`Git command failed (${result.command.join(" ")}): ${detail}`);
+    }
+    return result;
+  };
+
+  if (!declaredCommit) errors.push("CAPTURE_EXPECTED_COMMIT is required and must declare the exact 40-character release commit.");
+  else if (!/^[0-9a-f]{40}$/i.test(declaredCommit)) errors.push("CAPTURE_EXPECTED_COMMIT must be a full 40-character Git commit hash, not HEAD, a branch, or an abbreviated hash.");
+  if (declaredSourceTree && !/^[0-9a-f]{40}$/i.test(declaredSourceTree)) errors.push("CAPTURE_EXPECTED_SOURCE_TREE must be a full 40-character Git tree hash when supplied.");
+  if (declaredRuntimeTree && !/^[0-9a-f]{40}$/i.test(declaredRuntimeTree)) errors.push("CAPTURE_EXPECTED_RUNTIME_TREE must be a full 40-character Git tree hash when supplied.");
+
+  const rootResult = command(["rev-parse", "--show-toplevel"]);
+  const repositoryRoot = rootResult.ok ? resolve(rootResult.stdout) : null;
+  if (repositoryRoot && normalizedPath(repositoryRoot) !== normalizedPath(root)) {
+    errors.push(`Capture root ${resolve(root)} does not match Git repository root ${repositoryRoot}.`);
+  }
+
+  const headResult = command(["rev-parse", "--verify", "HEAD^{commit}"]);
+  const head = headResult.ok ? headResult.stdout.toLowerCase() : null;
+  const declaredResult = /^[0-9a-f]{40}$/i.test(declaredCommit || "")
+    ? command(["rev-parse", "--verify", `${declaredCommit}^{commit}`])
+    : null;
+  const resolvedDeclaredCommit = declaredResult?.ok ? declaredResult.stdout.toLowerCase() : null;
+  if (head && resolvedDeclaredCommit && head !== resolvedDeclaredCommit) {
+    errors.push(`HEAD ${head} does not equal declared release commit ${resolvedDeclaredCommit}.`);
+  }
+
+  const statusResult = command(["status", "--porcelain=v1", "--untracked-files=all"]);
+  const entries = statusResult.ok ? statusResult.stdout.split(/\r?\n/).filter(Boolean) : [];
+  if (statusResult.ok && entries.length) errors.push(`Git worktree is dirty (${entries.length} entr${entries.length === 1 ? "y" : "ies"}).`);
+
+  const sourceTreeResult = head ? command(["rev-parse", `${head}^{tree}`]) : null;
+  const runtimeTreeResult = head ? command(["rev-parse", `${head}:dist`]) : null;
+  const expectedSourceTreeResult = resolvedDeclaredCommit ? command(["rev-parse", `${resolvedDeclaredCommit}^{tree}`]) : null;
+  const expectedRuntimeTreeResult = resolvedDeclaredCommit ? command(["rev-parse", `${resolvedDeclaredCommit}:dist`]) : null;
+  const sourceListingResult = head ? command(["ls-tree", "-r", "--full-tree", head]) : null;
+  const runtimeListingResult = head ? command(["ls-tree", "-r", "--full-tree", head, "--", "dist"]) : null;
+  const expectedSourceListingResult = resolvedDeclaredCommit ? command(["ls-tree", "-r", "--full-tree", resolvedDeclaredCommit]) : null;
+  const expectedRuntimeListingResult = resolvedDeclaredCommit ? command(["ls-tree", "-r", "--full-tree", resolvedDeclaredCommit, "--", "dist"]) : null;
+
+  const sourceTree = sourceTreeResult?.ok ? sourceTreeResult.stdout.toLowerCase() : null;
+  const runtimeTree = runtimeTreeResult?.ok ? runtimeTreeResult.stdout.toLowerCase() : null;
+  const releaseSourceTree = expectedSourceTreeResult?.ok ? expectedSourceTreeResult.stdout.toLowerCase() : null;
+  const releaseRuntimeTree = expectedRuntimeTreeResult?.ok ? expectedRuntimeTreeResult.stdout.toLowerCase() : null;
+  const sourceManifestSha256 = sourceListingResult?.ok ? gitListingSha256(sourceListingResult.stdout) : null;
+  const runtimeManifestSha256 = runtimeListingResult?.ok ? gitListingSha256(runtimeListingResult.stdout) : null;
+  const releaseSourceManifestSha256 = expectedSourceListingResult?.ok ? gitListingSha256(expectedSourceListingResult.stdout) : null;
+  const releaseRuntimeManifestSha256 = expectedRuntimeListingResult?.ok ? gitListingSha256(expectedRuntimeListingResult.stdout) : null;
+
+  if (sourceTree && releaseSourceTree && sourceTree !== releaseSourceTree) errors.push(`Source tree ${sourceTree} does not match declared release source tree ${releaseSourceTree}.`);
+  if (runtimeTree && releaseRuntimeTree && runtimeTree !== releaseRuntimeTree) errors.push(`Runtime tree ${runtimeTree} does not match declared release runtime tree ${releaseRuntimeTree}.`);
+  if (sourceManifestSha256 && releaseSourceManifestSha256 && sourceManifestSha256 !== releaseSourceManifestSha256) errors.push("Source file-manifest SHA-256 does not match the declared release commit.");
+  if (runtimeManifestSha256 && releaseRuntimeManifestSha256 && runtimeManifestSha256 !== releaseRuntimeManifestSha256) errors.push("Runtime file-manifest SHA-256 does not match the declared release commit.");
+  if (declaredSourceTree && sourceTree && declaredSourceTree.toLowerCase() !== sourceTree) errors.push(`Source tree ${sourceTree} does not match CAPTURE_EXPECTED_SOURCE_TREE ${declaredSourceTree.toLowerCase()}.`);
+  if (declaredRuntimeTree && runtimeTree && declaredRuntimeTree.toLowerCase() !== runtimeTree) errors.push(`Runtime tree ${runtimeTree} does not match CAPTURE_EXPECTED_RUNTIME_TREE ${declaredRuntimeTree.toLowerCase()}.`);
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    repositoryRoot,
+    declaredCommit: declaredCommit?.toLowerCase() || null,
+    head,
+    sourceTree,
+    runtimeTree,
+    sourceManifestSha256,
+    runtimeManifestSha256,
+    worktree: {
+      commandSucceeded: statusResult.ok,
+      dirty: !statusResult.ok || entries.length > 0,
+      entries,
+    },
+    commands,
+  };
+}
+
+function reconcileSourceIntegrity(initial, final) {
+  const checks = {
+    initialValid: initial.valid,
+    finalValid: final.valid,
+    sameRepository: initial.repositoryRoot === final.repositoryRoot,
+    sameDeclaredCommit: initial.declaredCommit === final.declaredCommit,
+    sameHead: initial.head === final.head,
+    sameSourceTree: initial.sourceTree === final.sourceTree,
+    sameRuntimeTree: initial.runtimeTree === final.runtimeTree,
+    sameSourceManifestSha256: initial.sourceManifestSha256 === final.sourceManifestSha256,
+    sameRuntimeManifestSha256: initial.runtimeManifestSha256 === final.runtimeManifestSha256,
+    cleanWorktree: initial.worktree.commandSucceeded && final.worktree.commandSucceeded && !initial.worktree.dirty && !final.worktree.dirty,
+  };
+  return {
+    verified: Object.values(checks).every(Boolean),
+    checks,
+  };
 }
 
 function recorderInjection() {
@@ -514,6 +627,28 @@ if (process.argv.includes("--validate")) {
   console.log("capture-proof validation passed (Node and recorder payload syntax)");
   process.exit(0);
 }
+
+const initialSourceIntegrity = inspectSourceIntegrity();
+if (process.argv.includes("--preflight")) {
+  const output = `${JSON.stringify(initialSourceIntegrity, null, 2)}\n`;
+  (initialSourceIntegrity.valid ? process.stdout : process.stderr).write(output);
+  process.exit(initialSourceIntegrity.valid ? 0 : 2);
+}
+
+if (!initialSourceIntegrity.valid) {
+  console.error("Proof capture source-integrity preflight failed:");
+  for (const error of initialSourceIntegrity.errors) console.error(`- ${error}`);
+  console.error("Set CAPTURE_EXPECTED_COMMIT to the exact full release commit and run only from a clean, valid Git repository.");
+  process.exit(2);
+}
+
+if (!browserPath) {
+  console.error("Proof capture requires Chrome or Edge. Set CAPTURE_BROWSER to an installed Chromium executable.");
+  process.exit(2);
+}
+
+mkdirSync(artifactRoot, { recursive: true });
+mkdirSync(profileRoot, { recursive: true });
 
 let serverProcess;
 let browserProcess;
@@ -975,13 +1110,14 @@ try {
   const expectedEnding = automationResult?.ending === "MARA WALKS INTO DAWN";
   const zeroFallbacks = Boolean(automationResult?.recap?.some(value => /FALLBACKS.*0/i.test(value)));
   const hasCaptions = Number(automationResult?.captions?.length || recorderMetadata?.captions?.length || 0) > 0;
-  const worktree = sourceWorktree();
+  const finalSourceIntegrity = inspectSourceIntegrity();
+  const sourceIntegrity = reconcileSourceIntegrity(initialSourceIntegrity, finalSourceIntegrity);
   const unresolvedBrowserIssues = [
     ...consoleIssues.filter(issue => issue.classification?.needsReview),
     ...networkFailures.filter(issue => issue.classification?.needsReview),
   ];
   const browserDiagnosticsAccountedFor = unresolvedBrowserIssues.length === 0;
-  const complete = !failure && videoSize > 0 && audioPresent && browserTabSurfaceSelected && endingAudioTailVerified && expectedEnding && zeroFallbacks && hasCaptions && bindingErrors.length === 0 && browserDiagnosticsAccountedFor && !worktree.dirty;
+  const complete = !failure && videoSize > 0 && audioPresent && browserTabSurfaceSelected && endingAudioTailVerified && expectedEnding && zeroFallbacks && hasCaptions && bindingErrors.length === 0 && browserDiagnosticsAccountedFor && sourceIntegrity.verified;
   const sha256 = videoSize > 0 ? videoHash.digest("hex") : null;
   const manifest = {
     schemaVersion: 3,
@@ -995,8 +1131,18 @@ try {
       statement: "This artifact records a local simulated rehearsal. It is not evidence of real Twitch activity, native OBS behavior, or an unfamiliar human playtest.",
     },
     source: {
-      commit: sourceCommit(),
-      worktree,
+      commit: initialSourceIntegrity.head,
+      expectedCommit: initialSourceIntegrity.declaredCommit,
+      sourceTree: initialSourceIntegrity.sourceTree,
+      runtimeTree: initialSourceIntegrity.runtimeTree,
+      sourceManifestSha256: initialSourceIntegrity.sourceManifestSha256,
+      runtimeManifestSha256: initialSourceIntegrity.runtimeManifestSha256,
+      worktree: finalSourceIntegrity.worktree,
+      integrity: {
+        initial: initialSourceIntegrity,
+        final: finalSourceIntegrity,
+        reconciliation: sourceIntegrity,
+      },
       capturedAt: new Date().toISOString(),
       browserPath,
       stepDelayMs,
@@ -1054,7 +1200,14 @@ try {
       earnedHumaneEnding: expectedEnding,
       zeroDirectorFallbacks: zeroFallbacks,
       browserDiagnosticsAccountedFor,
-      cleanCommittedSource: !worktree.dirty,
+      gitCommandsSucceeded: initialSourceIntegrity.commands.every(command => command.ok)
+        && finalSourceIntegrity.commands.every(command => command.ok),
+      releaseCommitMatched: sourceIntegrity.checks.sameDeclaredCommit && sourceIntegrity.checks.sameHead,
+      runtimeSourceHashesReconciled: sourceIntegrity.checks.sameSourceTree
+        && sourceIntegrity.checks.sameRuntimeTree
+        && sourceIntegrity.checks.sameSourceManifestSha256
+        && sourceIntegrity.checks.sameRuntimeManifestSha256,
+      cleanCommittedSource: sourceIntegrity.checks.cleanWorktree,
       rehearsalProvenanceOnly: true,
     },
     doesNotProve: [
